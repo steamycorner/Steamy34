@@ -2,11 +2,15 @@
 
 **Steamy34 is a free, all-in-one userscript for rule34.xxx.** It adds a dark mode (White, Dark and OLED), a popup viewer, a much easier tag search, downloads named after the post's tags, and artist following with new-post counts. It also has a touch-friendly phone layout for Android. It runs in Tampermonkey or Violentmonkey.
 
-*[Vibecoded with AI]* · by **steamycorner** · License: CC0 1.0 · Beta – the newest version is always on Sleazy Fork and in `Steamy34.user.js` here
+*[Vibecoded with AI]* · by **steamycorner** · License: CC0 1.0 · Beta
+
+> ### ⬇ Install from Sleazy Fork: [sleazyfork.org/scripts/606445-steamy34](https://sleazyfork.org/en/scripts/606445-steamy34)
+> One click on **Install this script**, and Tampermonkey **keeps Steamy34 up to date by itself** from there – nothing else to do.
+> This GitHub page is the **source code**, the README and the FAQ. Please install from Sleazy Fork, not from the files here.
 
 > **A fan-made hobby project.** Steamy34 is free and will never be monetized: no ads, no paid features, no data collection. It isn't made by or connected to rule34.xxx.
 
-**[Install Steamy34 from Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34)** · Questions or bugs: https://linktr.ee/steamycorner
+Questions, bugs or ideas: the [Feedback tab on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34/feedback) or https://linktr.ee/steamycorner
 
 ---
 
@@ -80,8 +84,10 @@
 ## Install
 
 1. Install a userscript manager: **Tampermonkey** or **Violentmonkey** (Chrome, Firefox, Edge, Brave and others).
-2. Open the [Steamy34 page on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34) and click **Install**.
+2. Open the [Steamy34 page on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34) and click **Install this script**.
 3. Open rule34.xxx. A short welcome tour shows the best features.
+
+**Updates:** automatic. Tampermonkey checks Sleazy Fork for new versions and installs them for you – your settings, history and followed artists always stay. (`Steamy34.user.js` in this repository is the file Sleazy Fork takes its updates from; you don't need to download it.)
 
 **On Android:** install **Firefox** from the Play Store, add **Tampermonkey** (Firefox ⋮ → Extensions), then install Steamy34. It switches to its phone layout by itself.
 
@@ -147,6 +153,9 @@ Yes. Settings → Backup saves everything to a file; restore it on the other dev
 
 ### Which browsers are supported?
 Any browser with Tampermonkey or Violentmonkey: Chrome, Firefox, Edge, Brave, Waterfox, Opera and others. On Android: Firefox.
+
+### How do I install and update Steamy34?
+Install it from its [Sleazy Fork page](https://sleazyfork.org/en/scripts/606445-steamy34) with one click. Updates come automatically: Tampermonkey checks Sleazy Fork regularly (or right away via Tampermonkey → Utilities → "Check for userscript updates"). Your settings and data are kept with every update.
 
 ### Something doesn't work. Where do I report it?
 Leave feedback on the Sleazy Fork page or get in touch via https://linktr.ee/steamycorner. A short description of what you did and what happened helps most.
