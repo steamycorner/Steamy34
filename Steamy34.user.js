@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.3.5-beta
+// @version      3.4-beta
 // @license      CC0-1.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -132,6 +132,7 @@
         favKey: 'KeyF',          // popup: favourite the post
         collectKey: 'KeyC',      // popup: add the post to a collection
         theaterKey: 'KeyT',      // popup: theater mode on / off
+        followKey: 'KeyL',       // popup: follow / unfollow the post's artist
         showDownloadButton: true,// clickable "Download" button on single post pages
         trackDownloads: true,    // remember downloaded posts and mark them with ✓
         trackViewed: true,       // remember opened posts and mark them with 👁
@@ -142,7 +143,6 @@
         hoverInfo: true,         // score and resolution on thumbnails while hovering
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
         popupPreload: true,      // popup: load the next/previous post in advance
-        checkSavedSearches: true,// unused since Beta 3.1 (searches are followed now - see checkFollowing)
 
         // Fit to viewport
         padding: 10,             // px gap kept to the window edges
@@ -176,12 +176,17 @@
                                  // only on 'hover', or in a strip 'below' the picture
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         contextHints: true,      // little one-time tips the first time you meet a feature
+        censorComments: true,    // Censored mode (X) also blurs comment texts and names
+
+        // Following
         followButtons: true,     // bell (follow) next to artists (popup, post pages)
-        checkFollowing: true,    // count new posts from followed artists (in the background)
+        checkFollowing: true,    // count new posts for followed artists & searches (in the background)
+        tabBadge: true,          // "(12) rule34" in the browser tab while there are new posts
 
         // Hover preview on the posts page
         hoverPreview: true,      // play videos when hovering their thumbnail
         hoverDelay: 250,         // ms to hover before loading (avoids loading while just moving the mouse past)
+        hoverVideoDelay: 500,    // ms for videos - they're bigger, so a quick mouse pass never starts one
         hoverMuted: true,        // browsers block sound until you click the page, so muted is most reliable
         hoverHighRes: true,      // show the full-quality image when hovering an image thumbnail
         thumbTagBar: true,       // artist & character tags at the bottom of each thumbnail
@@ -197,6 +202,7 @@
         // Infinite scrolling on the posts page
         hideListTags: true,         // hide the tag list under the search on the posts page
         infiniteScroll: true,
+        resumeOffer: true,          // back on a search you scrolled deep into: "Continue at page N"
         infiniteScrollMargin: 1200, // px before the bottom at which the next page starts loading
         pageDividers: true,         // show a small "Page N" line between loaded pages
         cleanupFarPages: true,      // unload pages you've scrolled far away from (saves memory)
@@ -256,8 +262,10 @@
     // Row: [key, label, extra]; extra: options / min / max / unit / text /
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
-        { id: 'look', title: 'Look', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
+        { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
+            ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
             ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
             ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
             ['thumbBadges', 'VID / GIF labels on thumbnails', { hint: 'Small labels in the corner of animated posts' }],
@@ -274,12 +282,12 @@
             ['hoverInfo', 'Score & resolution on hover'],
             ['thumbTagBar', 'Artist & character tags on thumbnails'],
             ['favButtons', '♥ Favourite buttons', { hint: 'On thumbnails and in the popup – needs a rule34 login' }],
-            ['followButtons', '🔔 Follow buttons on artists', { hint: 'Next to artists in the popup and on post pages – everything you follow is listed in the sidebar' }],
-            ['checkFollowing', 'Count new posts for what you follow', { hint: 'Artists and searches – checked quietly in the background, at most every 20 minutes' }],
             ['infiniteScroll', 'Infinite scrolling', { hint: 'The next page loads when you reach the bottom' }],
+            ['resumeOffer', 'Offer to continue where you left off', { hint: 'Back on a search you had scrolled deep into? A small "Continue at page N" button takes you back there' }],
             ['pageDividers', '"Page N" dividers'],
             ['hideListTags', 'Hide the tag list under the search'],
-            ['hoverDelay', 'Hover delay', { min: 0, max: 2000, unit: 'ms', adv: true }],
+            ['hoverDelay', 'Hover delay for pictures', { min: 0, max: 2000, unit: 'ms', adv: true }],
+            ['hoverVideoDelay', 'Hover delay for videos', { min: 0, max: 3000, unit: 'ms', adv: true, hint: 'Videos are big – a short pause means passing the mouse over them never starts a download' }],
             ['hoverMuted', 'Hover previews muted', { adv: true }],
             ['tagBarLookup', 'Look up missing tags in the background', { adv: true }],
             ['tagBarMax', 'Tags shown per type', { min: 1, max: 6, adv: true }],
@@ -292,7 +300,7 @@
             ['favKey', 'Favourite key', { hotkey: true, hint: 'In the popup – click the box, then press a key' }],
             ['collectKey', 'Add to collection key', { hotkey: true }],
             ['theaterKey', 'Theater mode key', { hotkey: true }],
-            ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
+            ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
             ['popupPreload', 'Load the next / previous post in advance', { hint: 'Browsing feels instant. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
@@ -300,6 +308,11 @@
             ['muteIfBlocked', 'Play muted if sound is blocked', { adv: true }],
             ['scrollToMedia', 'Scroll to the picture on post pages', { adv: true }],
             ['padding', 'Gap to the window edges', { min: 0, max: 100, unit: 'px', adv: true }]
+        ] },
+        { id: 'following', title: 'Following', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 0 0-12 0c0 6.5-3 8.5-3 8.5h18s-3-2-3-8.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>', rows: [
+            ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages – searches are followed with the bell under the search box' }],
+            ['checkFollowing', 'Count new posts', { hint: 'For followed artists and searches – checked quietly in the background, at most every 20 minutes' }],
+            ['tabBadge', 'New posts in the browser tab', { hint: 'The tab shows "(12) rule34" while there are new posts – handy when rule34 sits in a background tab' }]
         ] },
         { id: 'search', title: 'Search', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>', rows: [
             ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, recent searches and the bell to follow a search' }],
@@ -3154,6 +3167,40 @@
             filter: blur(24px) saturate(.6) !important;
             clip-path: inset(0) !important;
         }
+        /* ...and comments: text and names (setting censorComments) - in the
+           popup and on the site's own post pages */
+        html.s34-sfw-text :is(.s34-cm-text, .s34-cm-user, .s34-cm-avatar, #comment-list [id^="cbody"], #comment-list .col1 a) {
+            filter: blur(5px) !important;
+            user-select: none;
+        }
+        /* "Info for a bug report" window */
+        .s34-debug-win .s34-win-body { display: flex; flex-direction: column; gap: 12px; }
+        .s34-debug-text {
+            margin: 0;
+            padding: 10px 12px;
+            max-height: 44vh;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border-radius: 8px;
+            border: 1px solid #2e2e36 !important;
+            background-color: #121216 !important;
+            color: #dcdce0 !important;
+            font: 12px/1.5 ui-monospace, Consolas, monospace;
+            user-select: text;
+        }
+        .s34-debug-how { margin: 0; font-size: 12.5px; line-height: 1.5; opacity: .85; }
+        .s34-debug-foot { display: flex; justify-content: flex-end; }
+        .s34-debug-foot button {
+            height: 32px;
+            padding: 0 18px !important;
+            border-radius: 8px;
+            border: none !important;
+            background: linear-gradient(135deg, #ffb347, #ff5f8f) !important;
+            color: #fff !important;
+            font: 600 13px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+        }
         .s34-sfw-label {
             position: fixed;
             right: 12px;
@@ -3894,6 +3941,18 @@
             color: #dcdce0 !important;
         }
         .s34-follow-chip button:hover { opacity: 1; color: #ff6b6b !important; }
+        /* Per-artist filter inside the artist's chip */
+        .s34-follow-chip select.s34-follow-afilter {
+            height: 20px;
+            margin: 0 0 0 6px !important;
+            padding: 0 2px !important;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            background-color: rgba(0,0,0,0.25) !important;
+            color: #b9b9c3 !important;
+            font: 11px system-ui, sans-serif;
+            cursor: pointer;
+        }
         .s34-follow-empty { padding: 14px 4px; font-size: 13px; line-height: 1.55; opacity: .75; }
         .s34-follow-filter { padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08) !important; }
         .s34-follow-label { font-size: 12.5px; font-weight: 700; margin-bottom: 8px; }
@@ -4802,7 +4861,12 @@
     injectStyles();
 
     // Screenshot mode (20d) was on? Blur from the very first moment
-    try { if (GM_getValue('steamy34_sfw', false) === true) document.documentElement.classList.add('s34-sfw'); } catch (e) {}
+    try {
+        if (GM_getValue('steamy34_sfw', false) === true) {
+            document.documentElement.classList.add('s34-sfw');
+            if (CONFIG.censorComments) document.documentElement.classList.add('s34-sfw-text');
+        }
+    } catch (e) {}
 
     // An ad blocker was found last time? Then the right ad column steps aside
     // from the very first moment (checked again once the page is there - it
@@ -6457,7 +6521,7 @@
 
                     thumb.appendChild(el);
                     tryNext();
-                }, CONFIG.hoverDelay);
+                }, isVideo ? CONFIG.hoverVideoDelay : CONFIG.hoverDelay); // videos wait a bit longer (they're big)
             });
 
             thumb.addEventListener('mouseleave', stop);
@@ -8034,6 +8098,8 @@
 
         let loading = false;
 
+        list.dataset.s34Pid = String(startPid); // which page each block is (for "continue where you left off")
+
         const status = document.createElement('div');
         status.className = 's34-scroll-status';
         list.after(status); // new pages are inserted right before this
@@ -8139,6 +8205,7 @@
                     // of a page isn't stretched by the justified layout
                     const block = document.createElement('div');
                     block.className = list.className;
+                    block.dataset.s34Pid = String(nextPid);
                     hideBlocklisted(newThumbs); // before they're shown
                     newThumbs.forEach(t => block.appendChild(t));
                     status.parentNode.insertBefore(block, status);
@@ -8427,6 +8494,7 @@
                         <button type="button" class="s34-set-btn" data-act="mobile">${PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"')} On your phone</button>
                     </div>
                     <div class="s34-set-cardhead">Questions, bugs or ideas?</div>
+                    <div class="s34-set-actions"><button type="button" class="s34-set-btn" data-act="debug" title="Shows what would be shared, then copies it – no searches, tags or artists">🐞 Copy info for a bug report</button></div>
                     <p>Join the Steamy34 channels (#feedback, #new-ideas) on steamycorner's <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – or write in the <a href="${SLEAZY_URL}/feedback" target="_blank" rel="noopener noreferrer">Feedback tab on Sleazy Fork</a>. More from steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a></p>
                     <p class="s34-set-ver">Steamy34 ${CURRENT_VERSION}</p>
                 </div>`;
@@ -8581,6 +8649,8 @@
                 location.reload();
             } else if (act === 'welcome') {
                 openWelcome(0);
+            } else if (act === 'debug') {
+                openDebugInfo();
             } else if (act === 'hints-reset') {
                 GM_deleteValue(HINTS_KEY);
                 saveSettingsNow({ contextHints: true });
@@ -8860,7 +8930,8 @@
         // Beta 2.9 stored { tags: [{ tag, type }] } - keep the artists
         if (!artists && Array.isArray(v.tags)) artists = v.tags.filter(t => t && t.tag && (!t.type || t.type === 'artist')).map(t => ({ tag: t.tag, added: t.added || Date.now() }));
         return {
-            artists: (artists || []).filter(a => a && a.tag).map(a => Object.assign({ seen: 0, latest: 0, count: 0, more: false }, a)),
+            // filter: '' = the shared filter, 'all' = everything, '50' = only score ≥ 50 (per artist, Beta 3.4)
+            artists: (artists || []).filter(a => a && a.tag).map(a => Object.assign({ seen: 0, latest: 0, count: 0, more: false, filter: '' }, a)),
             searches: (Array.isArray(v.searches) ? v.searches : []).filter(s => s && s.query)
                 .map(s => Object.assign({ name: s.query, added: 0, seen: 0, latest: 0, count: 0, more: false }, s)),
             checkedAt: v.checkedAt || 0,
@@ -8941,10 +9012,26 @@
     }
     const isFollowed = (tag, d) => !!findArtist(tag, d);
 
+    // Artists in groups of 20 for the either/or searches. Artists with their
+    // own filter are grouped separately (one search can only have one
+    // filter); each group carries its filter words as .words
     function followGroups(d) {
-        const tags = (d || getFollowing()).artists.map(a => a.tag);
+        d = d || getFollowing();
+        const byFilter = new Map();
+        d.artists.forEach(a => {
+            const words = artistFilterWords(a, d);
+            const key = words.join(' ');
+            if (!byFilter.has(key)) byFilter.set(key, { words, tags: [] });
+            byFilter.get(key).tags.push(a.tag);
+        });
         const groups = [];
-        for (let i = 0; i < tags.length; i += FEED_GROUP_SIZE) groups.push(tags.slice(i, i + FEED_GROUP_SIZE));
+        byFilter.forEach(({ words, tags }) => {
+            for (let i = 0; i < tags.length; i += FEED_GROUP_SIZE) {
+                const g = tags.slice(i, i + FEED_GROUP_SIZE);
+                g.words = words;
+                groups.push(g);
+            }
+        });
         return groups;
     }
 
@@ -8955,14 +9042,21 @@
         if (f.rating) out.push(f.rating);
         return out;
     }
+    // One artist's filter: the shared one, everything, or its own minimum score
+    function artistFilterWords(a, d) {
+        if (!a || !a.filter) return filterWords(d);
+        if (a.filter === 'all') return [];
+        return /^\d+$/.test(a.filter) ? ['score:>=' + a.filter] : filterWords(d);
+    }
     function groupQuery(tags, d) {
         if (!tags || !tags.length) return '';
-        return [tags.length === 1 ? tags[0] : '( ' + tags.join(' ~ ') + ' )'].concat(filterWords(d)).join(' ');
+        return [tags.length === 1 ? tags[0] : '( ' + tags.join(' ~ ') + ' )'].concat(tags.words || filterWords(d)).join(' ');
     }
 
     // Feed addresses: one artist, or all of them (group i)
     function artistFeedUrl(tag, d) {
-        return 'index.php?page=post&s=list&tags=' + encodeURIComponent([tag].concat(filterWords(d)).join(' ')) +
+        d = d || getFollowing();
+        return 'index.php?page=post&s=list&tags=' + encodeURIComponent([tag].concat(artistFilterWords(findArtist(tag, d), d)).join(' ')) +
                '#s34-following=' + encodeURIComponent(tag);
     }
     function allFeedUrl(i = 0, d) {
@@ -9024,7 +9118,8 @@
         const t = prettyTag(btn.dataset.followTag);
         btn.classList.toggle('s34-following', on);
         btn.innerHTML = on ? BELL_ON_SVG : BELL_SVG;
-        btn.title = on ? `Following ${t} – click to unfollow` : `Follow ${t} – their new posts show up in the sidebar`;
+        const k = btn.classList.contains('s34-chip-follow') ? ` (${keyLabel(CONFIG.followKey)})` : ''; // the popup's follow key
+        btn.title = on ? `Following ${t} – click to unfollow${k}` : `Follow ${t} – their new posts show up in the sidebar${k}`;
         btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
 
@@ -9092,10 +9187,56 @@
         renderFollowBox();
     }
 
+    // ---- "(12) rule34" in the browser tab while there are new posts ----
+    // (and a small pink dot on the tab icon) - setting tabBadge
+    let tabIconOriginal = null;
+    function updateTabBadge(d) {
+        let n = 0, more = false;
+        if (CONFIG.tabBadge) {
+            try {
+                d = d || getFollowing();
+                const t = followTotals(d, true);
+                n = t.n;
+                more = /\+/.test(t.text);
+            } catch (e) {}
+        }
+        const base = document.title.replace(/^(\(\d+\+?\)\s*)+/, ''); // our own count, however often it got there
+        const want = n ? `(${n}${more ? '+' : ''}) ${base}` : base;
+        if (document.title !== want) document.title = want;
+        // Tab icon: the site's own icon with a dot (same site, so it can be drawn)
+        try {
+            let link = document.querySelector('link[rel~="icon"]');
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                link.href = '/favicon.ico';
+                document.head.appendChild(link);
+            }
+            if (tabIconOriginal === null) tabIconOriginal = link.href;
+            if (!n) { if (link.href !== tabIconOriginal) { link.href = tabIconOriginal; delete link.dataset.s34Dot; } return; }
+            if (link.dataset.s34Dot === '1') return; // already dotted
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const c = document.createElement('canvas');
+                    c.width = c.height = 32;
+                    const g = c.getContext('2d');
+                    g.drawImage(img, 0, 0, 32, 32);
+                    g.fillStyle = '#e0457b';
+                    g.beginPath(); g.arc(24, 8, 7.5, 0, Math.PI * 2); g.fill();
+                    link.href = c.toDataURL('image/png');
+                    link.dataset.s34Dot = '1';
+                } catch (e) {}
+            };
+            img.src = tabIconOriginal;
+        } catch (e) {}
+    }
+
     function renderFollowBox(d) {
+        d = d || getFollowing();
+        updateTabBadge(d);
         const box = document.querySelector('.s34-follow-box');
         if (!box) return;
-        d = d || getFollowing();
         const feed = onFeedPage() ? feedFromHash(location.hash) : null;
         const head = `<div class="s34-follow-head">${BELL_SVG}<b>Following</b><a href="#" data-fb="manage">Manage</a></div>`;
         if (!d.artists.length && !d.searches.length) {
@@ -9255,8 +9396,12 @@
             bar.querySelector('b').textContent = prettyTag(feed.tag);
         } else {
             const groups = followGroups(d);
-            const pills = groups.length > 1 ? `<div class="s34-feed-groups">${groups.map((g, i) =>
-                `<a href="${allFeedUrl(i, d)}" class="${i === feed.group ? 's34-on' : ''}">${i * FEED_GROUP_SIZE + 1}–${i * FEED_GROUP_SIZE + g.length}</a>`).join('')}</div>` : '';
+            let from = 0; // groups can be shorter than 20 (artists with their own filter are separate)
+            const pills = groups.length > 1 ? `<div class="s34-feed-groups">${groups.map((g, i) => {
+                const a = from + 1;
+                from += g.length;
+                return `<a href="${allFeedUrl(i, d)}" class="${i === feed.group ? 's34-on' : ''}" title="${escapeHtml(g.join(', '))}">${a}–${from}</a>`;
+            }).join('')}</div>` : '';
             bar.innerHTML = `<div class="s34-feed-head">${BELL_SVG}<b>All followed artists</b><span class="s34-feed-sub"></span></div>
                 ${pills}<div class="s34-feed-tags"></div>
                 <button type="button" class="s34-feed-btn" data-f="manage">Manage</button>`;
@@ -9383,7 +9528,7 @@
             </div>
             <div class="s34-follow-list"></div>
             <div class="s34-follow-filter">
-                <div class="s34-follow-label">Artist filter <span>– only for followed artists; followed searches and your normal searches stay as they are</span></div>
+                <div class="s34-follow-label">Shared artist filter <span>– for every followed artist set to "Shared filter" (each artist above can also have its own); followed searches and normal searches stay as they are</span></div>
                 <div class="s34-follow-filters">${FILTERS.map(([k, label, opts]) => `<label><span>${label}</span><select data-k="${k}">${opts.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>`).join('')}</div>
             </div>
             <div class="s34-follow-foot">
@@ -9445,7 +9590,28 @@
                 chips.forEach(c => wrap.appendChild(c));
                 listEl.appendChild(wrap);
             };
-            group('Artists', d.artists.map(a => chip('s34-feed-artist', prettyTag(a.tag), artistFeedUrl(a.tag, d), 'Show ' + prettyTag(a.tag), a, () => toggleFollow(a.tag))));
+            group('Artists', d.artists.map(a => {
+                const c = chip('s34-feed-artist', prettyTag(a.tag), artistFeedUrl(a.tag, d), 'Show ' + prettyTag(a.tag), a, () => toggleFollow(a.tag));
+                // This artist's own filter (or the shared one)
+                const sel = document.createElement('select');
+                sel.className = 's34-follow-afilter';
+                sel.title = 'Filter for ' + prettyTag(a.tag);
+                [['', 'Shared filter'], ['all', 'Everything'], ['10', 'Score ≥ 10'], ['50', 'Score ≥ 50'], ['100', 'Score ≥ 100'], ['500', 'Score ≥ 500']]
+                    .forEach(([v, t]) => sel.add(new Option(t, v)));
+                sel.value = a.filter || '';
+                sel.addEventListener('change', () => {
+                    const fresh = getFollowing();
+                    const art = findArtist(a.tag, fresh);
+                    if (!art) return;
+                    art.filter = sel.value;
+                    fresh.checkedAt = 0; // counts follow the new filter at the next check
+                    saveFollowing(fresh);
+                    showToast(prettyTag(a.tag) + ': ' + sel.selectedOptions[0].textContent.toLowerCase() + '.');
+                    refreshFollowUi();
+                });
+                c.insertBefore(sel, c.querySelector('button'));
+                return c;
+            }));
             group('Searches', d.searches.map(s => chip('s34-follow-schip', searchLabel(s), searchFeedUrl(s.query), 'Search: ' + s.query, s, () => toggleFollowSearch(s.query))));
             w.body.querySelectorAll('.s34-follow-filters select').forEach(s => { s.value = d.filter[s.dataset.k] || ''; });
             w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA && !nS; });
@@ -9492,24 +9658,28 @@
         if (!d0.artists.length && !d0.searches.length) input.focus({ preventScroll: true });
     }
     // =====================================================================
-    //  SCREENSHOT MODE (safe for work screenshots)
+    //  CENSORED MODE (was "screenshot mode" until Beta 3.4)
     //  X (or the switch in the sidebar) blurs every picture and video:
-    //  thumbnails, the popup, post pages, hover previews, collections.
+    //  thumbnails, the popup, post pages, hover previews, collections - and
+    //  (setting censorComments, on by default) comment texts and names.
     //  Only what you see changes - downloads stay exactly as they are.
     //  Stays on (also after a reload) until you turn it off; a small label
-    //  at the bottom says it's on. The html class is set right at the start
-    //  (10-colour-modes.js), so nothing flashes unblurred.
+    //  at the bottom says it's on. The html classes are set right at the
+    //  start (10-colour-modes.js), so nothing flashes unblurred.
+    //  The name lives in CENSOR_NAME only - change it there.
     // =====================================================================
     const SFW_KEY = 'steamy34_sfw';
+    const CENSOR_NAME = 'Censored mode';
 
     function sfwOn() { return document.documentElement.classList.contains('s34-sfw'); }
 
     function setScreenshotMode(on) {
         document.documentElement.classList.toggle('s34-sfw', on);
+        document.documentElement.classList.toggle('s34-sfw-text', on && CONFIG.censorComments);
         try { GM_setValue(SFW_KEY, on); } catch (e) {}
         document.querySelectorAll('.s34-q-sfw input').forEach(cb => { cb.checked = on; });
         showSfwLabel();
-        showToast(on ? 'Screenshot mode on – all pictures are blurred. X turns it off.' : 'Screenshot mode off.');
+        showToast(on ? `${CENSOR_NAME} on – pictures${CONFIG.censorComments ? ' and comments' : ''} are blurred, safe for screenshots. X turns it off.` : `${CENSOR_NAME} off.`);
     }
 
     // Small label at the bottom right while it's on (click = off)
@@ -9520,8 +9690,9 @@
         label = document.createElement('button');
         label.type = 'button';
         label.className = 's34-sfw-label';
-        label.title = 'Click (or press X) to show the pictures again';
-        label.innerHTML = '<span>Screenshot mode</span><kbd>X</kbd>';
+        label.title = 'Click (or press X) to show everything again';
+        label.innerHTML = '<span></span><kbd>X</kbd>';
+        label.querySelector('span').textContent = CENSOR_NAME;
         label.addEventListener('click', () => setScreenshotMode(false));
         document.body.appendChild(label);
     }
@@ -9533,25 +9704,178 @@
             const t = e.target;
             if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
             if (document.querySelector('.s34-overlay:not(.s34-pv-overlay)')) return; // settings etc. open
-            if (CONFIG.downloadKey === 'KeyX' || CONFIG.favKey === 'KeyX' || CONFIG.collectKey === 'KeyX' || CONFIG.theaterKey === 'KeyX') return; // your own key wins
+            if ([CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey].includes('KeyX')) return; // your own key wins
             e.preventDefault();
             setScreenshotMode(!sfwOn());
         }, true);
     }
 
-    // The switch in the sidebar panel (under "Hide downloaded")
+    // The switch in the sidebar's "View" group (under "Hide downloaded")
     function addSfwSwitch(panel) {
         if (!panel || panel.querySelector('.s34-q-sfw')) return;
         const row = document.createElement('label');
         row.className = 's34-q-switch s34-q-sfw';
-        row.title = 'Blurs every picture and video, e.g. for screenshots – X turns it on and off';
-        row.innerHTML = '<input type="checkbox"><span class="s34-q-track"></span>Blur pictures';
+        row.title = 'Blurs every picture and video' + (CONFIG.censorComments ? ' and the comments' : '') + ' – safe for screenshots or in public. X turns it on and off';
+        row.innerHTML = '<input type="checkbox"><span class="s34-q-track"></span><span class="s34-q-sfw-name"></span>';
+        row.querySelector('.s34-q-sfw-name').textContent = CENSOR_NAME;
         const cb = row.querySelector('input');
         cb.checked = sfwOn();
         cb.addEventListener('change', () => setScreenshotMode(cb.checked));
         const after = panel.querySelector('[data-k="hideDownloaded"]') || panel.querySelector('[data-k="hideViewed"]');
         const head = panel.querySelector('.s34-q-head');
         if (after) after.closest('label').after(row); else if (head) head.after(row); else panel.prepend(row);
+    }
+    // =====================================================================
+    //  SUPPORT & HEALTH
+    //  - "Copy info for a bug report" (Settings → Help): version, browser,
+    //    layout, changed settings, counts and the last problems - no
+    //    searches, tags, artists or post numbers, so it's safe to share.
+    //  - Site check: if rule34's page doesn't look like Steamy34 expects
+    //    (the site changed its layout), a calm one-time message instead of
+    //    half-working features.
+    //  - Rating nudge: once ever, after a week of use.
+    // =====================================================================
+    const PROBLEMS = [];            // the last problems on this page (for the bug report)
+    function noteProblem(msg) {
+        const line = new Date().toTimeString().slice(0, 8) + '  ' + String(msg).replace(/\s+/g, ' ').slice(0, 220);
+        if (PROBLEMS[PROBLEMS.length - 1] === line) return;
+        PROBLEMS.push(line);
+        if (PROBLEMS.length > 12) PROBLEMS.shift();
+    }
+    // Errors that come from Steamy34's own code (or mention it)
+    window.addEventListener('error', e => {
+        const where = (e.filename || '') + ' ' + ((e.error && e.error.stack) || '');
+        if (/steamy34|userscript|tampermonkey|violentmonkey|user\.js/i.test(where + ' ' + e.message)) noteProblem('Error: ' + e.message);
+    });
+    window.addEventListener('unhandledrejection', e => {
+        const r = e.reason || {};
+        const text = (r.stack || r.message || String(r));
+        if (/steamy34|userscript|user\.js/i.test(text)) noteProblem('Unhandled: ' + (r.message || String(r)));
+    });
+
+    function browserName() {
+        const ua = navigator.userAgent;
+        let m;
+        if (navigator.brave) return 'Brave' + ((m = /Chrome\/(\d+)/.exec(ua)) ? ' (Chromium ' + m[1] + ')' : '');
+        if ((m = /Edg\/(\d+)/.exec(ua))) return 'Edge ' + m[1];
+        if ((m = /OPR\/(\d+)/.exec(ua))) return 'Opera ' + m[1];
+        if ((m = /Firefox\/(\d+)/.exec(ua))) return 'Firefox ' + m[1];
+        if ((m = /Chrome\/(\d+)/.exec(ua))) return 'Chrome ' + m[1];
+        if ((m = /Version\/(\d+).*Safari/.exec(ua))) return 'Safari ' + m[1];
+        return 'unknown browser';
+    }
+    function systemName() {
+        const ua = navigator.userAgent;
+        if (/Android/i.test(ua)) return 'Android';
+        if (/iPhone|iPad/i.test(ua)) return 'iOS';
+        if (/Windows/i.test(ua)) return 'Windows';
+        if (/Mac OS X/i.test(ua)) return 'macOS';
+        if (/Linux/i.test(ua)) return 'Linux';
+        return '?';
+    }
+
+    function debugInfoText() {
+        const lines = [];
+        let manager = '?';
+        try { if (typeof GM_info !== 'undefined') manager = (GM_info.scriptHandler || 'userscript manager') + ' ' + (GM_info.version || ''); } catch (e) {}
+        lines.push('Steamy34 ' + CURRENT_VERSION + ' · ' + browserName() + ' · ' + systemName() + ' · ' + manager.trim());
+        const page = isPostView ? 'single post' : onFeedPage() ? 'Following page' : (params.get('page') === 'post' ? 'posts page' : (params.get('page') || 'start page'));
+        lines.push('Page: ' + page + ' · ' + (isPhoneLayout() ? 'phone layout' : 'computer layout') + ' · window ' + innerWidth + '×' + innerHeight +
+                   (NO_HOVER ? ' · touch' : '') + (sfwOn() ? ' · censored mode on' : ''));
+        // Settings that differ from the defaults (no folder names or texts)
+        const changed = Object.keys(DEFAULTS).filter(k => CONFIG[k] !== DEFAULTS[k] && !/Joiner|Separator|darkMode/.test(k))
+            .map(k => k + '=' + CONFIG[k]);
+        lines.push('Changed settings: ' + (changed.length ? changed.join(', ') : 'none'));
+        let f = { artists: [], searches: [] };
+        try { f = getFollowing(); } catch (e) {}
+        const count = o => { try { return Object.keys(o || {}).length; } catch (e) { return '?'; } };
+        lines.push('Data: following ' + f.artists.length + ' artists / ' + f.searches.length + ' searches · viewed ' + count(loadViewed()) +
+                   ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length);
+        const site = siteShapeProblems();
+        lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));
+        lines.push('Recent problems:' + (PROBLEMS.length ? '\n  ' + PROBLEMS.join('\n  ') : ' none'));
+        return lines.join('\n');
+    }
+
+    async function copyText(text) {
+        try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            ta.remove();
+            return ok;
+        } catch (e) { return false; }
+    }
+
+    // A small window that shows exactly what would be shared, with Copy
+    function openDebugInfo() {
+        if (document.querySelector('.s34-debug-win')) return;
+        const text = debugInfoText();
+        const w = openWindow({ cls: 's34-debug-win', icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg>', title: 'Info for a bug report', width: 600 });
+        w.setSub('No searches, tags, artists or post numbers – only what helps find the problem');
+        w.body.innerHTML = `
+            <pre class="s34-debug-text"></pre>
+            <p class="s34-debug-how">Copy it and paste it into <b>#feedback</b> on the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> (or the Feedback tab on Sleazy Fork) – together with what you did and what happened.</p>
+            <div class="s34-debug-foot"><button type="button" class="s34-follow-act s34-follow-primary" data-a="copy">Copy</button></div>`;
+        w.body.querySelector('.s34-debug-text').textContent = text;
+        w.body.querySelector('[data-a="copy"]').addEventListener('click', async e => {
+            const ok = await copyText(text);
+            e.target.textContent = ok ? 'Copied ✓' : 'Select the text and copy it';
+        });
+    }
+
+    // ---- Site check ----
+    // What Steamy34 relies on, per page type ([] = everything there)
+    function siteShapeProblems() {
+        if (params.get('page') !== 'post') return [];
+        const missing = [];
+        if (isPostView) {
+            if (!document.querySelector('#image, video, .fluid_video_wrapper, #gelcomVideoPlayer, img#image')) missing.push('post picture / video');
+            if (!document.querySelector('#tag-sidebar')) missing.push('tag list');
+            if (!document.querySelector('#stats, .sidebar #stats')) missing.push('post info');
+        } else if (params.get('s') === 'list') {
+            if (!document.querySelector('.image-list')) missing.push('post list');
+            if (!document.querySelector('input[name="tags"], textarea[name="tags"], .s34-sb')) missing.push('search box');
+        }
+        return missing;
+    }
+    const SITE_WARN_KEY = 'steamy34_sitecheck_warned';
+    function checkSiteShape() {
+        // a Cloudflare check page or an empty page isn't a layout change
+        if (!document.body || /just a moment|attention required/i.test(document.title)) return;
+        const missing = siteShapeProblems();
+        if (!missing.length) return;
+        noteProblem('Site check: missing ' + missing.join(', '));
+        console.warn('[Steamy34] rule34 looks different than expected – missing:', missing.join(', '));
+        let last = 0;
+        try { last = GM_getValue(SITE_WARN_KEY, 0) || 0; } catch (e) {}
+        if (Date.now() - last < 24 * 3600 * 1000) return; // at most once a day
+        try { GM_setValue(SITE_WARN_KEY, Date.now()); } catch (e) {}
+        showToast('rule34\'s page looks different than usual – some Steamy34 parts may not work right now. If it stays like this, please tell steamycorner.',
+                  'Copy info', openDebugInfo, 15000);
+    }
+
+    // ---- Rating nudge: once ever, after a week of use ----
+    const FIRST_SEEN_KEY = 'steamy34_first_seen';
+    const RATE_ASKED_KEY = 'steamy34_rate_asked';
+    function maybeAskForRating() {
+        let first = 0, asked = false;
+        try {
+            first = GM_getValue(FIRST_SEEN_KEY, 0) || 0;
+            if (!first) { GM_setValue(FIRST_SEEN_KEY, Date.now()); return; }
+            asked = GM_getValue(RATE_ASKED_KEY, false) === true;
+        } catch (e) { return; }
+        if (asked || Date.now() - first < 7 * 24 * 3600 * 1000 || isPostView) return;
+        setTimeout(() => {
+            if (document.querySelector('.s34-overlay, .s34-hint')) return; // try again another time
+            try { GM_setValue(RATE_ASKED_KEY, true); } catch (e) {}
+            showToast('Enjoying Steamy34? A rating on Sleazy Fork helps others find it – thank you! 💜', 'Rate it',
+                      () => window.open(SLEAZY_URL + '/feedback', '_blank', 'noopener'), 15000);
+        }, 8000);
     }
     // =====================================================================
     //  12. EXTRAS: favourites, hover info,
@@ -9844,6 +10168,93 @@
         if (head) head.after(row); else panel.prepend(row);
     }
 
+    // =====================================================================
+    //  CONTINUE WHERE YOU LEFT OFF
+    //  While you scroll a search, Steamy34 notes which page you're on (and
+    //  the post at the top of the screen). Come back to the same search -
+    //  reload, click it again, open it tomorrow - and a small message offers
+    //  "Continue" at that page. Kept on this device for 24 hours, per search
+    //  (the newest 30). Setting: resumeOffer.
+    // =====================================================================
+    const RESUME_KEY = 'steamy34_resume';
+    const RESUME_MAX_AGE = 24 * 3600 * 1000;
+    const RESUME_TARGET_KEY = 's34_resume_post'; // sessionStorage: post to scroll to after the jump
+
+    function resumeKey() {
+        if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list') return null;
+        return normalizeQuery(tagsFromUrl(location.href) || '') || '(all posts)';
+    }
+    function readResume() {
+        let v = {};
+        try { v = GM_getValue(RESUME_KEY, {}) || {}; } catch (e) {}
+        return v && typeof v === 'object' ? v : {};
+    }
+
+    // Where am I? The page block in the upper third of the window, and its
+    // first post that's still on screen
+    function currentSpot() {
+        const blocks = Array.from(document.querySelectorAll('.image-list[data-s34-pid]'));
+        if (!blocks.length) {
+            const list = document.querySelector('.image-list');
+            if (!list) return null;
+            blocks.push(list);
+        }
+        let block = blocks[0];
+        for (const b of blocks) { if (b.getBoundingClientRect().top < innerHeight / 3) block = b; }
+        const pid = parseInt(block.dataset.s34Pid || String(pidOf(location.href)), 10) || 0;
+        const onScreen = Array.from(block.querySelectorAll('span.thumb')).find(t => t.getBoundingClientRect().bottom > 60);
+        return { pid, post: onScreen ? thumbPostId(onScreen) : '' };
+    }
+
+    function saveSpot() {
+        const key = resumeKey();
+        const spot = key && currentSpot();
+        if (!spot) return;
+        const all = readResume();
+        if (!spot.pid && scrollY < 600) { if (all[key]) { delete all[key]; GM_setValue(RESUME_KEY, all); } return; } // back at the top
+        all[key] = { pid: spot.pid, post: spot.post, at: Date.now() };
+        // keep the newest 30, drop old ones
+        const keys = Object.keys(all).filter(k => Date.now() - (all[k].at || 0) < RESUME_MAX_AGE)
+            .sort((a, b) => all[b].at - all[a].at).slice(0, 30);
+        const keep = {};
+        keys.forEach(k => { keep[k] = all[k]; });
+        GM_setValue(RESUME_KEY, keep);
+    }
+
+    function setupResume() {
+        const key = resumeKey();
+        if (!key) return;
+        // Just jumped here with "Continue"? Scroll to the post you were at
+        let target = null;
+        try { target = sessionStorage.getItem(RESUME_TARGET_KEY); sessionStorage.removeItem(RESUME_TARGET_KEY); } catch (e) {}
+        if (target) {
+            const t = document.getElementById('s' + target) || document.getElementById('p' + target);
+            if (t) setTimeout(() => t.scrollIntoView({ block: 'center' }), 300);
+        }
+        // Note the spot while scrolling (calmly - at most every 1.5 s)
+        let timer = null;
+        window.addEventListener('scroll', () => {
+            if (timer) return;
+            timer = setTimeout(() => { timer = null; saveSpot(); }, 1500);
+        }, { passive: true });
+        window.addEventListener('pagehide', saveSpot);
+
+        // Offer to continue: only on the first page of a search, when you
+        // were at page 2 or further within the last 24 hours
+        if (!CONFIG.resumeOffer || target || pidOf(location.href) > 0) return;
+        const was = readResume()[key];
+        if (!was || !was.pid || Date.now() - (was.at || 0) > RESUME_MAX_AGE) return;
+        const page = Math.floor(was.pid / pageStep) + 1;
+        setTimeout(() => {
+            if (scrollY > 400) return; // already scrolling on - no need
+            showToast(`You were at page ${page} of this search.`, `Continue at page ${page}`, () => {
+                try { sessionStorage.setItem(RESUME_TARGET_KEY, was.post || ''); } catch (e) {}
+                const u = new URL(location.href);
+                u.searchParams.set('pid', String(was.pid));
+                location.href = u.pathname + u.search + u.hash;
+            }, 12000);
+        }, 1200);
+    }
     // ---- Batch download: select posts, then download them one by one ----
     let selectMode = false;
     let batchRunning = false;
@@ -10251,7 +10662,7 @@
                 const fol = getFollowing();
                 (inArtists || []).forEach(t => {
                     if (t && typeof t.tag === 'string' && t.tag && !isFollowed(t.tag, fol)) {
-                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false });
+                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false, filter: typeof t.filter === 'string' ? t.filter : '' });
                     }
                 });
                 inSearches.forEach(s => {
@@ -10274,6 +10685,7 @@
         ['steamy34_settings', 'Settings', 'Your choices in this menu and the sidebar switches', {}],
         ['steamy34_following', 'Following', 'Artists and searches you follow, the artist filter, and the newest post you\'ve seen from each', {}],
         ['steamy34_history', 'Recent searches', 'Your last searches', []],
+        ['steamy34_resume', 'Where you left off', 'The page you were on per search, for "Continue at page N" (kept 24 hours)', {}],
         ['steamy34_favtags', 'Favourite tags', 'Tags in the ★ Favourite tags area', []],
         ['steamy34_pinned', 'Pinned filters', 'Search filters kept for every new search', {}],
         ['steamy34_downloaded', 'Downloaded posts', 'Post numbers you downloaded (for the ⬇ mark)', {}],
@@ -10294,7 +10706,7 @@
         ['steamy34_blsort', null, null, null]
     ];
     // Everything that's shown together as "Small preferences"
-    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_sfw', 'steamy34_blsort', 'steamy34_adblock_seen',
+    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
         'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen'];
 
     function storedCount(v) {
@@ -11641,7 +12053,8 @@
                     [CONFIG.browseKeys === 'wasd' ? `${k('A')} ${k('D')}` : CONFIG.browseKeys === 'both' ? `${k('←')} ${k('→')} / ${k('A')} ${k('D')}` : `${k('←')} ${k('→')}`,
                         `${nu}Previous / next post – arrow keys or WASD in Settings → Viewing posts`],
                     [`${k(key)}`, 'Download the original in maximum resolution'],
-                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, `${nu}Favourite · add to a collection · theater mode (keys changeable in Settings → Viewing posts)`],
+                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, 'Favourite · add to a collection · theater mode (keys changeable in Settings → Viewing posts)'],
+                    [`${k(keyLabel(CONFIG.followKey))}`, `${nu}Follow (or unfollow) the post's artist`],
                     ...(CONFIG.browseKeys !== 'arrows' ? [[`${k('W')} ${k('S')}`, `${nu}Scroll to the comments and back`]] : []),
                     [`${k('Click')} the picture`, 'Full size – drag to move around, click again to fit'],
                     [`${k('▶ Auto next')}`, 'Slideshow – the slider sets the seconds per post; videos play to the end first'],
@@ -11656,7 +12069,7 @@
                     [`${k('+')} / ${k('⊘')} on a tag`, 'Add the tag to your search / blacklist it'],
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
-                    [`${k('X')}`, `${nu}Screenshot mode: blurs every picture and video (also in the popup) – X again to turn it off`],
+                    [`${k('X')}`, `${nu}Censored mode: blurs every picture and video (and comments) – safe for screenshots; X again to turn it off`],
                     [`"Quick check needed" at the top`, 'Cloudflare wants a robot check – click "Solve check"; some loading waits until then']
                 ]],
                 searchGroup, sidebarGroup
@@ -11789,6 +12202,13 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.4', date: '2026-11-20', notify: true, items: [
+            'Continue where you left off: back on a search you had scrolled deep into, a small message offers "Continue at page N".',
+            'The browser tab shows "(12) rule34" (and a dot on its icon) while the artists and searches you follow have new posts.',
+            'L in the popup follows (or unfollows) the post\'s artist. Each followed artist can now have its own filter (Following → Manage), e.g. "Everything" for one and "Score ≥ 100" for another.',
+            'Screenshot mode is now "Censored mode" (still X) – and it blurs comment texts and names too, so screenshots are safe to share.',
+            'Settings → Help → "Copy info for a bug report": shows what would be shared, then copies it for #feedback on Discord. Video previews wait a moment longer before loading, and the settings are tidier (new "Following" section).'
+        ] },
         { v: 'Beta 3.3.5', date: '2026-11-20', items: [
             'With an ad blocker on, the ad column on the right is now always folded away – also when an ad slipped through your blocker (that happened mostly on the first visit). Without an ad blocker nothing changes.'
         ] },
@@ -13255,6 +13675,14 @@
             scroller.scrollBy({ top: (e.code === 'KeyS' ? 1 : -1) * Math.round(scroller.clientHeight * 0.7), behavior: 'smooth' });
             return;
         }
+        // L (changeable): follow / unfollow the post's artist
+        if (e.code === CONFIG.followKey) {
+            e.preventDefault();
+            const artists = ((popupState.tags && popupState.tags.artist) || []).map(a => (a && a.tag) || a).filter(a => typeof a === 'string' && a);
+            if (!artists.length) { showToast('This post has no artist tag to follow.'); return; }
+            toggleFollow(artists[0]); // shows its own message (with Undo); the bell updates too
+            return;
+        }
         // F / C / T (changeable): favourite, collection, theater mode
         const act = e.code === CONFIG.favKey ? 'fav' : e.code === CONFIG.collectKey ? 'collect' : e.code === CONFIG.theaterKey ? 'theater' : '';
         if (act) {
@@ -13450,7 +13878,11 @@
         arrangeSidebarTools(); // Following above View; Collections · Stats · Blacklist · Settings as one 2×2 block
         maybeShowQuickTips();  // once: the most important keys & clicks
         setupHints();          // little tips the first time you meet something
-        setupScreenshotMode(); // X blurs every picture (safe screenshots)
+        setupScreenshotMode(); // Censored mode: X blurs every picture (safe screenshots)
+        checkSiteShape();      // rule34 changed its layout? a calm note instead of half-working features
+        maybeAskForRating();   // once ever, after a week of use
+        setupResume();         // "Continue at page N" + remembers where you are
+        updateTabBadge();      // "(12) rule34" while there are new posts
         if (isPostView) setupPostVideoOptions();
         if ((CONFIG.hoverPreview || CONFIG.hoverHighRes) && !isPostView) setupHoverPreview();
         if (CONFIG.blocklistButtons) addBlocklistButtons();

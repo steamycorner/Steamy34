@@ -472,6 +472,14 @@
             scroller.scrollBy({ top: (e.code === 'KeyS' ? 1 : -1) * Math.round(scroller.clientHeight * 0.7), behavior: 'smooth' });
             return;
         }
+        // L (changeable): follow / unfollow the post's artist
+        if (e.code === CONFIG.followKey) {
+            e.preventDefault();
+            const artists = ((popupState.tags && popupState.tags.artist) || []).map(a => (a && a.tag) || a).filter(a => typeof a === 'string' && a);
+            if (!artists.length) { showToast('This post has no artist tag to follow.'); return; }
+            toggleFollow(artists[0]); // shows its own message (with Undo); the bell updates too
+            return;
+        }
         // F / C / T (changeable): favourite, collection, theater mode
         const act = e.code === CONFIG.favKey ? 'fav' : e.code === CONFIG.collectKey ? 'collect' : e.code === CONFIG.theaterKey ? 'theater' : '';
         if (act) {

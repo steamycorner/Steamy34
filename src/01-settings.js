@@ -18,6 +18,7 @@
         favKey: 'KeyF',          // popup: favourite the post
         collectKey: 'KeyC',      // popup: add the post to a collection
         theaterKey: 'KeyT',      // popup: theater mode on / off
+        followKey: 'KeyL',       // popup: follow / unfollow the post's artist
         showDownloadButton: true,// clickable "Download" button on single post pages
         trackDownloads: true,    // remember downloaded posts and mark them with ✓
         trackViewed: true,       // remember opened posts and mark them with 👁
@@ -28,7 +29,6 @@
         hoverInfo: true,         // score and resolution on thumbnails while hovering
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
         popupPreload: true,      // popup: load the next/previous post in advance
-        checkSavedSearches: true,// unused since Beta 3.1 (searches are followed now - see checkFollowing)
 
         // Fit to viewport
         padding: 10,             // px gap kept to the window edges
@@ -62,12 +62,17 @@
                                  // only on 'hover', or in a strip 'below' the picture
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         contextHints: true,      // little one-time tips the first time you meet a feature
+        censorComments: true,    // Censored mode (X) also blurs comment texts and names
+
+        // Following
         followButtons: true,     // bell (follow) next to artists (popup, post pages)
-        checkFollowing: true,    // count new posts from followed artists (in the background)
+        checkFollowing: true,    // count new posts for followed artists & searches (in the background)
+        tabBadge: true,          // "(12) rule34" in the browser tab while there are new posts
 
         // Hover preview on the posts page
         hoverPreview: true,      // play videos when hovering their thumbnail
         hoverDelay: 250,         // ms to hover before loading (avoids loading while just moving the mouse past)
+        hoverVideoDelay: 500,    // ms for videos - they're bigger, so a quick mouse pass never starts one
         hoverMuted: true,        // browsers block sound until you click the page, so muted is most reliable
         hoverHighRes: true,      // show the full-quality image when hovering an image thumbnail
         thumbTagBar: true,       // artist & character tags at the bottom of each thumbnail
@@ -83,6 +88,7 @@
         // Infinite scrolling on the posts page
         hideListTags: true,         // hide the tag list under the search on the posts page
         infiniteScroll: true,
+        resumeOffer: true,          // back on a search you scrolled deep into: "Continue at page N"
         infiniteScrollMargin: 1200, // px before the bottom at which the next page starts loading
         pageDividers: true,         // show a small "Page N" line between loaded pages
         cleanupFarPages: true,      // unload pages you've scrolled far away from (saves memory)
@@ -142,8 +148,10 @@
     // Row: [key, label, extra]; extra: options / min / max / unit / text /
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
-        { id: 'look', title: 'Look', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
+        { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
+            ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
             ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
             ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
             ['thumbBadges', 'VID / GIF labels on thumbnails', { hint: 'Small labels in the corner of animated posts' }],
@@ -160,12 +168,12 @@
             ['hoverInfo', 'Score & resolution on hover'],
             ['thumbTagBar', 'Artist & character tags on thumbnails'],
             ['favButtons', '♥ Favourite buttons', { hint: 'On thumbnails and in the popup – needs a rule34 login' }],
-            ['followButtons', '🔔 Follow buttons on artists', { hint: 'Next to artists in the popup and on post pages – everything you follow is listed in the sidebar' }],
-            ['checkFollowing', 'Count new posts for what you follow', { hint: 'Artists and searches – checked quietly in the background, at most every 20 minutes' }],
             ['infiniteScroll', 'Infinite scrolling', { hint: 'The next page loads when you reach the bottom' }],
+            ['resumeOffer', 'Offer to continue where you left off', { hint: 'Back on a search you had scrolled deep into? A small "Continue at page N" button takes you back there' }],
             ['pageDividers', '"Page N" dividers'],
             ['hideListTags', 'Hide the tag list under the search'],
-            ['hoverDelay', 'Hover delay', { min: 0, max: 2000, unit: 'ms', adv: true }],
+            ['hoverDelay', 'Hover delay for pictures', { min: 0, max: 2000, unit: 'ms', adv: true }],
+            ['hoverVideoDelay', 'Hover delay for videos', { min: 0, max: 3000, unit: 'ms', adv: true, hint: 'Videos are big – a short pause means passing the mouse over them never starts a download' }],
             ['hoverMuted', 'Hover previews muted', { adv: true }],
             ['tagBarLookup', 'Look up missing tags in the background', { adv: true }],
             ['tagBarMax', 'Tags shown per type', { min: 1, max: 6, adv: true }],
@@ -178,7 +186,7 @@
             ['favKey', 'Favourite key', { hotkey: true, hint: 'In the popup – click the box, then press a key' }],
             ['collectKey', 'Add to collection key', { hotkey: true }],
             ['theaterKey', 'Theater mode key', { hotkey: true }],
-            ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
+            ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
             ['popupPreload', 'Load the next / previous post in advance', { hint: 'Browsing feels instant. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
@@ -186,6 +194,11 @@
             ['muteIfBlocked', 'Play muted if sound is blocked', { adv: true }],
             ['scrollToMedia', 'Scroll to the picture on post pages', { adv: true }],
             ['padding', 'Gap to the window edges', { min: 0, max: 100, unit: 'px', adv: true }]
+        ] },
+        { id: 'following', title: 'Following', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 0 0-12 0c0 6.5-3 8.5-3 8.5h18s-3-2-3-8.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>', rows: [
+            ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages – searches are followed with the bell under the search box' }],
+            ['checkFollowing', 'Count new posts', { hint: 'For followed artists and searches – checked quietly in the background, at most every 20 minutes' }],
+            ['tabBadge', 'New posts in the browser tab', { hint: 'The tab shows "(12) rule34" while there are new posts – handy when rule34 sits in a background tab' }]
         ] },
         { id: 'search', title: 'Search', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>', rows: [
             ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, recent searches and the bell to follow a search' }],

@@ -221,6 +221,7 @@
                         <button type="button" class="s34-set-btn" data-act="mobile">${PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"')} On your phone</button>
                     </div>
                     <div class="s34-set-cardhead">Questions, bugs or ideas?</div>
+                    <div class="s34-set-actions"><button type="button" class="s34-set-btn" data-act="debug" title="Shows what would be shared, then copies it – no searches, tags or artists">🐞 Copy info for a bug report</button></div>
                     <p>Join the Steamy34 channels (#feedback, #new-ideas) on steamycorner's <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – or write in the <a href="${SLEAZY_URL}/feedback" target="_blank" rel="noopener noreferrer">Feedback tab on Sleazy Fork</a>. More from steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a></p>
                     <p class="s34-set-ver">Steamy34 ${CURRENT_VERSION}</p>
                 </div>`;
@@ -375,6 +376,8 @@
                 location.reload();
             } else if (act === 'welcome') {
                 openWelcome(0);
+            } else if (act === 'debug') {
+                openDebugInfo();
             } else if (act === 'hints-reset') {
                 GM_deleteValue(HINTS_KEY);
                 saveSettingsNow({ contextHints: true });

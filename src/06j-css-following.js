@@ -257,6 +257,18 @@
             color: #dcdce0 !important;
         }
         .s34-follow-chip button:hover { opacity: 1; color: #ff6b6b !important; }
+        /* Per-artist filter inside the artist's chip */
+        .s34-follow-chip select.s34-follow-afilter {
+            height: 20px;
+            margin: 0 0 0 6px !important;
+            padding: 0 2px !important;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            background-color: rgba(0,0,0,0.25) !important;
+            color: #b9b9c3 !important;
+            font: 11px system-ui, sans-serif;
+            cursor: pointer;
+        }
         .s34-follow-empty { padding: 14px 4px; font-size: 13px; line-height: 1.55; opacity: .75; }
         .s34-follow-filter { padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08) !important; }
         .s34-follow-label { font-size: 12.5px; font-weight: 700; margin-bottom: 8px; }

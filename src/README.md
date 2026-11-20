@@ -28,7 +28,9 @@ All parts share one scope (the script is one big function), so a part can use an
 | `20-extras` | Favourites, hover info, sidebar "View" switches |
 | `20b-hints` | Little one-time tips |
 | `20c-following` | Following: artists and searches, their pages, new-post counts, Manage window |
-| `20d-screenshot-mode` | Screenshot mode (X blurs every picture) |
+| `20d-screenshot-mode` | Censored mode (X blurs every picture, video and comment) |
+| `20e-support` | "Copy info for a bug report", the site check, the one-time rating nudge |
+| `20f-resume` | Continue where you left off ("Continue at page N") |
 | `21-batch-backup-privacy` | Batch download, download panel, video options, backup, privacy list |
 | `22-popup-info` | Popup: post info, comments, auto next |
 | `23-collections-stats` | Theater mode, windows, collections, stats, sidebar order, preloading, full-size view |

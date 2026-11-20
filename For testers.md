@@ -20,7 +20,7 @@ Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewe
 - The search box: tags as bubbles, filters, pinning a filter
 - The bell next to an artist in a post, or under the search box → "Following" in the sidebar
 - White / Dark / OLED, thumbnail styles (Settings → Look)
-- **X** = screenshot mode (blurs every picture – handy for sending me screenshots)
+- **X** = Censored mode (blurs every picture and comment – handy for sending me screenshots)
 - On a phone: swipe left / right in a post, swipe down to close
 
 ## Reporting problems
@@ -28,7 +28,7 @@ Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewe
 Post in **#feedback** on the Discord (https://discord.com/invite/Udg9sNTBHb) – ideas go in **#new-ideas** – or write in the **Feedback** tab of the script page (https://sleazyfork.org/en/scripts/606445-steamy34/feedback). Tell me:
 - what you did, what you expected, and what happened instead
 - your browser (and phone or computer)
-- the version (bottom of the sidebar, e.g. "Beta 3.2")
+- the version (bottom of the sidebar, e.g. "Beta 3.4") – or simply use **Settings → Help → Copy info for a bug report**, which collects all of that for you
 
 Screenshots are very welcome – press **X** first so all pictures are blurred.
 

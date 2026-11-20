@@ -150,7 +150,12 @@
     injectStyles();
 
     // Screenshot mode (20d) was on? Blur from the very first moment
-    try { if (GM_getValue('steamy34_sfw', false) === true) document.documentElement.classList.add('s34-sfw'); } catch (e) {}
+    try {
+        if (GM_getValue('steamy34_sfw', false) === true) {
+            document.documentElement.classList.add('s34-sfw');
+            if (CONFIG.censorComments) document.documentElement.classList.add('s34-sfw-text');
+        }
+    } catch (e) {}
 
     // An ad blocker was found last time? Then the right ad column steps aside
     // from the very first moment (checked again once the page is there - it

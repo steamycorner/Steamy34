@@ -489,6 +489,8 @@
 
         let loading = false;
 
+        list.dataset.s34Pid = String(startPid); // which page each block is (for "continue where you left off")
+
         const status = document.createElement('div');
         status.className = 's34-scroll-status';
         list.after(status); // new pages are inserted right before this
@@ -594,6 +596,7 @@
                     // of a page isn't stretched by the justified layout
                     const block = document.createElement('div');
                     block.className = list.className;
+                    block.dataset.s34Pid = String(nextPid);
                     hideBlocklisted(newThumbs); // before they're shown
                     newThumbs.forEach(t => block.appendChild(t));
                     status.parentNode.insertBefore(block, status);

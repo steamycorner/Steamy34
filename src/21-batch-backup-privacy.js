@@ -405,7 +405,7 @@
                 const fol = getFollowing();
                 (inArtists || []).forEach(t => {
                     if (t && typeof t.tag === 'string' && t.tag && !isFollowed(t.tag, fol)) {
-                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false });
+                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false, filter: typeof t.filter === 'string' ? t.filter : '' });
                     }
                 });
                 inSearches.forEach(s => {
@@ -428,6 +428,7 @@
         ['steamy34_settings', 'Settings', 'Your choices in this menu and the sidebar switches', {}],
         ['steamy34_following', 'Following', 'Artists and searches you follow, the artist filter, and the newest post you\'ve seen from each', {}],
         ['steamy34_history', 'Recent searches', 'Your last searches', []],
+        ['steamy34_resume', 'Where you left off', 'The page you were on per search, for "Continue at page N" (kept 24 hours)', {}],
         ['steamy34_favtags', 'Favourite tags', 'Tags in the ★ Favourite tags area', []],
         ['steamy34_pinned', 'Pinned filters', 'Search filters kept for every new search', {}],
         ['steamy34_downloaded', 'Downloaded posts', 'Post numbers you downloaded (for the ⬇ mark)', {}],
@@ -448,7 +449,7 @@
         ['steamy34_blsort', null, null, null]
     ];
     // Everything that's shown together as "Small preferences"
-    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_sfw', 'steamy34_blsort', 'steamy34_adblock_seen',
+    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
         'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen'];
 
     function storedCount(v) {

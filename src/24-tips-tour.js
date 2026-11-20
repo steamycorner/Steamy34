@@ -51,7 +51,8 @@
                     [CONFIG.browseKeys === 'wasd' ? `${k('A')} ${k('D')}` : CONFIG.browseKeys === 'both' ? `${k('←')} ${k('→')} / ${k('A')} ${k('D')}` : `${k('←')} ${k('→')}`,
                         `${nu}Previous / next post – arrow keys or WASD in Settings → Viewing posts`],
                     [`${k(key)}`, 'Download the original in maximum resolution'],
-                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, `${nu}Favourite · add to a collection · theater mode (keys changeable in Settings → Viewing posts)`],
+                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, 'Favourite · add to a collection · theater mode (keys changeable in Settings → Viewing posts)'],
+                    [`${k(keyLabel(CONFIG.followKey))}`, `${nu}Follow (or unfollow) the post's artist`],
                     ...(CONFIG.browseKeys !== 'arrows' ? [[`${k('W')} ${k('S')}`, `${nu}Scroll to the comments and back`]] : []),
                     [`${k('Click')} the picture`, 'Full size – drag to move around, click again to fit'],
                     [`${k('▶ Auto next')}`, 'Slideshow – the slider sets the seconds per post; videos play to the end first'],
@@ -66,7 +67,7 @@
                     [`${k('+')} / ${k('⊘')} on a tag`, 'Add the tag to your search / blacklist it'],
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
-                    [`${k('X')}`, `${nu}Screenshot mode: blurs every picture and video (also in the popup) – X again to turn it off`],
+                    [`${k('X')}`, `${nu}Censored mode: blurs every picture and video (and comments) – safe for screenshots; X again to turn it off`],
                     [`"Quick check needed" at the top`, 'Cloudflare wants a robot check – click "Solve check"; some loading waits until then']
                 ]],
                 searchGroup, sidebarGroup
@@ -199,6 +200,13 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.4', date: '2026-11-20', notify: true, items: [
+            'Continue where you left off: back on a search you had scrolled deep into, a small message offers "Continue at page N".',
+            'The browser tab shows "(12) rule34" (and a dot on its icon) while the artists and searches you follow have new posts.',
+            'L in the popup follows (or unfollows) the post\'s artist. Each followed artist can now have its own filter (Following → Manage), e.g. "Everything" for one and "Score ≥ 100" for another.',
+            'Screenshot mode is now "Censored mode" (still X) – and it blurs comment texts and names too, so screenshots are safe to share.',
+            'Settings → Help → "Copy info for a bug report": shows what would be shared, then copies it for #feedback on Discord. Video previews wait a moment longer before loading, and the settings are tidier (new "Following" section).'
+        ] },
         { v: 'Beta 3.3.5', date: '2026-11-20', items: [
             'With an ad blocker on, the ad column on the right is now always folded away – also when an ad slipped through your blocker (that happened mostly on the first visit). Without an ad blocker nothing changes.'
         ] },

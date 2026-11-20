@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.3.5-beta
+// @version      3.4-beta
 // @license      CC0-1.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34

@@ -31,7 +31,8 @@
         // Beta 2.9 stored { tags: [{ tag, type }] } - keep the artists
         if (!artists && Array.isArray(v.tags)) artists = v.tags.filter(t => t && t.tag && (!t.type || t.type === 'artist')).map(t => ({ tag: t.tag, added: t.added || Date.now() }));
         return {
-            artists: (artists || []).filter(a => a && a.tag).map(a => Object.assign({ seen: 0, latest: 0, count: 0, more: false }, a)),
+            // filter: '' = the shared filter, 'all' = everything, '50' = only score ≥ 50 (per artist, Beta 3.4)
+            artists: (artists || []).filter(a => a && a.tag).map(a => Object.assign({ seen: 0, latest: 0, count: 0, more: false, filter: '' }, a)),
             searches: (Array.isArray(v.searches) ? v.searches : []).filter(s => s && s.query)
                 .map(s => Object.assign({ name: s.query, added: 0, seen: 0, latest: 0, count: 0, more: false }, s)),
             checkedAt: v.checkedAt || 0,
@@ -112,10 +113,26 @@
     }
     const isFollowed = (tag, d) => !!findArtist(tag, d);
 
+    // Artists in groups of 20 for the either/or searches. Artists with their
+    // own filter are grouped separately (one search can only have one
+    // filter); each group carries its filter words as .words
     function followGroups(d) {
-        const tags = (d || getFollowing()).artists.map(a => a.tag);
+        d = d || getFollowing();
+        const byFilter = new Map();
+        d.artists.forEach(a => {
+            const words = artistFilterWords(a, d);
+            const key = words.join(' ');
+            if (!byFilter.has(key)) byFilter.set(key, { words, tags: [] });
+            byFilter.get(key).tags.push(a.tag);
+        });
         const groups = [];
-        for (let i = 0; i < tags.length; i += FEED_GROUP_SIZE) groups.push(tags.slice(i, i + FEED_GROUP_SIZE));
+        byFilter.forEach(({ words, tags }) => {
+            for (let i = 0; i < tags.length; i += FEED_GROUP_SIZE) {
+                const g = tags.slice(i, i + FEED_GROUP_SIZE);
+                g.words = words;
+                groups.push(g);
+            }
+        });
         return groups;
     }
 
@@ -126,14 +143,21 @@
         if (f.rating) out.push(f.rating);
         return out;
     }
+    // One artist's filter: the shared one, everything, or its own minimum score
+    function artistFilterWords(a, d) {
+        if (!a || !a.filter) return filterWords(d);
+        if (a.filter === 'all') return [];
+        return /^\d+$/.test(a.filter) ? ['score:>=' + a.filter] : filterWords(d);
+    }
     function groupQuery(tags, d) {
         if (!tags || !tags.length) return '';
-        return [tags.length === 1 ? tags[0] : '( ' + tags.join(' ~ ') + ' )'].concat(filterWords(d)).join(' ');
+        return [tags.length === 1 ? tags[0] : '( ' + tags.join(' ~ ') + ' )'].concat(tags.words || filterWords(d)).join(' ');
     }
 
     // Feed addresses: one artist, or all of them (group i)
     function artistFeedUrl(tag, d) {
-        return 'index.php?page=post&s=list&tags=' + encodeURIComponent([tag].concat(filterWords(d)).join(' ')) +
+        d = d || getFollowing();
+        return 'index.php?page=post&s=list&tags=' + encodeURIComponent([tag].concat(artistFilterWords(findArtist(tag, d), d)).join(' ')) +
                '#s34-following=' + encodeURIComponent(tag);
     }
     function allFeedUrl(i = 0, d) {
@@ -195,7 +219,8 @@
         const t = prettyTag(btn.dataset.followTag);
         btn.classList.toggle('s34-following', on);
         btn.innerHTML = on ? BELL_ON_SVG : BELL_SVG;
-        btn.title = on ? `Following ${t} – click to unfollow` : `Follow ${t} – their new posts show up in the sidebar`;
+        const k = btn.classList.contains('s34-chip-follow') ? ` (${keyLabel(CONFIG.followKey)})` : ''; // the popup's follow key
+        btn.title = on ? `Following ${t} – click to unfollow${k}` : `Follow ${t} – their new posts show up in the sidebar${k}`;
         btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
 
@@ -263,10 +288,56 @@
         renderFollowBox();
     }
 
+    // ---- "(12) rule34" in the browser tab while there are new posts ----
+    // (and a small pink dot on the tab icon) - setting tabBadge
+    let tabIconOriginal = null;
+    function updateTabBadge(d) {
+        let n = 0, more = false;
+        if (CONFIG.tabBadge) {
+            try {
+                d = d || getFollowing();
+                const t = followTotals(d, true);
+                n = t.n;
+                more = /\+/.test(t.text);
+            } catch (e) {}
+        }
+        const base = document.title.replace(/^(\(\d+\+?\)\s*)+/, ''); // our own count, however often it got there
+        const want = n ? `(${n}${more ? '+' : ''}) ${base}` : base;
+        if (document.title !== want) document.title = want;
+        // Tab icon: the site's own icon with a dot (same site, so it can be drawn)
+        try {
+            let link = document.querySelector('link[rel~="icon"]');
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                link.href = '/favicon.ico';
+                document.head.appendChild(link);
+            }
+            if (tabIconOriginal === null) tabIconOriginal = link.href;
+            if (!n) { if (link.href !== tabIconOriginal) { link.href = tabIconOriginal; delete link.dataset.s34Dot; } return; }
+            if (link.dataset.s34Dot === '1') return; // already dotted
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const c = document.createElement('canvas');
+                    c.width = c.height = 32;
+                    const g = c.getContext('2d');
+                    g.drawImage(img, 0, 0, 32, 32);
+                    g.fillStyle = '#e0457b';
+                    g.beginPath(); g.arc(24, 8, 7.5, 0, Math.PI * 2); g.fill();
+                    link.href = c.toDataURL('image/png');
+                    link.dataset.s34Dot = '1';
+                } catch (e) {}
+            };
+            img.src = tabIconOriginal;
+        } catch (e) {}
+    }
+
     function renderFollowBox(d) {
+        d = d || getFollowing();
+        updateTabBadge(d);
         const box = document.querySelector('.s34-follow-box');
         if (!box) return;
-        d = d || getFollowing();
         const feed = onFeedPage() ? feedFromHash(location.hash) : null;
         const head = `<div class="s34-follow-head">${BELL_SVG}<b>Following</b><a href="#" data-fb="manage">Manage</a></div>`;
         if (!d.artists.length && !d.searches.length) {
@@ -426,8 +497,12 @@
             bar.querySelector('b').textContent = prettyTag(feed.tag);
         } else {
             const groups = followGroups(d);
-            const pills = groups.length > 1 ? `<div class="s34-feed-groups">${groups.map((g, i) =>
-                `<a href="${allFeedUrl(i, d)}" class="${i === feed.group ? 's34-on' : ''}">${i * FEED_GROUP_SIZE + 1}–${i * FEED_GROUP_SIZE + g.length}</a>`).join('')}</div>` : '';
+            let from = 0; // groups can be shorter than 20 (artists with their own filter are separate)
+            const pills = groups.length > 1 ? `<div class="s34-feed-groups">${groups.map((g, i) => {
+                const a = from + 1;
+                from += g.length;
+                return `<a href="${allFeedUrl(i, d)}" class="${i === feed.group ? 's34-on' : ''}" title="${escapeHtml(g.join(', '))}">${a}–${from}</a>`;
+            }).join('')}</div>` : '';
             bar.innerHTML = `<div class="s34-feed-head">${BELL_SVG}<b>All followed artists</b><span class="s34-feed-sub"></span></div>
                 ${pills}<div class="s34-feed-tags"></div>
                 <button type="button" class="s34-feed-btn" data-f="manage">Manage</button>`;
@@ -554,7 +629,7 @@
             </div>
             <div class="s34-follow-list"></div>
             <div class="s34-follow-filter">
-                <div class="s34-follow-label">Artist filter <span>– only for followed artists; followed searches and your normal searches stay as they are</span></div>
+                <div class="s34-follow-label">Shared artist filter <span>– for every followed artist set to "Shared filter" (each artist above can also have its own); followed searches and normal searches stay as they are</span></div>
                 <div class="s34-follow-filters">${FILTERS.map(([k, label, opts]) => `<label><span>${label}</span><select data-k="${k}">${opts.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>`).join('')}</div>
             </div>
             <div class="s34-follow-foot">
@@ -616,7 +691,28 @@
                 chips.forEach(c => wrap.appendChild(c));
                 listEl.appendChild(wrap);
             };
-            group('Artists', d.artists.map(a => chip('s34-feed-artist', prettyTag(a.tag), artistFeedUrl(a.tag, d), 'Show ' + prettyTag(a.tag), a, () => toggleFollow(a.tag))));
+            group('Artists', d.artists.map(a => {
+                const c = chip('s34-feed-artist', prettyTag(a.tag), artistFeedUrl(a.tag, d), 'Show ' + prettyTag(a.tag), a, () => toggleFollow(a.tag));
+                // This artist's own filter (or the shared one)
+                const sel = document.createElement('select');
+                sel.className = 's34-follow-afilter';
+                sel.title = 'Filter for ' + prettyTag(a.tag);
+                [['', 'Shared filter'], ['all', 'Everything'], ['10', 'Score ≥ 10'], ['50', 'Score ≥ 50'], ['100', 'Score ≥ 100'], ['500', 'Score ≥ 500']]
+                    .forEach(([v, t]) => sel.add(new Option(t, v)));
+                sel.value = a.filter || '';
+                sel.addEventListener('change', () => {
+                    const fresh = getFollowing();
+                    const art = findArtist(a.tag, fresh);
+                    if (!art) return;
+                    art.filter = sel.value;
+                    fresh.checkedAt = 0; // counts follow the new filter at the next check
+                    saveFollowing(fresh);
+                    showToast(prettyTag(a.tag) + ': ' + sel.selectedOptions[0].textContent.toLowerCase() + '.');
+                    refreshFollowUi();
+                });
+                c.insertBefore(sel, c.querySelector('button'));
+                return c;
+            }));
             group('Searches', d.searches.map(s => chip('s34-follow-schip', searchLabel(s), searchFeedUrl(s.query), 'Search: ' + s.query, s, () => toggleFollowSearch(s.query))));
             w.body.querySelectorAll('.s34-follow-filters select').forEach(s => { s.value = d.filter[s.dataset.k] || ''; });
             w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA && !nS; });

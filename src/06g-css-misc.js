@@ -75,6 +75,40 @@
             filter: blur(24px) saturate(.6) !important;
             clip-path: inset(0) !important;
         }
+        /* ...and comments: text and names (setting censorComments) - in the
+           popup and on the site's own post pages */
+        html.s34-sfw-text :is(.s34-cm-text, .s34-cm-user, .s34-cm-avatar, #comment-list [id^="cbody"], #comment-list .col1 a) {
+            filter: blur(5px) !important;
+            user-select: none;
+        }
+        /* "Info for a bug report" window */
+        .s34-debug-win .s34-win-body { display: flex; flex-direction: column; gap: 12px; }
+        .s34-debug-text {
+            margin: 0;
+            padding: 10px 12px;
+            max-height: 44vh;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border-radius: 8px;
+            border: 1px solid #2e2e36 !important;
+            background-color: #121216 !important;
+            color: #dcdce0 !important;
+            font: 12px/1.5 ui-monospace, Consolas, monospace;
+            user-select: text;
+        }
+        .s34-debug-how { margin: 0; font-size: 12.5px; line-height: 1.5; opacity: .85; }
+        .s34-debug-foot { display: flex; justify-content: flex-end; }
+        .s34-debug-foot button {
+            height: 32px;
+            padding: 0 18px !important;
+            border-radius: 8px;
+            border: none !important;
+            background: linear-gradient(135deg, #ffb347, #ff5f8f) !important;
+            color: #fff !important;
+            font: 600 13px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+        }
         .s34-sfw-label {
             position: fixed;
             right: 12px;

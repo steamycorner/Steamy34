@@ -16,7 +16,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 
 ## Screenshots
 
-*All pictures are blurred with Steamy34's own screenshot mode (press X).*
+*All pictures are blurred with Steamy34's own Censored mode (press X).*
 
 | | |
 |---|---|
@@ -52,7 +52,8 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Click the bell next to an artist in a post to follow them – or the bell under the search box to follow any search (e.g. a character with a score filter)
 - The sidebar lists everything you follow, each with a count of its new posts
 - Each has its own page; posts since your last visit are marked NEW
-- "All artists" mixes every followed artist in one feed; an optional filter (score, type, rating) applies only to followed artists
+- "All artists" mixes every followed artist in one feed; a shared filter (score, type, rating) – or a different one per artist
+- The browser tab shows "(12) rule34" while there are new posts; L in the popup follows the artist
 
 **Downloads**
 - Press **B** on a post to download the original in full resolution (the key can be changed)
@@ -73,9 +74,10 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - One ☰ Menu with all of Steamy34's tools
 
 **More**
-- Infinite scrolling with "Page N" dividers
+- Infinite scrolling with "Page N" dividers – and "Continue at page N" when you come back to a search
+- "Copy info for a bug report" in Settings → Help
 - A short welcome tour, small one-time tips and a quick tips window with all shortcuts
-- Screenshot mode (X): blurs every picture and video for safe screenshots
+- Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
 - Settings with a search box
 - Backup and restore of all settings and data
 
@@ -104,7 +106,8 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 | T | Theater mode (only the picture) |
 | W / S | Scroll to the comments and back (when A / D browsing is on) |
 | Esc or middle click | Close the post |
-| X | Screenshot mode: blur every picture and video (anywhere, not just the popup) |
+| L | Follow (or unfollow) the post's artist |
+| X | Censored mode: blur every picture, video and comment (anywhere, not just the popup) |
 
 All keys can be changed in *Settings → Viewing posts* and *Settings → Downloads*.
 

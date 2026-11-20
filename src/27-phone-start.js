@@ -160,7 +160,11 @@
         arrangeSidebarTools(); // Following above View; Collections · Stats · Blacklist · Settings as one 2×2 block
         maybeShowQuickTips();  // once: the most important keys & clicks
         setupHints();          // little tips the first time you meet something
-        setupScreenshotMode(); // X blurs every picture (safe screenshots)
+        setupScreenshotMode(); // Censored mode: X blurs every picture (safe screenshots)
+        checkSiteShape();      // rule34 changed its layout? a calm note instead of half-working features
+        maybeAskForRating();   // once ever, after a week of use
+        setupResume();         // "Continue at page N" + remembers where you are
+        updateTabBadge();      // "(12) rule34" while there are new posts
         if (isPostView) setupPostVideoOptions();
         if ((CONFIG.hoverPreview || CONFIG.hoverHighRes) && !isPostView) setupHoverPreview();
         if (CONFIG.blocklistButtons) addBlocklistButtons();

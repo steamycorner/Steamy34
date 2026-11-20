@@ -412,7 +412,7 @@
 
                     thumb.appendChild(el);
                     tryNext();
-                }, CONFIG.hoverDelay);
+                }, isVideo ? CONFIG.hoverVideoDelay : CONFIG.hoverDelay); // videos wait a bit longer (they're big)
             });
 
             thumb.addEventListener('mouseleave', stop);
