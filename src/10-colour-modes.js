@@ -1,0 +1,228 @@
+    // =====================================================================
+    //  COLOUR MODES
+    //  Everything is designed dark. White and OLED are made from it by
+    //  converting every colour in the style sheet:
+    //   - White: dark greys -> light greys/white, light text -> dark text,
+    //            pale accent colours (tag colours, links) a bit deeper.
+    //   - OLED:  dark greys -> true black (borders stay visible).
+    //  Things that sit on top of pictures (labels, ♥, marks, tag bars on
+    //  thumbnails, the theater buttons…) and floating dark bars keep their
+    //  dark look in every mode.
+    // =====================================================================
+    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-banner|batch)|span\.thumb\.s34-(selected|was)|s34-selecting/;
+
+    function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const l = (max + min) / 2;
+        if (max === min) return [0, 0, l];
+        const d = max - min;
+        const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        let h;
+        if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        return [h / 6, s, l];
+    }
+
+    function hslToRgb(h, s, l) {
+        if (s === 0) { const v = Math.round(l * 255); return [v, v, v]; }
+        const hue = (p, q, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        return [hue(p, q, h + 1 / 3), hue(p, q, h), hue(p, q, h - 1 / 3)].map(v => Math.round(v * 255));
+    }
+
+    // One colour -> its White / OLED version (null = leave it as it is)
+    function themeColor(r, g, b, hasAlpha, theme) {
+        const [h, s, l] = rgbToHsl(r, g, b);
+        const neutral = s < 0.2;
+        let l2 = l;
+        if (theme === 'oled') {
+            if (!neutral || l >= 0.4) return null;
+            l2 = Math.max(0, l - 0.09);
+        } else {
+            if (r === 255 && g === 255 && b === 255 && !hasAlpha) return null; // white text on coloured buttons
+            if (neutral) l2 = l >= 0.5 ? (1 - l) * 0.9 : 1 - l * 0.6;
+            else if (l > 0.65 && s > 0.3) l2 = l - 0.32;
+            else return null;
+        }
+        return hslToRgb(h, neutral ? Math.min(s, 0.12) : s, Math.min(1, Math.max(0, l2)));
+    }
+
+    function recolorCss(css, theme) {
+        const COLOR_RE = /#([0-9a-f]{6}|[0-9a-f]{3})\b|rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/gi;
+        const fix = decls => decls.replace(COLOR_RE, (m, hex, r, g, b, a) => {
+            let rgb;
+            if (hex) {
+                const x = hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex;
+                rgb = [0, 2, 4].map(i => parseInt(x.slice(i, i + 2), 16));
+            } else {
+                rgb = [+r, +g, +b];
+            }
+            const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme);
+            if (!out) return m;
+            return a != null ? `rgba(${out[0]},${out[1]},${out[2]},${a})`
+                             : '#' + out.map(v => v.toString(16).padStart(2, '0')).join('');
+        });
+        // Each innermost "selector { … }" block; keep-dark ones are skipped
+        return css.replace(/([^{}]*)\{([^{}]*)\}/g, (m, sel, decls) =>
+            KEEP_DARK_RE.test(sel) || /^\s*(\d+%|from|to)\s*$/.test(sel) ? m : sel + '{' + fix(decls) + '}')
+            .replace(/color-scheme:\s*dark/g, theme === 'white' ? 'color-scheme: light' : 'color-scheme: dark');
+    }
+
+    // Hand-tuned spots the converter can't judge
+    const THEME_FIX_CSS = {
+        white: `
+            html.s34-theme-white #navbar li a:hover, html.s34-theme-white #subnavbar li a:hover { color: #1d1f24 !important; }
+            html.s34-theme-white .s34-cm-user, html.s34-theme-white .s34-cm-head h3,
+            html.s34-theme-white .s34-auto-sec, html.s34-theme-white .s34-tipslink button:hover { color: #1d1f24 !important; }
+            html.s34-theme-white .s34-set-head h2, html.s34-theme-white .s34-set-nav nav button:hover,
+            html.s34-theme-white .s34-set .s34-set-advbtn:hover { color: #1d1f24 !important; }
+            html.s34-theme-white .s34-tips kbd {
+                color: #1d1f24 !important;
+                background-color: #fff !important;
+                border-color: #cfd3dc !important;
+                box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+            }
+            /* Tag bubbles in the popup sidebar (on thumbnails they stay dark) */
+            html.s34-theme-white .s34-pv-chips .s34-chip { background-color: #fff !important; border-color: #d3d6de !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-artist    .s34-chip-name { color: #c62828 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-character .s34-chip-name { color: #2e7d32 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-copyright .s34-chip-name { color: #7b1fa2 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-general   .s34-chip-name { color: #1a56c4 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-metadata  .s34-chip-name { color: #b35c00 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-count { color: #555a66 !important; }
+            /* + / ⊘ / bell on the popup's white tag bubbles: deeper colours */
+            html.s34-theme-white .s34-pv-chips .s34-chip-add { color: #2e7d32 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-add[data-state="in"] { color: #b35c00 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-add[data-state="out"] { color: #1a56c4 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-block { color: #c62828 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-follow { color: #6b6f7a !important; }
+            html.s34-theme-white .s34-chip-follow.s34-following,
+            html.s34-theme-white #tag-sidebar li a.r34-follow-btn.s34-following { color: #d97800 !important; }
+            html.s34-theme-white .s34-follow-row.s34-follow-allrow { color: #b35c00 !important; }
+            html.s34-theme-white .s34-sb .s34-sb-follow.s34-following svg { color: #d97800 !important; }
+            html.s34-theme-white .s34-pins-note { color: #7a4300 !important; }
+            html.s34-theme-white .s34-sb .s34-pin.s34-on { color: #b35c00 !important; }
+            html.s34-theme-white .s34-sb.s34-pins-paused .s34-pin.s34-on { color: #6b6f7a !important; }
+            /* Score and the "child posts" notice in the popup */
+            html.s34-theme-white .s34-pv-score { color: #8a6100 !important; }
+            html.s34-theme-white .s34-pv-notice { color: #7a4300 !important; }
+            /* Light page behind pictures in the popup */
+            html.s34-theme-white .s34-pv-overlay { background-color: rgba(238,240,244,0.97) !important; }
+            html.s34-theme-white .s34-overlay { background-color: rgba(30,32,40,0.35) !important; }
+            html.s34-theme-white .s34-stat-tile b { -webkit-text-fill-color: transparent; }
+            html.s34-theme-white ::-webkit-scrollbar-thumb { background: #c5c8d0 !important; }
+        `,
+        oled: `
+            html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
+            html.s34-theme-oled .s34-pv-overlay { background-color: rgba(0,0,0,0.98) !important; }
+            html.s34-theme-oled ::-webkit-scrollbar-thumb { background: #222 !important; }
+        `,
+        dark: ''
+    };
+
+    function injectStyles() {
+        const style = document.createElement('style');
+        style.id = 'steamy34-styles';
+        let css =
+            DARK_CSS +
+            (CONFIG.thumbGrid ? GRID_CSS : '') + CORE_CSS +
+            BUTTON_CSS + AC_CSS + (CONFIG.searchChips ? SEARCH_CSS : '') + SETTINGS_CSS +
+            // the big extras block, in its original order (src\06a-06i)
+            EXTRA_CSS + WINDOWS_CSS + CONTROLS_CSS + POPUP_SIDE_CSS + COLLECTIONS_CSS +
+            POPUP_INFO_CSS + MISC_CSS + PHONE_CSS + TOUR_CSS + FOLLOW_CSS +
+            (CONFIG.hideListTags && !isPostView ? HIDE_LIST_TAGS_CSS : '') +
+            (!isPostView ? LIST_SIDEBAR_CSS : '') +
+            (CONFIG.postTagChips && isPostView ? POST_TAGS_CSS : '');
+        if (CONFIG.theme !== 'dark') css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];
+        style.textContent = css;
+        (document.head || document.documentElement).appendChild(style);
+    }
+    injectStyles();
+
+    // Screenshot mode (20d) was on? Blur from the very first moment
+    try { if (GM_getValue('steamy34_sfw', false) === true) document.documentElement.classList.add('s34-sfw'); } catch (e) {}
+
+    // (Until Beta 3.1 the ad column was hidden here right away when an ad
+    // blocker was seen last time. Removed: an ad that loads late must never
+    // land in a column Steamy34 has hidden - the ad blocker acts first.)
+
+    // Give each thumbnail its aspect ratio (--r) for the justified layout
+    // thumbs (here and below): only these - e.g. a freshly loaded page;
+    // without it, every thumbnail on the page
+    const pageThumbs = () => document.querySelectorAll('.image-list span.thumb');
+
+    function setThumbRatios(thumbs) {
+        (thumbs || pageThumbs()).forEach(thumb => {
+            if (thumb.dataset.s34Ratio) return;
+            const img = thumb.querySelector('img');
+            if (!img) return;
+            thumb.dataset.s34Ratio = '1';
+
+            const apply = () => {
+                const w = img.naturalWidth || parseInt(img.getAttribute('width'), 10);
+                const h = img.naturalHeight || parseInt(img.getAttribute('height'), 10);
+                if (w && h) {
+                    // Clamp extreme panoramas / tall strips so rows stay sane
+                    const r = Math.min(Math.max(w / h, 0.4), 3);
+                    thumb.style.setProperty('--r', r.toFixed(4));
+                }
+            };
+
+            if (img.complete && img.naturalWidth) apply();
+            else img.addEventListener('load', apply, { once: true });
+        });
+    }
+
+    function thumbTags(img) {
+        const text = img.dataset.s34Tags || img.title || img.alt || '';
+        return ' ' + text.toLowerCase().replace(/\s+/g, ' ') + ' ';
+    }
+
+    // Remove the tag tooltip on hover: move the title into a data attribute
+    // (so badge/video detection can still read it) and drop the title itself
+    function removeTagTooltips(thumbs) {
+        (thumbs || document.querySelectorAll('.image-list span.thumb, .thumb')).forEach(thumb => {
+            thumb.querySelectorAll('[title]').forEach(el => {
+                if (!el.dataset.s34Tags) el.dataset.s34Tags = el.getAttribute('title');
+                el.removeAttribute('title');
+            });
+        });
+        const main = document.querySelector('#image[title]');
+        if (main) main.removeAttribute('title');
+    }
+    function isVideoThumb(img) {
+        // the site marks video thumbnails with "webm-thumb" – also catches videos without a video tag
+        return img.classList.contains('webm-thumb') || /\s(video|webm|mp4|animated_video)\s/.test(thumbTags(img));
+    }
+
+    // VIDEO / GIF labels on thumbnails, based on the tags in the image title
+    function addThumbBadges(thumbs) {
+        (thumbs || pageThumbs()).forEach(thumb => {
+            if (thumb.querySelector('.s34-badge')) return;
+            const img = thumb.querySelector('img');
+            if (!img) return;
+
+            const tags = thumbTags(img);
+            let label = '';
+            let cls = '';
+            if (isVideoThumb(img)) { label = '▶ VID'; cls = 's34-video'; }
+            else if (/\s(animated|gif|animated_gif)\s/.test(tags)) { label = 'GIF'; cls = 's34-gif'; }
+            if (!label) return;
+
+            const badge = document.createElement('span');
+            badge.className = 's34-badge ' + cls;
+            badge.textContent = label;
+            thumb.appendChild(badge);
+        });
+    }
+

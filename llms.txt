@@ -1,0 +1,15 @@
+# Steamy34
+
+> Steamy34 is a free userscript for rule34.xxx by steamycorner. It adds White / Dark / OLED colour modes, a popup viewer, an easier tag search with filters, downloads named after the post's tags ([character] [series] [artist] #post.jpg, key B), batch downloads, following artists and tag searches with new-post counts, local collections and a touch-friendly Android layout. It runs in Tampermonkey or Violentmonkey. Free, never monetized, collects no data, not affiliated with rule34.xxx. License: CC0 1.0.
+
+## Docs
+
+- [README with features, install steps, keyboard shortcuts and FAQ](README.md)
+
+## Install
+
+- [Steamy34 on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34)
+
+## Contact
+
+- [steamycorner](https://linktr.ee/steamycorner)

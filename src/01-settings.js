@@ -1,0 +1,239 @@
+    // =====================================================================
+    //  SETTINGS
+    //  These are the DEFAULTS. Use the gear button on the site to change
+    //  them - your choices are saved by Tampermonkey and survive updates.
+    // =====================================================================
+    const DEFAULTS = {
+        // Download (B)
+        fileNameStyle: 'brackets', // 'brackets' -> [character] [series] [artist].jpg
+                                   // 'classic'  -> Character_Copyright_Artist_Resolution.jpg
+        groupSeparator: '_',     // between copyright / character / artist / filename
+        tagJoiner: '+',          // between multiple tags in the same group
+        fileNamePostId: true,    // bracket style: add " #1234567" (the post number) - the post can be found again later
+        maxTagsPerGroup: 3,      // e.g. 12 characters -> "a+b+c+etc"
+        maxFilenameLength: 200,  // keep well below Windows' 255 limit
+        wrapInBrackets: false,   // true -> [Copyright]_[Character]_[Artist]_file.jpg
+        downloadKey: 'KeyB',     // hotkey (change it in the settings menu)
+        browseKeys: 'arrows',    // popup: previous / next post with 'arrows' (← →), 'wasd' (A D) or 'both'
+        favKey: 'KeyF',          // popup: favourite the post
+        collectKey: 'KeyC',      // popup: add the post to a collection
+        theaterKey: 'KeyT',      // popup: theater mode on / off
+        showDownloadButton: true,// clickable "Download" button on single post pages
+        trackDownloads: true,    // remember downloaded posts and mark them with ✓
+        trackViewed: true,       // remember opened posts and mark them with 👁
+        confirmRedownload: true, // ask before downloading a post you already downloaded
+        batchDelay: 1200,        // ms between files when downloading several posts at once
+        hideViewed: false,       // posts page: hide posts you already viewed (sidebar switch)
+        hideDownloaded: false,   // posts page: hide posts you already downloaded (sidebar switch)
+        hoverInfo: true,         // score and resolution on thumbnails while hovering
+        favButtons: true,        // ♥ favourite button on thumbnails and in the popup
+        popupPreload: true,      // popup: load the next/previous post in advance
+        checkSavedSearches: true,// unused since Beta 3.1 (searches are followed now - see checkFollowing)
+
+        // Fit to viewport
+        padding: 10,             // px gap kept to the window edges
+        allowUpscale: true,      // false -> only shrink, never enlarge
+        useOriginalImage: true,  // swap the resized "sample" for the full-res original
+        scrollToMedia: true,     // scroll so the media sits at the top of the window
+
+        // Autoplay
+        autoplay: true,
+        muteIfBlocked: true,     // if autoplay with sound is blocked, retry muted
+
+        // Blocklist buttons
+        blocklistButtons: true,
+        postTagChips: true,      // single post page: tags shown as chips like on thumbnails
+        addToSearchButtons: true, // "+" next to tags on posts adds them to the current search
+        reloadAfterBlock: false, // true -> reload the page so the change applies at once
+
+
+        // Look
+        theme: 'dark',           // colour mode: 'white', 'dark' or 'oled' (true black)
+        darkMode: true,          // (old setting - "off" becomes the White theme)
+        thumbGrid: true,
+        thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
+                                 // 'grid'      = uniform square tiles
+        thumbRowHeight: 220,     // px - target row height for 'justified'
+        thumbMinWidth: 200,      // px - minimum tile width for 'grid'
+        thumbGap: 6,             // px between tiles
+        thumbFit: 'cover',       // 'grid' only: 'cover' crops to squares, 'contain' shows whole image
+        thumbBadges: true,       // show a VIDEO / GIF label on animated posts
+        thumbExtras: 'hover',    // tags, labels and buttons on thumbnails: 'on' the picture,
+                                 // only on 'hover', or in a strip 'below' the picture
+        roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
+        contextHints: true,      // little one-time tips the first time you meet a feature
+        followButtons: true,     // bell (follow) next to artists (popup, post pages)
+        checkFollowing: true,    // count new posts from followed artists (in the background)
+
+        // Hover preview on the posts page
+        hoverPreview: true,      // play videos when hovering their thumbnail
+        hoverDelay: 250,         // ms to hover before loading (avoids loading while just moving the mouse past)
+        hoverMuted: true,        // browsers block sound until you click the page, so muted is most reliable
+        hoverHighRes: true,      // show the full-quality image when hovering an image thumbnail
+        thumbTagBar: true,       // artist & character tags at the bottom of each thumbnail
+        tagBarLookup: true,      // load post pages in the background to find missing artist/character tags
+        tagBarMax: 2,            // max tags shown per type (rest as "+N")
+
+        // Search box
+        searchChips: true,       // modern search: tags as chips, filter menus, recent searches, follow a search
+        searchMultiline: true,   // (only when searchChips is off) search box wraps and grows
+        searchSuggestions: true, // tag suggestions while typing
+        suggestionCount: 10,
+
+        // Infinite scrolling on the posts page
+        hideListTags: true,         // hide the tag list under the search on the posts page
+        infiniteScroll: true,
+        infiniteScrollMargin: 1200, // px before the bottom at which the next page starts loading
+        pageDividers: true,         // show a small "Page N" line between loaded pages
+        cleanupFarPages: true,      // unload pages you've scrolled far away from (saves memory)
+        cleanupDistance: 4000       // px outside the window before a page is unloaded
+    };
+
+    const SETTINGS_KEY = 'steamy34_settings';
+
+    function loadSaved() {
+        try {
+            const saved = GM_getValue(SETTINGS_KEY, {});
+            // Only keep keys that still exist, with the right type
+            const clean = {};
+            for (const k in saved) {
+                if (k in DEFAULTS && typeof saved[k] === typeof DEFAULTS[k]) clean[k] = saved[k];
+            }
+            return clean;
+        } catch (e) {
+            return {};
+        }
+    }
+
+    const CONFIG = Object.assign({}, DEFAULTS, loadSaved());
+
+    // Colour mode. All three are built from the dark design (White and OLED
+    // are converted from it - see recolorCss). "darkMode" is only read to
+    // move people over from the old on/off switch.
+    {
+        const saved = loadSaved();
+        if (saved.darkMode === false && !saved.theme) CONFIG.theme = 'white'; // old "dark mode off"
+        if (!['white', 'dark', 'oled'].includes(CONFIG.theme)) CONFIG.theme = 'dark';
+        document.documentElement.classList.add('s34-theme-' + CONFIG.theme);
+        // Thumbnail extras ("below" needs the modern layout - without it, they stay on the picture)
+        if (!['on', 'hover', 'below'].includes(CONFIG.thumbExtras)) CONFIG.thumbExtras = 'hover';
+        if (CONFIG.thumbExtras === 'below' && !CONFIG.thumbGrid) CONFIG.thumbExtras = 'on';
+        document.documentElement.classList.add('s34-tx-' + CONFIG.thumbExtras);
+        if (!CONFIG.roundCorners) document.documentElement.classList.add('s34-square');
+    }
+
+    // Save one or more settings right away (used by the quick controls in
+    // the sidebar - the settings menu saves everything at once instead)
+    function saveSettingsNow(changes) {
+        Object.assign(CONFIG, changes);
+        const saved = loadSaved();
+        for (const k in changes) {
+            if (changes[k] === DEFAULTS[k]) delete saved[k];
+            else saved[k] = changes[k];
+        }
+        GM_setValue(SETTINGS_KEY, saved);
+    }
+
+    // Thumbnail size as CSS variables, so the sidebar slider can change it live
+    document.documentElement.style.setProperty('--s34-row', CONFIG.thumbRowHeight + 'px');
+    document.documentElement.style.setProperty('--s34-tile', CONFIG.thumbMinWidth + 'px');
+
+    // What the settings window shows, section by section.
+    // Row: [key, label, extra]; extra: options / min / max / unit / text /
+    // hotkey, hint (small grey line under the label), adv (under "Show advanced").
+    const SETTINGS_UI = [
+        { id: 'look', title: 'Look', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
+            ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
+            ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
+            ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
+            ['thumbBadges', 'VID / GIF labels on thumbnails', { hint: 'Small labels in the corner of animated posts' }],
+            ['roundCorners', 'Rounded corners', { hint: 'Off: square corners everywhere – thumbnails, sidebar, tag bubbles, buttons and windows' }],
+            ['thumbExtras', 'Tags & buttons on thumbnails', { options: { on: 'On the picture', hover: 'Only on hover', below: 'Below the picture' }, hint: 'Keep the pictures free. "Only on hover" still shows VID / GIF, viewed / downloaded marks and favourited ♥ – and on phones, where you can\'t hover, everything stays visible. "Below" needs the modern thumbnail layout' }],
+            ['thumbRowHeight', 'Row height (original ratios)', { min: 80, max: 600, unit: 'px', adv: true, hint: 'Also changed by the Size slider in the sidebar' }],
+            ['thumbMinWidth', 'Tile size (square tiles)', { min: 80, max: 600, unit: 'px', adv: true }],
+            ['thumbFit', 'Square tiles show', { options: { cover: 'Cropped to fill', contain: 'Whole image' }, adv: true }],
+            ['thumbGap', 'Gap between thumbnails', { min: 0, max: 40, unit: 'px', adv: true }]
+        ] },
+        { id: 'posts', title: 'Posts page', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>', rows: [
+            ['hoverPreview', 'Play videos on hover'],
+            ['hoverHighRes', 'Full-quality image on hover'],
+            ['hoverInfo', 'Score & resolution on hover'],
+            ['thumbTagBar', 'Artist & character tags on thumbnails'],
+            ['favButtons', '♥ Favourite buttons', { hint: 'On thumbnails and in the popup – needs a rule34 login' }],
+            ['followButtons', '🔔 Follow buttons on artists', { hint: 'Next to artists in the popup and on post pages – everything you follow is listed in the sidebar' }],
+            ['checkFollowing', 'Count new posts for what you follow', { hint: 'Artists and searches – checked quietly in the background, at most every 20 minutes' }],
+            ['infiniteScroll', 'Infinite scrolling', { hint: 'The next page loads when you reach the bottom' }],
+            ['pageDividers', '"Page N" dividers'],
+            ['hideListTags', 'Hide the tag list under the search'],
+            ['hoverDelay', 'Hover delay', { min: 0, max: 2000, unit: 'ms', adv: true }],
+            ['hoverMuted', 'Hover previews muted', { adv: true }],
+            ['tagBarLookup', 'Look up missing tags in the background', { adv: true }],
+            ['tagBarMax', 'Tags shown per type', { min: 1, max: 6, adv: true }],
+            ['infiniteScrollMargin', 'Start loading the next page', { min: 0, max: 5000, unit: 'px early', adv: true }],
+            ['cleanupFarPages', 'Unload far-away pages', { adv: true, hint: 'Saves memory on very long scrolls' }],
+            ['cleanupDistance', 'Unload distance', { min: 1000, max: 20000, unit: 'px', adv: true }]
+        ] },
+        { id: 'viewing', title: 'Viewing posts', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 16l5-5 4 4 3-3 6 6" stroke-linecap="round"/></svg>', rows: [
+            ['browseKeys', 'Keys for previous / next post', { options: { arrows: 'Arrow keys  ← →', wasd: 'WASD  A D', both: 'Both' }, hint: 'With WASD, W / S also scroll to the comments and back' }],
+            ['favKey', 'Favourite key', { hotkey: true, hint: 'In the popup – click the box, then press a key' }],
+            ['collectKey', 'Add to collection key', { hotkey: true }],
+            ['theaterKey', 'Theater mode key', { hotkey: true }],
+            ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
+            ['popupPreload', 'Load the next / previous post in advance', { hint: 'Browsing feels instant. Off on phones by default (saves mobile data)' }],
+            ['autoplay', 'Autoplay videos'],
+            ['allowUpscale', 'Enlarge small pictures to fit the screen'],
+            ['useOriginalImage', 'Show the full-resolution picture', { hint: 'On single post pages, instead of the smaller sample' }],
+            ['muteIfBlocked', 'Play muted if sound is blocked', { adv: true }],
+            ['scrollToMedia', 'Scroll to the picture on post pages', { adv: true }],
+            ['padding', 'Gap to the window edges', { min: 0, max: 100, unit: 'px', adv: true }]
+        ] },
+        { id: 'search', title: 'Search', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>', rows: [
+            ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, recent searches and the bell to follow a search' }],
+            ['searchSuggestions', 'Tag suggestions while typing'],
+            ['suggestionCount', 'Number of suggestions', { min: 3, max: 30, adv: true }],
+            ['searchMultiline', 'Simple multi-line box (when the modern one is off)', { adv: true }]
+        ] },
+        { id: 'downloads', title: 'Downloads', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 20h14"/></svg>', rows: [
+            ['downloadKey', 'Download hotkey', { hotkey: true, hint: 'Click the box, then press a key' }],
+            ['dlFolder', 'Download folder', { folder: true, hint: 'Save straight into any folder – e.g. Eagle\'s watch folder. The browser asks once per session whether Steamy34 may write there' }],
+            ['showDownloadButton', 'Show the Download button'],
+            ['trackDownloads', 'Remember downloaded posts', { hint: 'Download mark on thumbnails, green Download button' }],
+            ['trackViewed', 'Remember viewed posts', { hint: 'Small eye on thumbnails' }],
+            ['confirmRedownload', 'Ask before downloading a post again'],
+            ['fileNameStyle', 'File names', { options: { brackets: '[character] [series] [artist]', classic: 'Character_Series_Artist_Resolution' }, hint: 'Readable names with spaces – handy for sorting in picture libraries' }],
+            ['fileNamePostId', 'Add the post number to file names', { hint: 'e.g. "[tracer] [overwatch] [someartist] #1234567.jpg" – so you can always find the post again. Bracket style only' }],
+            ['batchDelay', 'Pause between batch downloads', { min: 300, max: 10000, unit: 'ms', adv: true }],
+            ['maxTagsPerGroup', 'Max tags per group in file names', { min: 1, max: 20, adv: true }],
+            ['wrapInBrackets', 'Wrap groups in [brackets]', { adv: true, hint: 'Classic style only' }],
+            ['groupSeparator', 'Group separator', { text: true, adv: true, hint: 'Classic style only' }],
+            ['tagJoiner', 'Tag joiner', { text: true, adv: true, hint: 'Classic style only' }],
+            ['maxFilenameLength', 'Max file name length', { min: 60, max: 250, adv: true }]
+        ] },
+        { id: 'tags', title: 'Tags & blacklist', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.4" fill="currentColor"/></svg>', rows: [
+            ['blocklistButtons', 'Blacklist buttons (⊘) next to tags'],
+            ['addToSearchButtons', '+ / − next to tags', { hint: 'Add a tag to your search or take it out' }],
+            ['postTagChips', 'Tags as bubbles on single posts'],
+            ['reloadAfterBlock', 'Reload the page after blocking', { adv: true }]
+        ] }
+    ];
+
+    const params = new URLSearchParams(location.search);
+    const isPostView = params.get('page') === 'post' && params.get('s') === 'view';
+
+    // Phones: no mouse to hover with, and a narrow screen
+    const NO_HOVER = (() => { try { return matchMedia('(hover: none)').matches; } catch (e) { return false; } })();
+    const PHONE_MQ = '(max-width: 760px), (pointer: coarse) and (max-width: 1000px)';
+    const isPhoneLayout = () => { try { return matchMedia(PHONE_MQ).matches; } catch (e) { return false; } };
+
+    // Phones: loading the next / previous post in advance costs mobile data,
+    // so it's off there unless you switched it on yourself
+    if (isPhoneLayout() && !('popupPreload' in loadSaved())) CONFIG.popupPreload = false;
+
+    function onReady(fn) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fn);
+        } else {
+            fn();
+        }
+    }
+
