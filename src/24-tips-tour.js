@@ -199,6 +199,12 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.3.5', date: '2026-11-20', items: [
+            'With an ad blocker on, the ad column on the right is now always folded away – also when an ad slipped through your blocker (that happened mostly on the first visit). Without an ad blocker nothing changes.'
+        ] },
+        { v: 'Beta 3.3.4', date: '2026-11-20', items: [
+            'Steamy34 has its own channels on steamycorner\'s Discord: #feedback and #new-ideas – the link is in Settings → Help and in the welcome tour.'
+        ] },
         { v: 'Beta 3.3.3', date: '2026-11-20', items: [
             'Steamy34 now has its own page on Sleazy Fork – the script\'s homepage and feedback links (Tampermonkey dashboard) point there.'
         ] },
@@ -486,7 +492,7 @@
                     <li>Tap a post to open it – swipe left / right on the picture to browse, swipe down or press <b>Back</b> to close.</li>
                     <li>Steamy34's switches, Settings, Blacklist and the quick tips (with a <b>Phone</b> tab for all gestures) are in the <b>☰ Menu</b> at the top right.</li>
                     <li>Hover previews need a mouse, so they're off on phones.</li>
-                    <li>Something awkward or broken? Tell steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a> – it helps make the touch version better.</li>
+                    <li>Something awkward or broken? Tell steamycorner in #feedback on the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – it helps make the touch version better.</li>
                 </ul>
             </div>
             <div class="s34-mob-foot">
@@ -619,7 +625,7 @@
                     phone ? ['☰', 'The Menu', 'Steamy34\'s switches, Settings and tips are in the ☰ Menu at the top right.']
                           : [PHONE_SVG, 'On your phone too', 'Works on Android with Firefox – Settings → Help → On your phone.'],
                     ['?', 'All shortcuts', 'The quick tips list every key and gesture – the ? in the popup.'],
-                    ['💌', 'Say hi', 'Ideas or bugs? <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a> – every report helps.']
+                    ['💌', 'Say hi', `Ideas or bugs? Come to the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Steamy34 Discord channels</a> – every report helps.`]
                 ]
             }
         ];

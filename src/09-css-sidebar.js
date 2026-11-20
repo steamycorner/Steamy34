@@ -45,14 +45,14 @@
         }
     }
 
-    // ---- Right-hand ad column, emptied by an ad blocker ----
-    // The site keeps a ~195px column right of the posts for ads. With an ad
-    // blocker the ads are gone but the column keeps its width - a blank strip.
-    // RULE (user's wish): the ad blocker always acts first - Steamy34 never
-    // hides an ad. So the column is only folded away when an ad blocker IS
-    // detected AND the column is still empty once the page has fully loaded;
-    // if anything shows up in it later, it comes straight back. Without an
-    // ad blocker nothing is looked at or changed.
+    // ---- Right-hand ad column, when you use an ad blocker ----
+    // The site keeps a ~195px column right of the posts for ads.
+    // RULE (steamycorner, Beta 3.3.5): only people who use an ad blocker
+    // are affected - they've chosen not to see ads. When an ad blocker is
+    // detected, the right column is folded away, even if an ad slipped
+    // through the blocker (that happened most on the first page load).
+    // Without an ad blocker NOTHING is looked at or changed - every ad
+    // stays exactly as the site shows it. Other ad spaces are never touched.
 
     // A hidden "bait" box with typical ad names: ad blockers hide or remove it
     function adBlockerActive(waitMs = 900) {
@@ -74,62 +74,35 @@
         });
     }
 
-    function showsNothing(col) {
-        if (col.textContent.trim()) return false;
-        return !Array.from(col.querySelectorAll('iframe, img, video, canvas, object, embed, ins')).some(m => {
-            const r = m.getBoundingClientRect();
-            return r.width >= 20 && r.height >= 20;
-        });
-    }
-
-    // Only remembered for the record now (Beta 3.1.1 dropped hiding the
-    // column early - an ad loading late would have been hidden)
+    // An ad blocker was found last time? Then the column steps aside from
+    // the very first moment (html class set in 10-colour-modes.js) - and
+    // comes back if no ad blocker is found this time.
     const ADBLOCK_SEEN_KEY = 'steamy34_adblock_seen';
 
-    // The page and its ads have loaded (or 6 s passed), plus a moment
-    function afterPageLoad(extraMs) {
-        return new Promise(resolve => {
-            const go = () => setTimeout(resolve, extraMs);
-            if (document.readyState === 'complete') go();
-            else {
-                const t = setTimeout(go, 6000);
-                window.addEventListener('load', () => { clearTimeout(t); go(); }, { once: true });
-            }
-        });
-    }
-
-    async function foldEmptyAdColumn() {
-        const root = document.documentElement;
-        root.classList.remove('s34-adcol-early'); // old early hiding: never again
+    function rightAdColumns() {
         const content = (document.querySelector('.image-list') || {}).parentElement;
         const cols = [];
         if (content) {
             for (let s = content.nextElementSibling; s; s = s.nextElementSibling) {
-                if (s.matches('.postListSidebarRight') || s.querySelector('.postListSidebarRight, ins, iframe')) cols.push(s);
+                if (s.matches('.postListSidebarRight') || s.querySelector('.postListSidebarRight')) cols.push(s);
             }
         }
-        if (!cols.length) return;
+        return cols;
+    }
+
+    async function foldEmptyAdColumn() {
+        const root = document.documentElement;
+        const cols = rightAdColumns();
+        if (!cols.length) { root.classList.remove('s34-adcol-early'); return; }
         // Quick check first; blockers that act a bit later get a second look
         let blocked = await adBlockerActive(150);
         if (!blocked) blocked = await adBlockerActive(1200);
         try { GM_setValue(ADBLOCK_SEEN_KEY, blocked); } catch (e) {}
-        if (!blocked) return;
-        // Give any ad the blocker let through every chance to appear first
-        await afterPageLoad(1500);
-        cols.filter(showsNothing).forEach(col => {
-            col.classList.add('s34-empty-col');
-            console.log('[Steamy34] Ad blocker detected and the ad column stayed empty – folded away.');
-            // Something appears in it after all? Then it's back at once.
-            const obs = new MutationObserver(() => {
-                if (col.querySelector('iframe, img, video, canvas, object, embed') || col.textContent.trim() ||
-                    Array.from(col.querySelectorAll('ins')).some(i => i.children.length || i.attributes.length > 2)) {
-                    col.classList.remove('s34-empty-col');
-                    obs.disconnect();
-                    console.log('[Steamy34] Something loaded in the ad column – it is shown again.');
-                }
-            });
-            obs.observe(col, { childList: true, subtree: true, attributes: true });
-        });
+        if (blocked) {
+            cols.forEach(col => col.classList.add('s34-empty-col'));
+            console.log('[Steamy34] Ad blocker detected – the ad column on the right was folded away.');
+        }
+        root.classList.remove('s34-adcol-early'); // no ad blocker: the column is back as the site shows it
     }
 
     // Posts page only: sidebar blends into the page background

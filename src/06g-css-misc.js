@@ -103,9 +103,15 @@
             font: 700 11px system-ui, sans-serif;
         }
 
-        /* Ad column on the right that the ad blocker left empty - posts use
-           the space (only after the page has loaded and it stayed empty) */
+        /* Right ad column, ad blocker on - posts use the space */
         .s34-empty-col { display: none !important; }
+        /* Until the check (ad blocker seen last time): out of the layout */
+        html.s34-adcol-early .content ~ span:has(.postListSidebarRight),
+        html.s34-adcol-early .content ~ .postListSidebarRight {
+            position: absolute !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
 
         /* Small icon buttons (popup ✕ ? Theater, message ✕, window ✕): real
            buttons for the keyboard, but without the page's button look */

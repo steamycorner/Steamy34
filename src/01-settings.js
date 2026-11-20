@@ -220,6 +220,10 @@
     const params = new URLSearchParams(location.search);
     const isPostView = params.get('page') === 'post' && params.get('s') === 'view';
 
+    // Where people find Steamy34 and talk to steamycorner
+    const SLEAZY_URL = 'https://sleazyfork.org/en/scripts/606445-steamy34';
+    const DISCORD_URL = 'https://discord.com/invite/Udg9sNTBHb';
+
     // Phones: no mouse to hover with, and a narrow screen
     const NO_HOVER = (() => { try { return matchMedia('(hover: none)').matches; } catch (e) { return false; } })();
     const PHONE_MQ = '(max-width: 760px), (pointer: coarse) and (max-width: 1000px)';

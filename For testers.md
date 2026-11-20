@@ -25,7 +25,7 @@ Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewe
 
 ## Reporting problems
 
-Write in the **Feedback** tab of the script page (https://sleazyfork.org/en/scripts/606445-steamy34/feedback) or message me directly. Tell me:
+Post in **#feedback** on the Discord (https://discord.com/invite/Udg9sNTBHb) – ideas go in **#new-ideas** – or write in the **Feedback** tab of the script page (https://sleazyfork.org/en/scripts/606445-steamy34/feedback). Tell me:
 - what you did, what you expected, and what happened instead
 - your browser (and phone or computer)
 - the version (bottom of the sidebar, e.g. "Beta 3.2")

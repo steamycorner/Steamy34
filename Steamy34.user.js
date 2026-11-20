@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.3.3-beta
+// @version      3.3.5-beta
 // @license      CC0-1.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -333,6 +333,10 @@
 
     const params = new URLSearchParams(location.search);
     const isPostView = params.get('page') === 'post' && params.get('s') === 'view';
+
+    // Where people find Steamy34 and talk to steamycorner
+    const SLEAZY_URL = 'https://sleazyfork.org/en/scripts/606445-steamy34';
+    const DISCORD_URL = 'https://discord.com/invite/Udg9sNTBHb';
 
     // Phones: no mouse to hover with, and a narrow screen
     const NO_HOVER = (() => { try { return matchMedia('(hover: none)').matches; } catch (e) { return false; } })();
@@ -3178,9 +3182,15 @@
             font: 700 11px system-ui, sans-serif;
         }
 
-        /* Ad column on the right that the ad blocker left empty - posts use
-           the space (only after the page has loaded and it stayed empty) */
+        /* Right ad column, ad blocker on - posts use the space */
         .s34-empty-col { display: none !important; }
+        /* Until the check (ad blocker seen last time): out of the layout */
+        html.s34-adcol-early .content ~ span:has(.postListSidebarRight),
+        html.s34-adcol-early .content ~ .postListSidebarRight {
+            position: absolute !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
 
         /* Small icon buttons (popup ✕ ? Theater, message ✕, window ✕): real
            buttons for the keyboard, but without the page's button look */
@@ -4558,14 +4568,14 @@
         }
     }
 
-    // ---- Right-hand ad column, emptied by an ad blocker ----
-    // The site keeps a ~195px column right of the posts for ads. With an ad
-    // blocker the ads are gone but the column keeps its width - a blank strip.
-    // RULE (user's wish): the ad blocker always acts first - Steamy34 never
-    // hides an ad. So the column is only folded away when an ad blocker IS
-    // detected AND the column is still empty once the page has fully loaded;
-    // if anything shows up in it later, it comes straight back. Without an
-    // ad blocker nothing is looked at or changed.
+    // ---- Right-hand ad column, when you use an ad blocker ----
+    // The site keeps a ~195px column right of the posts for ads.
+    // RULE (steamycorner, Beta 3.3.5): only people who use an ad blocker
+    // are affected - they've chosen not to see ads. When an ad blocker is
+    // detected, the right column is folded away, even if an ad slipped
+    // through the blocker (that happened most on the first page load).
+    // Without an ad blocker NOTHING is looked at or changed - every ad
+    // stays exactly as the site shows it. Other ad spaces are never touched.
 
     // A hidden "bait" box with typical ad names: ad blockers hide or remove it
     function adBlockerActive(waitMs = 900) {
@@ -4587,62 +4597,35 @@
         });
     }
 
-    function showsNothing(col) {
-        if (col.textContent.trim()) return false;
-        return !Array.from(col.querySelectorAll('iframe, img, video, canvas, object, embed, ins')).some(m => {
-            const r = m.getBoundingClientRect();
-            return r.width >= 20 && r.height >= 20;
-        });
-    }
-
-    // Only remembered for the record now (Beta 3.1.1 dropped hiding the
-    // column early - an ad loading late would have been hidden)
+    // An ad blocker was found last time? Then the column steps aside from
+    // the very first moment (html class set in 10-colour-modes.js) - and
+    // comes back if no ad blocker is found this time.
     const ADBLOCK_SEEN_KEY = 'steamy34_adblock_seen';
 
-    // The page and its ads have loaded (or 6 s passed), plus a moment
-    function afterPageLoad(extraMs) {
-        return new Promise(resolve => {
-            const go = () => setTimeout(resolve, extraMs);
-            if (document.readyState === 'complete') go();
-            else {
-                const t = setTimeout(go, 6000);
-                window.addEventListener('load', () => { clearTimeout(t); go(); }, { once: true });
-            }
-        });
-    }
-
-    async function foldEmptyAdColumn() {
-        const root = document.documentElement;
-        root.classList.remove('s34-adcol-early'); // old early hiding: never again
+    function rightAdColumns() {
         const content = (document.querySelector('.image-list') || {}).parentElement;
         const cols = [];
         if (content) {
             for (let s = content.nextElementSibling; s; s = s.nextElementSibling) {
-                if (s.matches('.postListSidebarRight') || s.querySelector('.postListSidebarRight, ins, iframe')) cols.push(s);
+                if (s.matches('.postListSidebarRight') || s.querySelector('.postListSidebarRight')) cols.push(s);
             }
         }
-        if (!cols.length) return;
+        return cols;
+    }
+
+    async function foldEmptyAdColumn() {
+        const root = document.documentElement;
+        const cols = rightAdColumns();
+        if (!cols.length) { root.classList.remove('s34-adcol-early'); return; }
         // Quick check first; blockers that act a bit later get a second look
         let blocked = await adBlockerActive(150);
         if (!blocked) blocked = await adBlockerActive(1200);
         try { GM_setValue(ADBLOCK_SEEN_KEY, blocked); } catch (e) {}
-        if (!blocked) return;
-        // Give any ad the blocker let through every chance to appear first
-        await afterPageLoad(1500);
-        cols.filter(showsNothing).forEach(col => {
-            col.classList.add('s34-empty-col');
-            console.log('[Steamy34] Ad blocker detected and the ad column stayed empty – folded away.');
-            // Something appears in it after all? Then it's back at once.
-            const obs = new MutationObserver(() => {
-                if (col.querySelector('iframe, img, video, canvas, object, embed') || col.textContent.trim() ||
-                    Array.from(col.querySelectorAll('ins')).some(i => i.children.length || i.attributes.length > 2)) {
-                    col.classList.remove('s34-empty-col');
-                    obs.disconnect();
-                    console.log('[Steamy34] Something loaded in the ad column – it is shown again.');
-                }
-            });
-            obs.observe(col, { childList: true, subtree: true, attributes: true });
-        });
+        if (blocked) {
+            cols.forEach(col => col.classList.add('s34-empty-col'));
+            console.log('[Steamy34] Ad blocker detected – the ad column on the right was folded away.');
+        }
+        root.classList.remove('s34-adcol-early'); // no ad blocker: the column is back as the site shows it
     }
 
     // Posts page only: sidebar blends into the page background
@@ -4821,9 +4804,14 @@
     // Screenshot mode (20d) was on? Blur from the very first moment
     try { if (GM_getValue('steamy34_sfw', false) === true) document.documentElement.classList.add('s34-sfw'); } catch (e) {}
 
-    // (Until Beta 3.1 the ad column was hidden here right away when an ad
-    // blocker was seen last time. Removed: an ad that loads late must never
-    // land in a column Steamy34 has hidden - the ad blocker acts first.)
+    // An ad blocker was found last time? Then the right ad column steps aside
+    // from the very first moment (checked again once the page is there - it
+    // comes back if no ad blocker is found; see foldEmptyAdColumn)
+    try {
+        if (!isPostView && GM_getValue('steamy34_adblock_seen', false) === true) {
+            document.documentElement.classList.add('s34-adcol-early');
+        }
+    } catch (e) {}
 
     // Give each thumbnail its aspect ratio (--r) for the justified layout
     // thumbs (here and below): only these - e.g. a freshly loaded page;
@@ -8439,7 +8427,7 @@
                         <button type="button" class="s34-set-btn" data-act="mobile">${PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"')} On your phone</button>
                     </div>
                     <div class="s34-set-cardhead">Questions, bugs or ideas?</div>
-                    <p>Get in touch with steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a></p>
+                    <p>Join the Steamy34 channels (#feedback, #new-ideas) on steamycorner's <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – or write in the <a href="${SLEAZY_URL}/feedback" target="_blank" rel="noopener noreferrer">Feedback tab on Sleazy Fork</a>. More from steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a></p>
                     <p class="s34-set-ver">Steamy34 ${CURRENT_VERSION}</p>
                 </div>`;
             pages.help = page;
@@ -11801,6 +11789,12 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.3.5', date: '2026-11-20', items: [
+            'With an ad blocker on, the ad column on the right is now always folded away – also when an ad slipped through your blocker (that happened mostly on the first visit). Without an ad blocker nothing changes.'
+        ] },
+        { v: 'Beta 3.3.4', date: '2026-11-20', items: [
+            'Steamy34 has its own channels on steamycorner\'s Discord: #feedback and #new-ideas – the link is in Settings → Help and in the welcome tour.'
+        ] },
         { v: 'Beta 3.3.3', date: '2026-11-20', items: [
             'Steamy34 now has its own page on Sleazy Fork – the script\'s homepage and feedback links (Tampermonkey dashboard) point there.'
         ] },
@@ -12088,7 +12082,7 @@
                     <li>Tap a post to open it – swipe left / right on the picture to browse, swipe down or press <b>Back</b> to close.</li>
                     <li>Steamy34's switches, Settings, Blacklist and the quick tips (with a <b>Phone</b> tab for all gestures) are in the <b>☰ Menu</b> at the top right.</li>
                     <li>Hover previews need a mouse, so they're off on phones.</li>
-                    <li>Something awkward or broken? Tell steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a> – it helps make the touch version better.</li>
+                    <li>Something awkward or broken? Tell steamycorner in #feedback on the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – it helps make the touch version better.</li>
                 </ul>
             </div>
             <div class="s34-mob-foot">
@@ -12221,7 +12215,7 @@
                     phone ? ['☰', 'The Menu', 'Steamy34\'s switches, Settings and tips are in the ☰ Menu at the top right.']
                           : [PHONE_SVG, 'On your phone too', 'Works on Android with Firefox – Settings → Help → On your phone.'],
                     ['?', 'All shortcuts', 'The quick tips list every key and gesture – the ? in the popup.'],
-                    ['💌', 'Say hi', 'Ideas or bugs? <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a> – every report helps.']
+                    ['💌', 'Say hi', `Ideas or bugs? Come to the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Steamy34 Discord channels</a> – every report helps.`]
                 ]
             }
         ];

@@ -10,7 +10,7 @@
 
 > **A fan-made hobby project.** Steamy34 is free and will never be monetized: no ads, no paid features, no data collection. It isn't made by or connected to rule34.xxx.
 
-Questions, bugs or ideas: the [Feedback tab on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34/feedback) or https://linktr.ee/steamycorner
+Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) on the [steamycorner Discord](https://discord.com/invite/Udg9sNTBHb)**, or write in the [Feedback tab on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34/feedback).
 
 ---
 
@@ -158,7 +158,7 @@ Any browser with Tampermonkey or Violentmonkey: Chrome, Firefox, Edge, Brave, Wa
 Install it from its [Sleazy Fork page](https://sleazyfork.org/en/scripts/606445-steamy34) with one click. Updates come automatically: Tampermonkey checks Sleazy Fork regularly (or right away via Tampermonkey → Utilities → "Check for userscript updates"). Your settings and data are kept with every update.
 
 ### Something doesn't work. Where do I report it?
-Leave feedback on the Sleazy Fork page or get in touch via https://linktr.ee/steamycorner. A short description of what you did and what happened helps most.
+Post it in #feedback on the [steamycorner Discord](https://discord.com/invite/Udg9sNTBHb) or in the Feedback tab on the Sleazy Fork page. A short description of what you did and what happened helps most.
 
 ---
 

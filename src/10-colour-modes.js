@@ -152,9 +152,14 @@
     // Screenshot mode (20d) was on? Blur from the very first moment
     try { if (GM_getValue('steamy34_sfw', false) === true) document.documentElement.classList.add('s34-sfw'); } catch (e) {}
 
-    // (Until Beta 3.1 the ad column was hidden here right away when an ad
-    // blocker was seen last time. Removed: an ad that loads late must never
-    // land in a column Steamy34 has hidden - the ad blocker acts first.)
+    // An ad blocker was found last time? Then the right ad column steps aside
+    // from the very first moment (checked again once the page is there - it
+    // comes back if no ad blocker is found; see foldEmptyAdColumn)
+    try {
+        if (!isPostView && GM_getValue('steamy34_adblock_seen', false) === true) {
+            document.documentElement.classList.add('s34-adcol-early');
+        }
+    } catch (e) {}
 
     // Give each thumbnail its aspect ratio (--r) for the justified layout
     // thumbs (here and below): only these - e.g. a freshly loaded page;
