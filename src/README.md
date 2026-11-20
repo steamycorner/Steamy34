@@ -39,4 +39,4 @@ All parts share one scope (the script is one big function), so a part can use an
 
 Version bump: `@version` in `00-header.js` + a new entry at the top of `CHANGELOG` in `24-tips-tour.js`, then build.
 
-Tests: see `tests\README.md` – a fake rule34.xxx page (no real site, no pictures) and a check suite that runs in every colour mode.
+Every version is checked before release with a local test suite (a fake rule34.xxx page without pictures, every check in all three colour modes) – it isn't part of this repository.
