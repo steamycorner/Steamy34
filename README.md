@@ -10,6 +10,19 @@
 
 ---
 
+## Screenshots
+
+*All pictures are blurred with Steamy34's own screenshot mode (press X).*
+
+| | |
+|---|---|
+| ![Posts page with the Steamy34 sidebar: tag search, Following, View switches](images/posts.png) | ![Popup viewer with download, auto next, post info and tags](images/popup.png) |
+| **Posts page** – tag search with filters, Following, view switches | **Popup viewer** – download, auto next, post info and tags |
+| ![Recent searches, infinite scroll with page dividers and the Cloudflare notice](images/search.png) | ![Your stats: downloads, views, top artists, characters and series](images/stats.png) |
+| **Recent searches** and infinite scroll | **Your stats** – kept only on your computer |
+
+---
+
 ## Features
 
 **Look**
