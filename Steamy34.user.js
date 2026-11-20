@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.4-beta
-// @license      CC0-1.0
+// @version      3.4.1-beta
+// @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
 // @supportURL   https://sleazyfork.org/en/scripts/606445-steamy34/feedback
@@ -34,10 +34,13 @@
  *  CONTACT: https://linktr.ee/steamycorner
  *  Questions, bugs or ideas? Get in touch with steamycorner there.
  *
- *  FREE TO CHANGE AND SHARE
- *  You may change, copy and re-upload this code however you like.
- *  License: CC0 1.0 (public domain) -
- *  https://creativecommons.org/publicdomain/zero/1.0/
+ *  LICENSE: CC BY-NC-SA 4.0 (since Beta 3.4.1)
+ *  You may share and change Steamy34 - as long as you
+ *    - credit steamycorner (with a link to the original),
+ *    - don't use it commercially (no selling, no paywalls, no ads),
+ *    - share changed versions under the same license.
+ *  https://creativecommons.org/licenses/by-nc-sa/4.0/
+ *  (Versions up to Beta 3.4 were released under CC0 1.0.)
  *
  *  WHAT IT DOES (the quick tips - "?" - show the keys & gestures)
  *
@@ -12294,6 +12297,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.4.1', date: '2026-11-20', items: [
+            'New license: CC BY-NC-SA 4.0 – Steamy34 stays free to share and change, with credit to steamycorner, never commercially, and changed versions under the same license.'
+        ] },
         { v: 'Beta 3.4', date: '2026-11-20', notify: true, items: [
             'Continue where you left off: back on a search you had scrolled deep into, a small message offers "Continue at page N".',
             'The browser tab shows "(12) rule34" (and a dot on its icon) while the artists and searches you follow have new posts.',

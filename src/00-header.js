@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.4-beta
-// @license      CC0-1.0
+// @version      3.4.1-beta
+// @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
 // @supportURL   https://sleazyfork.org/en/scripts/606445-steamy34/feedback
@@ -34,10 +34,13 @@
  *  CONTACT: https://linktr.ee/steamycorner
  *  Questions, bugs or ideas? Get in touch with steamycorner there.
  *
- *  FREE TO CHANGE AND SHARE
- *  You may change, copy and re-upload this code however you like.
- *  License: CC0 1.0 (public domain) -
- *  https://creativecommons.org/publicdomain/zero/1.0/
+ *  LICENSE: CC BY-NC-SA 4.0 (since Beta 3.4.1)
+ *  You may share and change Steamy34 - as long as you
+ *    - credit steamycorner (with a link to the original),
+ *    - don't use it commercially (no selling, no paywalls, no ads),
+ *    - share changed versions under the same license.
+ *  https://creativecommons.org/licenses/by-nc-sa/4.0/
+ *  (Versions up to Beta 3.4 were released under CC0 1.0.)
  *
  *  WHAT IT DOES (the quick tips - "?" - show the keys & gestures)
  *

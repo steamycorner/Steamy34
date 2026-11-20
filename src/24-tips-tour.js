@@ -200,6 +200,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.4.1', date: '2026-11-20', items: [
+            'New license: CC BY-NC-SA 4.0 – Steamy34 stays free to share and change, with credit to steamycorner, never commercially, and changed versions under the same license.'
+        ] },
         { v: 'Beta 3.4', date: '2026-11-20', notify: true, items: [
             'Continue where you left off: back on a search you had scrolled deep into, a small message offers "Continue at page N".',
             'The browser tab shows "(12) rule34" (and a dot on its icon) while the artists and searches you follow have new posts.',

@@ -2,7 +2,7 @@
 
 **Steamy34 is a free, all-in-one userscript for rule34.xxx.** It adds a dark mode (White, Dark and OLED), a popup viewer, a much easier tag search, downloads named after the post's tags, and artist following with new-post counts. It also has a touch-friendly phone layout for Android. It runs in Tampermonkey or Violentmonkey.
 
-*[Vibecoded with AI]* · by **steamycorner** · License: CC0 1.0 · Beta
+*[Vibecoded with AI]* · by **steamycorner** · License: CC BY-NC-SA 4.0 · Beta
 
 > ### ⬇ Install from Sleazy Fork: [sleazyfork.org/scripts/606445-steamy34](https://sleazyfork.org/en/scripts/606445-steamy34)
 > One click on **Install this script**, and Tampermonkey **keeps Steamy34 up to date by itself** from there – nothing else to do.
@@ -167,4 +167,6 @@ Post it in #feedback on the [steamycorner Discord](https://discord.com/invite/Ud
 
 ## License
 
-CC0 1.0 (public domain): free to change, copy and share however you like.
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): you may share and change Steamy34 – as long as you **credit steamycorner** (with a link to the original), **don't use it commercially** (no selling, no paywalls, no ads) and **share changed versions under the same license**. See [LICENSE](LICENSE).
+
+*(Versions up to Beta 3.4 were released under CC0 1.0.)*
