@@ -61,19 +61,30 @@
             const t = document.getElementById('s' + target) || document.getElementById('p' + target);
             if (t) setTimeout(() => t.scrollIntoView({ block: 'center' }), 300);
         }
-        // Note the spot while scrolling (calmly - at most every 1.5 s)
-        let timer = null;
+        // Note the spot while scrolling (calmly - at most every 1.5 s). Only
+        // real scrolling counts: just opening or leaving a page saves nothing.
+        // (Steamy34's own jump to your post doesn't count - only your wheel,
+        // finger, keys or scrollbar)
+        let timer = null, scrolled = false, userActive = false;
+        ['wheel', 'touchmove', 'keydown', 'mousedown'].forEach(ev => window.addEventListener(ev, () => { userActive = true; }, { passive: true, capture: true }));
         window.addEventListener('scroll', () => {
+            if (!userActive) return;
+            scrolled = true;
             if (timer) return;
             timer = setTimeout(() => { timer = null; saveSpot(); }, 1500);
         }, { passive: true });
-        window.addEventListener('pagehide', saveSpot);
+        window.addEventListener('pagehide', () => { if (scrolled) saveSpot(); });
 
         // Offer to continue: only on the first page of a search, when you
         // were at page 2 or further within the last 24 hours
         if (!CONFIG.resumeOffer || target || pidOf(location.href) > 0) return;
-        const was = readResume()[key];
-        if (!was || !was.pid || Date.now() - (was.at || 0) > RESUME_MAX_AGE) return;
+        const all = readResume();
+        const was = all[key];
+        if (!was || !was.pid || was.offered || Date.now() - (was.at || 0) > RESUME_MAX_AGE) return;
+        // Offered once - reloads and later visits start fresh, until you scroll
+        // deep again (that saves a new spot without the "offered" mark)
+        was.offered = true;
+        try { GM_setValue(RESUME_KEY, all); } catch (e) {}
         const page = Math.floor(was.pid / pageStep) + 1;
         setTimeout(() => {
             if (scrollY > 400) return; // already scrolling on - no need

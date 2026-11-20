@@ -257,6 +257,23 @@
             color: #dcdce0 !important;
         }
         .s34-follow-chip button:hover { opacity: 1; color: #ff6b6b !important; }
+        /* "Follow which artist?" (L in the popup with several artists):
+           a bell instead of the checkbox, the number key on the right */
+        .s34-follow-menu .s34-cmenu-check,
+        .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { border: none !important; background: transparent !important; color: #b9b9c3 !important; }
+        .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { color: #ffb347 !important; }
+        .s34-follow-menu .s34-cmenu-check svg { width: 15px; height: 15px; }
+        .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-name { color: #ffcf8a !important; }
+        .s34-follow-menu kbd.s34-cmenu-n {
+            opacity: 1;
+            min-width: 18px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            text-align: center;
+            background-color: rgba(255,255,255,0.1) !important;
+            color: #dcdce0 !important;
+            font: 700 11px system-ui, sans-serif;
+        }
         /* Per-artist filter inside the artist's chip */
         .s34-follow-chip select.s34-follow-afilter {
             height: 20px;

@@ -190,6 +190,68 @@
     }
     const newText = a => (a.count ? a.count + (a.more ? '+' : '') + ' new' : '');
 
+    // ---- Popup key L: follow the artist - or, with several, choose ----
+    // A small menu next to the artist tags: 1-9 (or a click) follows /
+    // unfollows that artist, the menu stays open for more; Esc or L closes.
+    function followArtistByKey(artists, anchor) {
+        if (artists.length === 1) { toggleFollow(artists[0]); return; }
+        document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
+        const menu = document.createElement('div');
+        menu.className = 's34-cmenu s34-follow-menu';
+        function render() {
+            const d = getFollowing();
+            menu.replaceChildren();
+            const head = document.createElement('div');
+            head.className = 's34-cmenu-head';
+            head.textContent = 'Follow which artist?';
+            menu.appendChild(head);
+            artists.slice(0, 9).forEach((tag, i) => {
+                const on = isFollowed(tag, d);
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 's34-cmenu-item' + (on ? ' s34-on' : '');
+                b.innerHTML = `<span class="s34-cmenu-check">${on ? BELL_ON_SVG : BELL_SVG}</span><span class="s34-cmenu-name"></span><kbd class="s34-cmenu-n">${i + 1}</kbd>`;
+                b.querySelector('.s34-cmenu-name').textContent = prettyTag(tag) + (on ? ' · following' : '');
+                b.title = (on ? 'Unfollow ' : 'Follow ') + prettyTag(tag) + ' (' + (i + 1) + ')';
+                b.addEventListener('click', () => { toggleFollow(tag); render(); });
+                menu.appendChild(b);
+            });
+            const foot = document.createElement('div');
+            foot.className = 's34-cmenu-empty';
+            foot.textContent = 'Press a number – Esc closes';
+            menu.appendChild(foot);
+        }
+        function close() {
+            menu.remove();
+            document.removeEventListener('keydown', onKey, true);
+            document.removeEventListener('mousedown', off, true);
+        }
+        function onKey(e) {
+            if (!menu.isConnected) { close(); return; }
+            const n = /^Digit([1-9])$|^Numpad([1-9])$/.exec(e.code);
+            if (n) {
+                const tag = artists[parseInt(n[1] || n[2], 10) - 1];
+                if (tag) { e.preventDefault(); e.stopImmediatePropagation(); toggleFollow(tag); render(); }
+            } else if (e.key === 'Escape' || e.code === CONFIG.followKey) {
+                e.preventDefault(); e.stopImmediatePropagation(); close();
+            }
+        }
+        function off(e) { if (!menu.contains(e.target)) close(); }
+        render();
+        document.body.appendChild(menu);
+        // Next to the artist tags (or the top of the popup's side), kept on screen
+        const r = anchor && anchor.getBoundingClientRect();
+        const visible = r && r.bottom > 0 && r.top < innerHeight;
+        const mw = menu.offsetWidth, mh = menu.offsetHeight;
+        let left = visible ? r.left : 16, top = visible ? r.bottom + 6 : 80;
+        left = Math.max(8, Math.min(left, innerWidth - mw - 8));
+        if (top + mh > innerHeight - 8) top = Math.max(8, (visible ? r.top : innerHeight) - mh - 6);
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+        document.addEventListener('keydown', onKey, true);
+        setTimeout(() => document.addEventListener('mousedown', off, true), 0);
+    }
+
     // ---- Follow / unfollow ----
     function toggleFollow(tag) {
         tag = String(tag).toLowerCase().trim().replace(/\s+/g, '_');

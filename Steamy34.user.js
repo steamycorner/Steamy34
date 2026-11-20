@@ -3941,6 +3941,23 @@
             color: #dcdce0 !important;
         }
         .s34-follow-chip button:hover { opacity: 1; color: #ff6b6b !important; }
+        /* "Follow which artist?" (L in the popup with several artists):
+           a bell instead of the checkbox, the number key on the right */
+        .s34-follow-menu .s34-cmenu-check,
+        .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { border: none !important; background: transparent !important; color: #b9b9c3 !important; }
+        .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { color: #ffb347 !important; }
+        .s34-follow-menu .s34-cmenu-check svg { width: 15px; height: 15px; }
+        .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-name { color: #ffcf8a !important; }
+        .s34-follow-menu kbd.s34-cmenu-n {
+            opacity: 1;
+            min-width: 18px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            text-align: center;
+            background-color: rgba(255,255,255,0.1) !important;
+            color: #dcdce0 !important;
+            font: 700 11px system-ui, sans-serif;
+        }
         /* Per-artist filter inside the artist's chip */
         .s34-follow-chip select.s34-follow-afilter {
             height: 20px;
@@ -4822,6 +4839,8 @@
             html.s34-theme-white .s34-follow-row.s34-follow-allrow { color: #b35c00 !important; }
             html.s34-theme-white .s34-sb .s34-sb-follow.s34-following svg { color: #d97800 !important; }
             html.s34-theme-white .s34-pins-note { color: #7a4300 !important; }
+            html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { color: #d97800 !important; }
+            html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-name { color: #8a4a00 !important; }
             html.s34-theme-white .s34-sb .s34-pin.s34-on { color: #b35c00 !important; }
             html.s34-theme-white .s34-sb.s34-pins-paused .s34-pin.s34-on { color: #6b6f7a !important; }
             /* Score and the "child posts" notice in the popup */
@@ -9089,6 +9108,68 @@
     }
     const newText = a => (a.count ? a.count + (a.more ? '+' : '') + ' new' : '');
 
+    // ---- Popup key L: follow the artist - or, with several, choose ----
+    // A small menu next to the artist tags: 1-9 (or a click) follows /
+    // unfollows that artist, the menu stays open for more; Esc or L closes.
+    function followArtistByKey(artists, anchor) {
+        if (artists.length === 1) { toggleFollow(artists[0]); return; }
+        document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
+        const menu = document.createElement('div');
+        menu.className = 's34-cmenu s34-follow-menu';
+        function render() {
+            const d = getFollowing();
+            menu.replaceChildren();
+            const head = document.createElement('div');
+            head.className = 's34-cmenu-head';
+            head.textContent = 'Follow which artist?';
+            menu.appendChild(head);
+            artists.slice(0, 9).forEach((tag, i) => {
+                const on = isFollowed(tag, d);
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 's34-cmenu-item' + (on ? ' s34-on' : '');
+                b.innerHTML = `<span class="s34-cmenu-check">${on ? BELL_ON_SVG : BELL_SVG}</span><span class="s34-cmenu-name"></span><kbd class="s34-cmenu-n">${i + 1}</kbd>`;
+                b.querySelector('.s34-cmenu-name').textContent = prettyTag(tag) + (on ? ' · following' : '');
+                b.title = (on ? 'Unfollow ' : 'Follow ') + prettyTag(tag) + ' (' + (i + 1) + ')';
+                b.addEventListener('click', () => { toggleFollow(tag); render(); });
+                menu.appendChild(b);
+            });
+            const foot = document.createElement('div');
+            foot.className = 's34-cmenu-empty';
+            foot.textContent = 'Press a number – Esc closes';
+            menu.appendChild(foot);
+        }
+        function close() {
+            menu.remove();
+            document.removeEventListener('keydown', onKey, true);
+            document.removeEventListener('mousedown', off, true);
+        }
+        function onKey(e) {
+            if (!menu.isConnected) { close(); return; }
+            const n = /^Digit([1-9])$|^Numpad([1-9])$/.exec(e.code);
+            if (n) {
+                const tag = artists[parseInt(n[1] || n[2], 10) - 1];
+                if (tag) { e.preventDefault(); e.stopImmediatePropagation(); toggleFollow(tag); render(); }
+            } else if (e.key === 'Escape' || e.code === CONFIG.followKey) {
+                e.preventDefault(); e.stopImmediatePropagation(); close();
+            }
+        }
+        function off(e) { if (!menu.contains(e.target)) close(); }
+        render();
+        document.body.appendChild(menu);
+        // Next to the artist tags (or the top of the popup's side), kept on screen
+        const r = anchor && anchor.getBoundingClientRect();
+        const visible = r && r.bottom > 0 && r.top < innerHeight;
+        const mw = menu.offsetWidth, mh = menu.offsetHeight;
+        let left = visible ? r.left : 16, top = visible ? r.bottom + 6 : 80;
+        left = Math.max(8, Math.min(left, innerWidth - mw - 8));
+        if (top + mh > innerHeight - 8) top = Math.max(8, (visible ? r.top : innerHeight) - mh - 6);
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+        document.addEventListener('keydown', onKey, true);
+        setTimeout(() => document.addEventListener('mousedown', off, true), 0);
+    }
+
     // ---- Follow / unfollow ----
     function toggleFollow(tag) {
         tag = String(tag).toLowerCase().trim().replace(/\s+/g, '_');
@@ -10231,19 +10312,30 @@
             const t = document.getElementById('s' + target) || document.getElementById('p' + target);
             if (t) setTimeout(() => t.scrollIntoView({ block: 'center' }), 300);
         }
-        // Note the spot while scrolling (calmly - at most every 1.5 s)
-        let timer = null;
+        // Note the spot while scrolling (calmly - at most every 1.5 s). Only
+        // real scrolling counts: just opening or leaving a page saves nothing.
+        // (Steamy34's own jump to your post doesn't count - only your wheel,
+        // finger, keys or scrollbar)
+        let timer = null, scrolled = false, userActive = false;
+        ['wheel', 'touchmove', 'keydown', 'mousedown'].forEach(ev => window.addEventListener(ev, () => { userActive = true; }, { passive: true, capture: true }));
         window.addEventListener('scroll', () => {
+            if (!userActive) return;
+            scrolled = true;
             if (timer) return;
             timer = setTimeout(() => { timer = null; saveSpot(); }, 1500);
         }, { passive: true });
-        window.addEventListener('pagehide', saveSpot);
+        window.addEventListener('pagehide', () => { if (scrolled) saveSpot(); });
 
         // Offer to continue: only on the first page of a search, when you
         // were at page 2 or further within the last 24 hours
         if (!CONFIG.resumeOffer || target || pidOf(location.href) > 0) return;
-        const was = readResume()[key];
-        if (!was || !was.pid || Date.now() - (was.at || 0) > RESUME_MAX_AGE) return;
+        const all = readResume();
+        const was = all[key];
+        if (!was || !was.pid || was.offered || Date.now() - (was.at || 0) > RESUME_MAX_AGE) return;
+        // Offered once - reloads and later visits start fresh, until you scroll
+        // deep again (that saves a new spot without the "offered" mark)
+        was.offered = true;
+        try { GM_setValue(RESUME_KEY, all); } catch (e) {}
         const page = Math.floor(was.pid / pageStep) + 1;
         setTimeout(() => {
             if (scrollY > 400) return; // already scrolling on - no need
@@ -12205,7 +12297,7 @@
         { v: 'Beta 3.4', date: '2026-11-20', notify: true, items: [
             'Continue where you left off: back on a search you had scrolled deep into, a small message offers "Continue at page N".',
             'The browser tab shows "(12) rule34" (and a dot on its icon) while the artists and searches you follow have new posts.',
-            'L in the popup follows (or unfollows) the post\'s artist. Each followed artist can now have its own filter (Following → Manage), e.g. "Everything" for one and "Score ≥ 100" for another.',
+            'L in the popup follows (or unfollows) the post\'s artist – with several artists, a small menu lets you pick with 1, 2, 3… Each followed artist can now have its own filter (Following → Manage), e.g. "Everything" for one and "Score ≥ 100" for another.',
             'Screenshot mode is now "Censored mode" (still X) – and it blurs comment texts and names too, so screenshots are safe to share.',
             'Settings → Help → "Copy info for a bug report": shows what would be shared, then copies it for #feedback on Discord. Video previews wait a moment longer before loading, and the settings are tidier (new "Following" section).'
         ] },
@@ -13660,6 +13752,7 @@
         const t = e.target;
         if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
         if (document.querySelector('.s34-overlay')) return; // settings / Cloudflare window on top
+        if (document.querySelector('.s34-follow-menu')) return; // "Follow which artist?" handles its own keys
         if (e.key === 'Escape') { e.preventDefault(); closePopup(); return; }
         if (e.ctrlKey || e.metaKey || e.altKey) return;          // Ctrl+D etc. stay the browser's
         const dir = browseDirection(e);
@@ -13680,7 +13773,8 @@
             e.preventDefault();
             const artists = ((popupState.tags && popupState.tags.artist) || []).map(a => (a && a.tag) || a).filter(a => typeof a === 'string' && a);
             if (!artists.length) { showToast('This post has no artist tag to follow.'); return; }
-            toggleFollow(artists[0]); // shows its own message (with Undo); the bell updates too
+            // one artist: follow right away (with Undo); several: a small menu to choose
+            followArtistByKey(artists, popupState.overlay.querySelector('.s34-chip-artist'));
             return;
         }
         // F / C / T (changeable): favourite, collection, theater mode

@@ -111,6 +111,8 @@
             html.s34-theme-white .s34-follow-row.s34-follow-allrow { color: #b35c00 !important; }
             html.s34-theme-white .s34-sb .s34-sb-follow.s34-following svg { color: #d97800 !important; }
             html.s34-theme-white .s34-pins-note { color: #7a4300 !important; }
+            html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { color: #d97800 !important; }
+            html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-name { color: #8a4a00 !important; }
             html.s34-theme-white .s34-sb .s34-pin.s34-on { color: #b35c00 !important; }
             html.s34-theme-white .s34-sb.s34-pins-paused .s34-pin.s34-on { color: #6b6f7a !important; }
             /* Score and the "child posts" notice in the popup */

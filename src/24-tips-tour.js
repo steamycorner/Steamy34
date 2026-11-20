@@ -203,7 +203,7 @@
         { v: 'Beta 3.4', date: '2026-11-20', notify: true, items: [
             'Continue where you left off: back on a search you had scrolled deep into, a small message offers "Continue at page N".',
             'The browser tab shows "(12) rule34" (and a dot on its icon) while the artists and searches you follow have new posts.',
-            'L in the popup follows (or unfollows) the post\'s artist. Each followed artist can now have its own filter (Following → Manage), e.g. "Everything" for one and "Score ≥ 100" for another.',
+            'L in the popup follows (or unfollows) the post\'s artist – with several artists, a small menu lets you pick with 1, 2, 3… Each followed artist can now have its own filter (Following → Manage), e.g. "Everything" for one and "Score ≥ 100" for another.',
             'Screenshot mode is now "Censored mode" (still X) – and it blurs comment texts and names too, so screenshots are safe to share.',
             'Settings → Help → "Copy info for a bug report": shows what would be shared, then copies it for #feedback on Discord. Video previews wait a moment longer before loading, and the settings are tidier (new "Following" section).'
         ] },

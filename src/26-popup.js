@@ -457,6 +457,7 @@
         const t = e.target;
         if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
         if (document.querySelector('.s34-overlay')) return; // settings / Cloudflare window on top
+        if (document.querySelector('.s34-follow-menu')) return; // "Follow which artist?" handles its own keys
         if (e.key === 'Escape') { e.preventDefault(); closePopup(); return; }
         if (e.ctrlKey || e.metaKey || e.altKey) return;          // Ctrl+D etc. stay the browser's
         const dir = browseDirection(e);
@@ -477,7 +478,8 @@
             e.preventDefault();
             const artists = ((popupState.tags && popupState.tags.artist) || []).map(a => (a && a.tag) || a).filter(a => typeof a === 'string' && a);
             if (!artists.length) { showToast('This post has no artist tag to follow.'); return; }
-            toggleFollow(artists[0]); // shows its own message (with Undo); the bell updates too
+            // one artist: follow right away (with Undo); several: a small menu to choose
+            followArtistByKey(artists, popupState.overlay.querySelector('.s34-chip-artist'));
             return;
         }
         // F / C / T (changeable): favourite, collection, theater mode
