@@ -44,7 +44,7 @@
             if (e.code !== 'KeyX' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.repeat) return;
             const t = e.target;
             if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
-            if (document.querySelector('.s34-overlay:not(.s34-pv-overlay)')) return; // settings etc. open
+            if (document.querySelector('.s34-overlay:not(.s34-pv-overlay):not(.s34-under-popup)')) return; // settings etc. open
             if ([CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey, CONFIG.followingKey].includes('KeyX')) return; // your own key wins
             e.preventDefault();
             setScreenshotMode(!sfwOn());

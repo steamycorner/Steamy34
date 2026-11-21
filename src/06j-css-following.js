@@ -332,6 +332,8 @@
         }
         .s34-fw-c.s34-new .s34-fw-ring { background: linear-gradient(135deg, #ffb347, #ff5f8f, #8b3dff) !important; }
         .s34-fw-c.s34-on .s34-fw-ring { outline: 2px solid #f2f2f5; outline-offset: 2px; }
+        /* (the general button hover would paint a grey box behind the circle) */
+        .s34-fw-c.s34-fw-c:hover, .s34-fw-c.s34-fw-c:focus, .s34-fw-c.s34-fw-c:active { background: transparent !important; border: 0 !important; }
         .s34-fw-c:focus-visible .s34-fw-ring { outline: 2px solid #ff5f8f; outline-offset: 2px; }
         .s34-fw-c.s34-gone { opacity: .45; }
         .s34-fw-pic {
@@ -547,11 +549,26 @@
         .s34-home-meta { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; font-size: 11.5px; color: #8e8e9a !important; }
         .s34-home-meta p { margin: 0; }
         .s34-home-meta small { font-size: 11px; line-height: 1.6; }
+        /* The site's own welcome line, under the following card */
+        .s34-home-right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .s34-home-tagline:empty { display: none; }
+        .s34-home-tagline > div {
+            padding: 8px 10px;
+            border-left: 2px solid #ff5f8f !important;
+            border-radius: 0 8px 8px 0;
+            background-color: rgba(255,95,143,0.07) !important;
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 500;
+            color: #e8e8ee !important;
+        }
         .s34-home-meta small a { margin-right: 10px; }
         .s34-home-follow-head { display: flex; align-items: center; gap: 10px; }
         .s34-home-follow-head .s34-home-label { flex: 1; min-width: 0; }
         .s34-home-new { flex: none; padding: 0 7px; border-radius: 4px; background-color: #e0457b !important; color: #fff !important; font: 700 11px/19px system-ui, sans-serif; }
-        .s34-home .s34-home-circles { padding: 0 0 4px; border: 0 !important; }
+        /* room for the selected circle's ring (the row scrolls sideways and
+           would cut it off) */
+        .s34-home .s34-home-circles { padding: 6px 6px 4px; margin: -6px -6px 0; border: 0 !important; }
         .s34-home .s34-fw-pic { border-color: #101014 !important; }
         .s34-home-grid { --s34-fw-row: 170px; padding: 0; border-radius: 10px; overflow: hidden; }
         .s34-home-status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
@@ -581,7 +598,9 @@
             .s34-home-follow { order: 2; }
             .s34-home-resume { order: 3; }
             .s34-home-recent { order: 4; }
-            .s34-home-meta { order: 5; text-align: center; }
+            .s34-home-meta { order: 6; text-align: center; }
+            .s34-home-right { display: contents; }
+            .s34-home-tagline { order: 5; }
             .s34-home-grid { --s34-fw-row: 120px; }
         }
     `;

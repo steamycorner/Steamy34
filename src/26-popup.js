@@ -215,7 +215,9 @@
         stopPopupMedia();
         document.documentElement.classList.add('s34-pv-open');
 
-        const isVideo = isVideoThumb(img);
+        // (a post from a collection: picture or video isn't known until its page is read)
+        const typeUnknown = thumb.dataset.s34TypeUnknown === '1';
+        let isVideo = isVideoThumb(img);
         // Where the page was when the popup first opened (restored on close)
         const browsing = !!popupState;
         const start = browsing
@@ -286,6 +288,8 @@
         placeholder.src = img.getAttribute('src') || img.dataset.s34Src || '';
         stage.appendChild(placeholder);
 
+        // The media itself - right away, or once the post page said what it is
+        function startMedia(isVideo, directUrl) {
         const el = isVideo ? document.createElement('video') : new Image();
         el.className = 's34-pv-media s34-pv-loading';
         if (isVideo) {
@@ -298,7 +302,7 @@
                 if (autoNext.on && popupState && popupState.id === myId) autoAdvance();
             });
         }
-        const candidates = mediaCandidates(img, isVideo);
+        const candidates = directUrl ? [directUrl] : mediaCandidates(img, isVideo);
         let next = 0;
         let triedPost = false;
 
@@ -340,6 +344,16 @@
         el.addEventListener('error', tryNext);
         stage.appendChild(el);
         tryNext();
+        }
+        if (!typeUnknown) startMedia(isVideo);
+        else getPostMedia(link.href, 'popup').then(m => {
+            if (!popupState || popupState.id !== myId) return;
+            isVideo = !!(m && m.video);
+            popupState.isVideo = isVideo;
+            overlay.querySelector('.s34-pv-vopts').hidden = !isVideo;
+            startMedia(isVideo, m && (isVideo ? m.video : m.image));
+            if (thumb._s34OnType) thumb._s34OnType(isVideo);
+        });
 
         // ---- full tag list (with counts) from the post page ----
         const loadPostInfo = () => fetchPostDoc(link.href, 'popup').then(doc => {
@@ -393,6 +407,9 @@
         s.overlay.remove();
         popupState = null;
         document.documentElement.classList.remove('s34-pv-open');
+        // a window the popup was opened from (a collection) comes back
+        // (a moment later: the Esc that closed the popup mustn't close the window too)
+        setTimeout(() => document.querySelectorAll('.s34-under-popup').forEach(o => o.classList.remove('s34-under-popup')), 0);
         // Still on the post you opened? Back to exactly where you were.
         // (Browsed on with ← / →? Then the list stays at the last post.)
         if (s.thumb === s.startThumb) window.scrollTo(0, s.startScroll);
@@ -519,7 +536,7 @@
         if (!popupState) return;
         const t = e.target;
         if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
-        if (document.querySelector('.s34-overlay')) return; // settings / Cloudflare window on top
+        if (document.querySelector('.s34-overlay:not(.s34-under-popup)')) return; // settings / Cloudflare window on top
         if (document.querySelector('.s34-follow-menu')) return; // "Follow which artist?" handles its own keys
         if (e.key === 'Escape') { e.preventDefault(); closePopup(); return; }
         if (e.ctrlKey || e.metaKey || e.altKey) return;          // Ctrl+D etc. stay the browser's

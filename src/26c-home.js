@@ -41,7 +41,10 @@
                     <section class="s34-home-card s34-home-recent" hidden></section>
                     <div class="s34-home-meta"></div>
                 </div>
-                <section class="s34-home-card s34-home-follow"></section>
+                <div class="s34-home-right">
+                    <section class="s34-home-card s34-home-follow"></section>
+                    <div class="s34-home-tagline"></div>
+                </div>
             </div>`;
         const head = home.querySelector('.s34-home-head');
         if (logo) { logo.classList.add('s34-home-logo'); head.appendChild(logo); }
@@ -50,6 +53,9 @@
         const meta = home.querySelector('.s34-home-meta');
         if (count) { count.classList.add('s34-home-count'); meta.appendChild(count); }
         if (foot) meta.appendChild(foot);
+        // The site's welcome line ("At Rule 34 its easy to find…") under the following card
+        const welcome = foot && Array.from(foot.children).find(el => el.tagName === 'DIV' && el.textContent.trim());
+        if (welcome) home.querySelector('.s34-home-tagline').appendChild(welcome);
         page.prepend(home);
         document.documentElement.classList.add('s34-home-on');
         // What's left of the old page (the tagline, the counter pictures) steps aside

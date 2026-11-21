@@ -54,6 +54,7 @@
         };
         function onKey(e) {
             if (e.key !== 'Escape' || document.querySelector('.s34-tips-overlay, .s34-cmenu')) return;
+            if (overlay.classList.contains('s34-under-popup') || e.defaultPrevented) return; // the popup on top closes first
             e.preventDefault();
             e.stopPropagation();
             api.close();
@@ -478,14 +479,45 @@
                 e.textContent = 'Empty – save posts here with the Collection button.';
                 tiles.appendChild(e);
             }
-            c.posts.forEach(p => {
+            // A post opens in the popup viewer on top, ← / → go through this
+            // collection (Beta 3.6 - before, the post page in a new tab; Ctrl /
+            // middle click still does that). The popup gets a small stand-in
+            // thumbnail per post; picture or video is learned from the post page
+            // the first time and kept with the post.
+            const proxies = c.posts.map(p => {
+                const s = document.createElement('span');
+                s.className = 'thumb';
+                s.innerHTML = '<a></a>';
+                s.firstChild.href = postPageUrl(p.id);
+                const im = new Image();
+                im.alt = '';
+                if (p.thumb) im.src = p.thumb;
+                if (typeof p.video === 'boolean') { if (p.video) im.className = 'webm-thumb'; }
+                else s.dataset.s34TypeUnknown = '1';
+                s.firstChild.appendChild(im);
+                s._s34OnType = isVideo => {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    const item = col && col.posts.find(x => x.id === p.id);
+                    if (item && item.video !== isVideo) { item.video = isVideo; saveCollections(all); }
+                };
+                return s;
+            });
+            const list = { thumbs: () => proxies, state: () => 'done', more: () => {} };
+            c.posts.forEach((p, n) => {
                 const tile = document.createElement('div');
                 tile.className = 's34-tile';
                 const link = document.createElement('a');
                 link.href = postPageUrl(p.id);
                 link.target = '_blank';
                 link.rel = 'noopener';
-                link.title = 'Open the post (new tab)';
+                link.title = 'Open the post (Ctrl + click: the post page in a new tab)';
+                link.addEventListener('click', e => {
+                    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+                    e.preventDefault();
+                    w.overlay.classList.add('s34-under-popup'); // steps aside until the popup closes
+                    openPopup(proxies[n], list);
+                });
                 link.appendChild(thumbOrPlaceholder(p.thumb, p.id));
                 const cap = document.createElement('div');
                 cap.className = 's34-tile-cap';

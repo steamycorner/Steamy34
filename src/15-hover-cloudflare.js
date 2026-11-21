@@ -552,12 +552,27 @@
                         }
                     }
 
-                    el.addEventListener(isVideo ? 'playing' : 'load', () => {
-                        if (overlay !== el) return;
+                    const reveal = () => {
+                        if (overlay !== el || el.classList.contains('s34-playing')) return;
                         thumb.classList.remove('s34-loading');
                         el.classList.add('s34-playing');
                         rememberMediaHost(isVideo ? 'video' : 'image', el.currentSrc || el.src);
-                    });
+                    };
+                    if (!isVideo) el.addEventListener('load', reveal);
+                    else {
+                        // Videos (Beta 3.6): start a bit into the clip - many open
+                        // on a dark intro or fade-in - and only show the video once a
+                        // real frame is drawn (before, it showed on "playing", and a
+                        // not yet drawn frame looked like a black box)
+                        el.addEventListener('loadedmetadata', () => {
+                            const d = el.duration;
+                            if (isFinite(d) && d > 4) { try { el.currentTime = Math.min(d * 0.15, 8); } catch (e) {} }
+                        }, { once: true });
+                        el.addEventListener('playing', () => {
+                            if (typeof el.requestVideoFrameCallback === 'function') el.requestVideoFrameCallback(() => reveal());
+                            el.addEventListener('timeupdate', reveal, { once: true }); // (whichever comes first)
+                        });
+                    }
                     el.addEventListener('error', tryNext); // wrong guess -> next one
 
                     thumb.appendChild(el);

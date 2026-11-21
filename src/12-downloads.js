@@ -677,7 +677,7 @@
 
         const t = event.target;
         if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
-        if (document.querySelector('.s34-overlay:not(.s34-pv-overlay)')) return; // settings etc. open
+        if (document.querySelector('.s34-overlay:not(.s34-pv-overlay):not(.s34-under-popup)')) return; // settings etc. open
 
         if (popupState) {
             event.preventDefault();

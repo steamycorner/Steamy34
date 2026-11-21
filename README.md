@@ -2,7 +2,7 @@
 
 **Steamy34 is a free, all-in-one userscript for rule34.xxx.** It adds a dark mode (White, Dark and OLED), a popup viewer, a much easier tag search, downloads named after the post's tags, and artist following with new-post counts. It also has a touch-friendly phone layout for Android. It runs in Tampermonkey or Violentmonkey.
 
-*[Vibecoded with AI]* · by **steamycorner** · License: CC BY-NC-SA 4.0 · Beta
+By **steamycorner** · written with AI · License: CC BY-NC-SA 4.0 · Beta
 
 > ### ⬇ Install from Sleazy Fork: [sleazyfork.org/scripts/606445-steamy34](https://sleazyfork.org/en/scripts/606445-steamy34)
 > One click on **Install this script**, and Tampermonkey **keeps Steamy34 up to date by itself** from there – nothing else to do.
@@ -10,7 +10,7 @@
 
 > **A fan-made hobby project.** Steamy34 is free and will never be monetized: no ads, no paid features, no data collection. It isn't made by or connected to rule34.xxx.
 
-> **Made with AI, by a designer – not a programmer.** I'm steamycorner: web design and CI for over 12 years, and mostly 3D design – that's my day job. I'm not a programmer. I design how Steamy34 looks and works; the code is written by an AI (Claude). That also means bugs and issues are fixed by the AI, not by me – and the AI can make mistakes. Every version is tested before it's released, but if something breaks, please tell me: that's how it gets fixed.
+> **Designed by a person, written by AI.** Hi, I'm steamycorner. Design is my day job: more than twelve years of web design and corporate identity, and mostly 3D these days. I'm not a programmer, though. I decide how Steamy34 looks, feels and behaves, and an AI (Claude) writes the code. That also means the AI is the one fixing bugs, and like anyone, it sometimes gets things wrong. Every version is tested before it goes out, but if something breaks or feels off, please let me know. That's how it gets better.
 
 Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) on the [steamycorner Discord](https://discord.com/invite/Udg9sNTBHb)**, or write in the [Feedback tab on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34/feedback).
 

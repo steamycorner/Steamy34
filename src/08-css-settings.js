@@ -196,6 +196,9 @@
             align-items: center;
             justify-content: center;
         }
+        /* A window that opened the popup viewer (a collection) waits invisibly
+           underneath, scroll position kept, until the popup closes */
+        .s34-overlay.s34-under-popup { visibility: hidden !important; }
         .s34-panel {
             width: min(560px, calc(100vw - 32px));
             max-height: calc(100vh - 48px);

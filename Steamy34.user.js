@@ -7,7 +7,7 @@
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
 // @supportURL   https://sleazyfork.org/en/scripts/606445-steamy34/feedback
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjVmOGYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjNkZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNSIgZmlsbD0idXJsKCNnKSIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIzLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iLjk1Ij48cGF0aCBkPSJNMjIgMjZjLTMuMi0zIDMuMi01LjYgMC04LjZzMy4yLTUuNiAwLTguNCIvPjxwYXRoIGQ9Ik0zMSAyNmMtMy4yLTMgMy4yLTUuNiAwLTguNnMzLjItNS42IDAtOC40Ii8+PHBhdGggZD0iTTQwIDI2Yy0zLjItMyAzLjItNS42IDAtOC42czMuMi01LjYgMC04LjQiLz48L2c+PHBhdGggZD0iTTE0IDMxaDM0djdhMTMgMTMgMCAwIDEtMTMgMTNoLThhMTMgMTMgMCAwIDEtMTMtMTN6IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTQ3LjUgMzQuNWgyLjVhNS41IDUuNSAwIDAgMSAwIDExaC00IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIxMSIgeT0iNTMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzLjQiIHJ4PSIxLjciIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii45Ii8+PC9zdmc+
-// @description  [Vibecoded with AI] All-in-one rule34.xxx upgrade by steamycorner: dark / OLED mode, popup viewer, easy tag search with filters, follow artists in their own grid window with new-post counts, downloads named after the tags (press B), batch downloads, collections, infinite scroll and a phone layout. A free fan-made hobby project, never monetized.
+// @description  All-in-one rule34.xxx upgrade: dark / OLED mode, popup viewer, easy tag search with filters, follow artists in their own grid window with new-post counts, downloads named after the tags (press B), batch downloads, collections, infinite scroll and a phone layout. Designed by steamycorner, written with AI. A free fan-made hobby project, never monetized.
 // @match        https://rule34.xxx/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -699,7 +699,7 @@
             object-fit: cover;
             z-index: 1;
             pointer-events: none;   /* clicks still open the post */
-            background: #000 !important;
+            background: transparent !important; /* (black made a not-yet-drawn video look like a dark box) */
             opacity: 0;
             transition: opacity .15s ease;
         }
@@ -4101,6 +4101,8 @@
         }
         .s34-fw-c.s34-new .s34-fw-ring { background: linear-gradient(135deg, #ffb347, #ff5f8f, #8b3dff) !important; }
         .s34-fw-c.s34-on .s34-fw-ring { outline: 2px solid #f2f2f5; outline-offset: 2px; }
+        /* (the general button hover would paint a grey box behind the circle) */
+        .s34-fw-c.s34-fw-c:hover, .s34-fw-c.s34-fw-c:focus, .s34-fw-c.s34-fw-c:active { background: transparent !important; border: 0 !important; }
         .s34-fw-c:focus-visible .s34-fw-ring { outline: 2px solid #ff5f8f; outline-offset: 2px; }
         .s34-fw-c.s34-gone { opacity: .45; }
         .s34-fw-pic {
@@ -4316,11 +4318,26 @@
         .s34-home-meta { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; font-size: 11.5px; color: #8e8e9a !important; }
         .s34-home-meta p { margin: 0; }
         .s34-home-meta small { font-size: 11px; line-height: 1.6; }
+        /* The site's own welcome line, under the following card */
+        .s34-home-right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .s34-home-tagline:empty { display: none; }
+        .s34-home-tagline > div {
+            padding: 8px 10px;
+            border-left: 2px solid #ff5f8f !important;
+            border-radius: 0 8px 8px 0;
+            background-color: rgba(255,95,143,0.07) !important;
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 500;
+            color: #e8e8ee !important;
+        }
         .s34-home-meta small a { margin-right: 10px; }
         .s34-home-follow-head { display: flex; align-items: center; gap: 10px; }
         .s34-home-follow-head .s34-home-label { flex: 1; min-width: 0; }
         .s34-home-new { flex: none; padding: 0 7px; border-radius: 4px; background-color: #e0457b !important; color: #fff !important; font: 700 11px/19px system-ui, sans-serif; }
-        .s34-home .s34-home-circles { padding: 0 0 4px; border: 0 !important; }
+        /* room for the selected circle's ring (the row scrolls sideways and
+           would cut it off) */
+        .s34-home .s34-home-circles { padding: 6px 6px 4px; margin: -6px -6px 0; border: 0 !important; }
         .s34-home .s34-fw-pic { border-color: #101014 !important; }
         .s34-home-grid { --s34-fw-row: 170px; padding: 0; border-radius: 10px; overflow: hidden; }
         .s34-home-status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
@@ -4350,7 +4367,9 @@
             .s34-home-follow { order: 2; }
             .s34-home-resume { order: 3; }
             .s34-home-recent { order: 4; }
-            .s34-home-meta { order: 5; text-align: center; }
+            .s34-home-meta { order: 6; text-align: center; }
+            .s34-home-right { display: contents; }
+            .s34-home-tagline { order: 5; }
             .s34-home-grid { --s34-fw-row: 120px; }
         }
     `;
@@ -4944,6 +4963,9 @@
             align-items: center;
             justify-content: center;
         }
+        /* A window that opened the popup viewer (a collection) waits invisibly
+           underneath, scroll position kept, until the popup closes */
+        .s34-overlay.s34-under-popup { visibility: hidden !important; }
         .s34-panel {
             width: min(560px, calc(100vw - 32px));
             max-height: calc(100vh - 48px);
@@ -6125,7 +6147,7 @@
 
         const t = event.target;
         if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
-        if (document.querySelector('.s34-overlay:not(.s34-pv-overlay)')) return; // settings etc. open
+        if (document.querySelector('.s34-overlay:not(.s34-pv-overlay):not(.s34-under-popup)')) return; // settings etc. open
 
         if (popupState) {
             event.preventDefault();
@@ -7099,12 +7121,27 @@
                         }
                     }
 
-                    el.addEventListener(isVideo ? 'playing' : 'load', () => {
-                        if (overlay !== el) return;
+                    const reveal = () => {
+                        if (overlay !== el || el.classList.contains('s34-playing')) return;
                         thumb.classList.remove('s34-loading');
                         el.classList.add('s34-playing');
                         rememberMediaHost(isVideo ? 'video' : 'image', el.currentSrc || el.src);
-                    });
+                    };
+                    if (!isVideo) el.addEventListener('load', reveal);
+                    else {
+                        // Videos (Beta 3.6): start a bit into the clip - many open
+                        // on a dark intro or fade-in - and only show the video once a
+                        // real frame is drawn (before, it showed on "playing", and a
+                        // not yet drawn frame looked like a black box)
+                        el.addEventListener('loadedmetadata', () => {
+                            const d = el.duration;
+                            if (isFinite(d) && d > 4) { try { el.currentTime = Math.min(d * 0.15, 8); } catch (e) {} }
+                        }, { once: true });
+                        el.addEventListener('playing', () => {
+                            if (typeof el.requestVideoFrameCallback === 'function') el.requestVideoFrameCallback(() => reveal());
+                            el.addEventListener('timeupdate', reveal, { once: true }); // (whichever comes first)
+                        });
+                    }
                     el.addEventListener('error', tryNext); // wrong guess -> next one
 
                     thumb.appendChild(el);
@@ -10150,7 +10187,7 @@
             if (e.code !== 'KeyX' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.repeat) return;
             const t = e.target;
             if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
-            if (document.querySelector('.s34-overlay:not(.s34-pv-overlay)')) return; // settings etc. open
+            if (document.querySelector('.s34-overlay:not(.s34-pv-overlay):not(.s34-under-popup)')) return; // settings etc. open
             if ([CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey, CONFIG.followingKey].includes('KeyX')) return; // your own key wins
             e.preventDefault();
             setScreenshotMode(!sfwOn());
@@ -11893,6 +11930,7 @@
         };
         function onKey(e) {
             if (e.key !== 'Escape' || document.querySelector('.s34-tips-overlay, .s34-cmenu')) return;
+            if (overlay.classList.contains('s34-under-popup') || e.defaultPrevented) return; // the popup on top closes first
             e.preventDefault();
             e.stopPropagation();
             api.close();
@@ -12317,14 +12355,45 @@
                 e.textContent = 'Empty – save posts here with the Collection button.';
                 tiles.appendChild(e);
             }
-            c.posts.forEach(p => {
+            // A post opens in the popup viewer on top, ← / → go through this
+            // collection (Beta 3.6 - before, the post page in a new tab; Ctrl /
+            // middle click still does that). The popup gets a small stand-in
+            // thumbnail per post; picture or video is learned from the post page
+            // the first time and kept with the post.
+            const proxies = c.posts.map(p => {
+                const s = document.createElement('span');
+                s.className = 'thumb';
+                s.innerHTML = '<a></a>';
+                s.firstChild.href = postPageUrl(p.id);
+                const im = new Image();
+                im.alt = '';
+                if (p.thumb) im.src = p.thumb;
+                if (typeof p.video === 'boolean') { if (p.video) im.className = 'webm-thumb'; }
+                else s.dataset.s34TypeUnknown = '1';
+                s.firstChild.appendChild(im);
+                s._s34OnType = isVideo => {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    const item = col && col.posts.find(x => x.id === p.id);
+                    if (item && item.video !== isVideo) { item.video = isVideo; saveCollections(all); }
+                };
+                return s;
+            });
+            const list = { thumbs: () => proxies, state: () => 'done', more: () => {} };
+            c.posts.forEach((p, n) => {
                 const tile = document.createElement('div');
                 tile.className = 's34-tile';
                 const link = document.createElement('a');
                 link.href = postPageUrl(p.id);
                 link.target = '_blank';
                 link.rel = 'noopener';
-                link.title = 'Open the post (new tab)';
+                link.title = 'Open the post (Ctrl + click: the post page in a new tab)';
+                link.addEventListener('click', e => {
+                    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+                    e.preventDefault();
+                    w.overlay.classList.add('s34-under-popup'); // steps aside until the popup closes
+                    openPopup(proxies[n], list);
+                });
                 link.appendChild(thumbOrPlaceholder(p.thumb, p.id));
                 const cap = document.createElement('div');
                 cap.className = 's34-tile-cap';
@@ -12726,6 +12795,8 @@
             'Click a post and it opens in the popup as usual – ← / → go through that artist\'s posts and load more at the end. Close it and you\'re back in the grid; close the window and you\'re back on your page.',
             'Open it with the sidebar\'s Following box or the G key (changeable in Settings → Following). ← / → switch between artists, Esc closes. "Bigger" in its bottom right corner makes it nearly as big as the screen. On phones it fills the screen and Back closes it.',
             'New start page: rule34\'s start page becomes a small home. Your search, "Continue" where you left off, your recent searches and favourite tags on the left (the post count as plain text), the newest posts from who you follow on the right – click a circle to see just that artist. New to Steamy34? It shows three first steps instead. Settings → Look & feel brings back the site\'s own.',
+            'Collections: a post opens in the popup viewer on top of the collection – ← / → go through the collection, Esc brings you back. (Ctrl + click still opens the post page in a new tab.)',
+            'Video previews on hover no longer turn the thumbnail dark: they start a little into the clip and only appear once the first picture is there.',
             'Settings has a Discord button – ideas, bugs and news in the steamycorner Discord.',
             'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
             'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',
@@ -14295,7 +14366,10 @@
                     <section class="s34-home-card s34-home-recent" hidden></section>
                     <div class="s34-home-meta"></div>
                 </div>
-                <section class="s34-home-card s34-home-follow"></section>
+                <div class="s34-home-right">
+                    <section class="s34-home-card s34-home-follow"></section>
+                    <div class="s34-home-tagline"></div>
+                </div>
             </div>`;
         const head = home.querySelector('.s34-home-head');
         if (logo) { logo.classList.add('s34-home-logo'); head.appendChild(logo); }
@@ -14304,6 +14378,9 @@
         const meta = home.querySelector('.s34-home-meta');
         if (count) { count.classList.add('s34-home-count'); meta.appendChild(count); }
         if (foot) meta.appendChild(foot);
+        // The site's welcome line ("At Rule 34 its easy to find…") under the following card
+        const welcome = foot && Array.from(foot.children).find(el => el.tagName === 'DIV' && el.textContent.trim());
+        if (welcome) home.querySelector('.s34-home-tagline').appendChild(welcome);
         page.prepend(home);
         document.documentElement.classList.add('s34-home-on');
         // What's left of the old page (the tagline, the counter pictures) steps aside
@@ -14766,7 +14843,9 @@
         stopPopupMedia();
         document.documentElement.classList.add('s34-pv-open');
 
-        const isVideo = isVideoThumb(img);
+        // (a post from a collection: picture or video isn't known until its page is read)
+        const typeUnknown = thumb.dataset.s34TypeUnknown === '1';
+        let isVideo = isVideoThumb(img);
         // Where the page was when the popup first opened (restored on close)
         const browsing = !!popupState;
         const start = browsing
@@ -14837,6 +14916,8 @@
         placeholder.src = img.getAttribute('src') || img.dataset.s34Src || '';
         stage.appendChild(placeholder);
 
+        // The media itself - right away, or once the post page said what it is
+        function startMedia(isVideo, directUrl) {
         const el = isVideo ? document.createElement('video') : new Image();
         el.className = 's34-pv-media s34-pv-loading';
         if (isVideo) {
@@ -14849,7 +14930,7 @@
                 if (autoNext.on && popupState && popupState.id === myId) autoAdvance();
             });
         }
-        const candidates = mediaCandidates(img, isVideo);
+        const candidates = directUrl ? [directUrl] : mediaCandidates(img, isVideo);
         let next = 0;
         let triedPost = false;
 
@@ -14891,6 +14972,16 @@
         el.addEventListener('error', tryNext);
         stage.appendChild(el);
         tryNext();
+        }
+        if (!typeUnknown) startMedia(isVideo);
+        else getPostMedia(link.href, 'popup').then(m => {
+            if (!popupState || popupState.id !== myId) return;
+            isVideo = !!(m && m.video);
+            popupState.isVideo = isVideo;
+            overlay.querySelector('.s34-pv-vopts').hidden = !isVideo;
+            startMedia(isVideo, m && (isVideo ? m.video : m.image));
+            if (thumb._s34OnType) thumb._s34OnType(isVideo);
+        });
 
         // ---- full tag list (with counts) from the post page ----
         const loadPostInfo = () => fetchPostDoc(link.href, 'popup').then(doc => {
@@ -14944,6 +15035,9 @@
         s.overlay.remove();
         popupState = null;
         document.documentElement.classList.remove('s34-pv-open');
+        // a window the popup was opened from (a collection) comes back
+        // (a moment later: the Esc that closed the popup mustn't close the window too)
+        setTimeout(() => document.querySelectorAll('.s34-under-popup').forEach(o => o.classList.remove('s34-under-popup')), 0);
         // Still on the post you opened? Back to exactly where you were.
         // (Browsed on with ← / →? Then the list stays at the last post.)
         if (s.thumb === s.startThumb) window.scrollTo(0, s.startScroll);
@@ -15070,7 +15164,7 @@
         if (!popupState) return;
         const t = e.target;
         if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
-        if (document.querySelector('.s34-overlay')) return; // settings / Cloudflare window on top
+        if (document.querySelector('.s34-overlay:not(.s34-under-popup)')) return; // settings / Cloudflare window on top
         if (document.querySelector('.s34-follow-menu')) return; // "Follow which artist?" handles its own keys
         if (e.key === 'Escape') { e.preventDefault(); closePopup(); return; }
         if (e.ctrlKey || e.metaKey || e.altKey) return;          // Ctrl+D etc. stay the browser's

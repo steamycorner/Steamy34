@@ -54,7 +54,7 @@
             object-fit: cover;
             z-index: 1;
             pointer-events: none;   /* clicks still open the post */
-            background: #000 !important;
+            background: transparent !important; /* (black made a not-yet-drawn video look like a dark box) */
             opacity: 0;
             transition: opacity .15s ease;
         }
