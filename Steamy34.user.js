@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.6.1-beta
+// @version      3.6.3-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -171,6 +171,8 @@
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
                                  // 'grid'      = uniform square tiles
         thumbRowHeight: 220,     // px - target row height for 'justified'
+        thumbRowHeightPhone: 320, // the same on phones (Beta 3.6.3: own size - 220 made tiles too small there)
+        thumbMinWidthPhone: 170, // square tiles on phones: two to a row
         thumbMinWidth: 200,      // px - minimum tile width for 'grid'
         thumbGap: 6,             // px between tiles
         thumbFit: 'cover',       // 'grid' only: 'cover' crops to squares, 'contain' shows whole image
@@ -258,9 +260,6 @@
         GM_setValue(SETTINGS_KEY, saved);
     }
 
-    // Thumbnail size as CSS variables, so the sidebar slider can change it live
-    document.documentElement.style.setProperty('--s34-row', CONFIG.thumbRowHeight + 'px');
-    document.documentElement.style.setProperty('--s34-tile', CONFIG.thumbMinWidth + 'px');
 
     // What the settings window shows, section by section.
     // Row: [key, label, extra]; extra: options / min / max / unit / text /
@@ -277,6 +276,8 @@
             ['thumbExtras', 'Tags & buttons on thumbnails', { options: { on: 'On the picture', hover: 'Only on hover', below: 'Below the picture' }, hint: 'Keep the pictures free. "Only on hover" still shows VID / GIF, viewed / downloaded marks and favourited ♥ – and on phones, where you can\'t hover, everything stays visible. "Below" needs the modern thumbnail layout' }],
             ['thumbRowHeight', 'Row height (original ratios)', { min: 80, max: 600, unit: 'px', adv: true, hint: 'Also changed by the Size slider in the sidebar' }],
             ['thumbMinWidth', 'Tile size (square tiles)', { min: 80, max: 600, unit: 'px', adv: true }],
+            ['thumbRowHeightPhone', 'Row height on phones', { min: 80, max: 600, unit: 'px', adv: true, hint: 'Phones have their own size – the Size slider in the ☰ Menu changes this one' }],
+            ['thumbMinWidthPhone', 'Tile size on phones', { min: 80, max: 600, unit: 'px', adv: true }],
             ['thumbFit', 'Square tiles show', { options: { cover: 'Cropped to fill', contain: 'Whole image' }, adv: true }],
             ['thumbGap', 'Gap between thumbnails', { min: 0, max: 40, unit: 'px', adv: true }]
         ] },
@@ -362,6 +363,17 @@
     const NO_HOVER = (() => { try { return matchMedia('(hover: none)').matches; } catch (e) { return false; } })();
     const PHONE_MQ = '(max-width: 760px), (pointer: coarse) and (max-width: 1000px)';
     const isPhoneLayout = () => { try { return matchMedia(PHONE_MQ).matches; } catch (e) { return false; } };
+
+    // Thumbnail size as CSS variables, so the sidebar slider can change it live.
+    // Phones have their own sizes (the slider there changes those)
+    const thumbSizeKeys = () => (isPhoneLayout() ? ['thumbRowHeightPhone', 'thumbMinWidthPhone'] : ['thumbRowHeight', 'thumbMinWidth']);
+    function applyThumbSize() {
+        const [row, tile] = thumbSizeKeys();
+        document.documentElement.style.setProperty('--s34-row', CONFIG[row] + 'px');
+        document.documentElement.style.setProperty('--s34-tile', CONFIG[tile] + 'px');
+    }
+    applyThumbSize();
+    try { matchMedia(PHONE_MQ).addEventListener('change', applyThumbSize); } catch (e) {}
 
     // Phones: loading the next / previous post in advance costs mobile data,
     // so it's off there unless you switched it on yourself
@@ -2458,50 +2470,76 @@
             .s34-set-nav nav button span { white-space: nowrap; }
         }
 
-        /* Cloudflare check (Beta 3.5): a small pill in the bottom-right corner
-           with the Steamy34 pink-to-purple glow - noticeable, not in the way.
-           It pulses a few times when something you asked for is blocked. */
+        /* Cloudflare check (Beta 3.6.3): big and centred at the bottom, with a
+           pulse that keeps going - without the check nothing loads, so it must
+           not be missed. (Beta 3.5 had a small pill in the corner.) */
         @keyframes s34-cf-glow {
-            0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18); }
-            50%      { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 18px rgba(255,95,143,0.65), 0 0 38px rgba(139,61,255,0.45); }
+            0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 14px rgba(255,95,143,0.35), 0 0 30px rgba(139,61,255,0.22); }
+            50%      { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 26px rgba(255,95,143,0.75), 0 0 56px rgba(139,61,255,0.55); }
+        }
+        @keyframes s34-cf-ring {
+            0%   { transform: scale(1, 1); opacity: .85; }
+            100% { transform: scale(1.08, 1.45); opacity: 0; }
         }
         .s34-cf-pill {
             position: fixed;
-            right: 12px;
-            bottom: 12px;
+            left: 50%;
+            bottom: 22px;
             z-index: 100003;
             display: flex;
             align-items: center;
-            gap: 9px;
+            gap: 14px;
             max-width: calc(100vw - 24px);
             box-sizing: border-box;
-            padding: 6px 6px 6px 8px;
+            padding: 10px 10px 10px 12px;
             border-radius: 999px;
-            border: 1.5px solid transparent !important;
-            background: linear-gradient(rgba(24,22,30,0.97), rgba(24,22,30,0.97)) padding-box,
+            border: 2px solid transparent !important;
+            background: linear-gradient(rgba(24,22,30,0.98), rgba(24,22,30,0.98)) padding-box,
                         linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
             color: #e8e8ee !important;
-            font: 12px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
+            font: 14px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
             text-align: left;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 14px rgba(255,95,143,0.35), 0 0 30px rgba(139,61,255,0.22);
             opacity: 0;
-            transform: translateY(12px);
+            transform: translate(-50%, 16px);
             transition: opacity .25s ease, transform .25s ease;
+            animation: s34-cf-glow 1.8s ease-in-out infinite;
         }
-        .s34-cf-pill.s34-show { opacity: 1; transform: none; }
-        .s34-cf-pill.s34-cf-pulse { animation: s34-cf-glow 1.6s ease-in-out 3; }
-        /* Above the "Censored mode" label, and above the messages on phones */
-        html.s34-sfw .s34-cf-pill { bottom: 48px; }
+        /* a ring that keeps rippling outwards */
+        .s34-cf-pill::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            border: 2px solid #ff5f8f;
+            pointer-events: none;
+            animation: s34-cf-ring 1.8s ease-out infinite;
+        }
+        .s34-cf-pill.s34-show { opacity: 1; transform: translate(-50%, 0); }
+        /* Messages and the download bar move up above it */
+        body:has(.s34-cf-pill.s34-show) .s34-toasts,
+        body:has(.s34-cf-pill.s34-show) .s34-batch { bottom: 104px; }
         @media (max-width: 760px) {
-            .s34-cf-pill { bottom: 76px; }
-            html.s34-sfw .s34-cf-pill { bottom: 112px; }
+            .s34-cf-pill {
+                bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+                width: calc(100vw - 24px);
+                gap: 12px;
+            }
+            .s34-cf-pill-text b, .s34-cf-pill-text small { white-space: normal !important; }
+            .s34-cf-pill { padding-left: 16px; gap: 10px; }
+            .s34-cf-pill .s34-cf-pill-icon { display: none; }
+            .s34-cf-pill .s34-cf-pill-text b { font-size: 15px; }
+            .s34-cf-pill.s34-cf-pill .s34-cf-pill-solve { padding: 0 18px !important; } /* (doubled: beats the rule further down) */
+            html.s34-sfw .s34-cf-pill { bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+            body:has(.s34-cf-pill.s34-show) .s34-toasts,
+            body:has(.s34-cf-pill.s34-show) .s34-batch { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
         }
         /* Not needed while the check window itself is open */
         body:has(.s34-cf-overlay) .s34-cf-pill { opacity: 0; pointer-events: none; }
         .s34-cf-pill-icon {
             flex: none;
-            width: 28px;
-            height: 28px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -2510,9 +2548,49 @@
             color: #ff8fb0 !important;
         }
         .s34-cf-pill-icon svg { display: block; }
+        .s34-cf-pill .s34-cf-pill-icon svg { width: 22px; height: 22px; }
+        .s34-cf-inline .s34-cf-pill-icon { width: 28px; height: 28px; }
+        /* ? with the explanation (hover, focus or tap) */
+        .s34-cf-why {
+            flex: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid rgba(255,255,255,0.28) !important;
+            color: #d6d6de !important;
+            font: 700 14px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: help;
+            outline: none;
+        }
+        .s34-cf-why:hover, .s34-cf-why:focus-visible, .s34-cf-why.s34-on { border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-cf-why-pop {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 14px);
+            width: min(380px, calc(100vw - 24px));
+            box-sizing: border-box;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,95,143,0.45) !important;
+            background-color: #1c1a22 !important;
+            color: #cfcfd8 !important;
+            font: 400 13px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            cursor: default;
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, 6px);
+            transition: opacity .15s ease, transform .15s ease, visibility .15s;
+        }
+        .s34-cf-why-pop b { color: #fff !important; }
+        .s34-cf-why-pop > b:first-child { display: block; margin-bottom: 4px; font-size: 14px; }
+        .s34-cf-why:hover .s34-cf-why-pop, .s34-cf-why:focus-visible .s34-cf-why-pop, .s34-cf-why.s34-on .s34-cf-why-pop { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
         .s34-cf-pill-text { display: flex; flex-direction: column; min-width: 0; }
-        .s34-cf-pill-text b { font-size: 12.5px; color: #f2f2f6 !important; white-space: nowrap; }
-        .s34-cf-pill-text small { font-size: 11px; color: #a9a9b3 !important; white-space: nowrap; }
+        .s34-cf-pill-text { flex: 1; } .s34-cf-pill-text b { font-size: 16px; color: #f2f2f6 !important; white-space: nowrap; }
+        .s34-cf-pill-text small { font-size: 13px; color: #a9a9b3 !important; white-space: nowrap; }
         .s34-cf-pill .s34-cf-pill-solve, .s34-cf-inline .s34-cf-pill-solve {
             flex: none;
             height: 28px;
@@ -2525,6 +2603,7 @@
             cursor: pointer;
             box-shadow: 0 0 12px rgba(255,95,143,0.35);
         }
+        .s34-cf-pill .s34-cf-pill-solve { height: 42px; padding: 0 24px !important; font-size: 15px; }
         .s34-cf-pill .s34-cf-pill-solve:hover, .s34-cf-inline .s34-cf-pill-solve:hover { filter: brightness(1.12); box-shadow: 0 0 16px rgba(255,95,143,0.55); }
         .s34-cf-pill .s34-cf-pill-x {
             flex: none;
@@ -2559,7 +2638,7 @@
         .s34-cf-inline-text { color: inherit !important; }
         .s34-pv-tags .s34-cf-inline { display: flex; margin: 10px 0; }
         @media (prefers-reduced-motion: reduce) {
-            .s34-cf-pill.s34-cf-pulse, .s34-cf-inline { animation: none; }
+            .s34-cf-pill, .s34-cf-pill::after, .s34-cf-inline { animation: none; }
             .s34-cf-pill { transition: none; }
         }
 
@@ -5129,7 +5208,7 @@
     //  thumbnails, the theater buttons…) and floating dark bars keep their
     //  dark look in every mode.
     // =====================================================================
-    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-pill|cf-inline|batch|fw-by)|span\.thumb\.s34-(selected|was)|s34-selecting/;
+    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-pill|cf-inline|cf-why|batch|fw-by)|span\.thumb\.s34-(selected|was)|s34-selecting/;
 
     function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
@@ -6734,10 +6813,16 @@
             pill.className = 's34-cf-pill';
             pill.setAttribute('role', 'status');
             pill.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span>
-                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Some loading is paused</small></span>
+                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Nothing new loads until it's solved</small></span>
+                <span class="s34-cf-why" tabindex="0" role="button" aria-label="Why is this needed?">?<span class="s34-cf-why-pop" role="tooltip"><b>Why is this needed?</b>rule34 is protected by Cloudflare, which now and then asks for a quick check that a real person is browsing. Until it's solved, rule34 turns down every request: no new pages, no post info in the popup, no hover previews, no Following updates. Steamy34 pauses its loading meanwhile, so it doesn't make things worse. <b>Solve</b> opens the check right here – afterwards everything carries on.</span></span>
                 <button type="button" class="s34-cf-pill-solve">Solve</button>
                 <button type="button" class="s34-cf-pill-x" title="Hide – loading stays paused until the check is solved" aria-label="Hide">✕</button>`;
             pill.querySelector('.s34-cf-pill-solve').addEventListener('click', openCloudflarePanel);
+            // ? : the explanation on hover - and on a tap (phones can't hover)
+            const why = pill.querySelector('.s34-cf-why');
+            why.addEventListener('click', e => { e.stopPropagation(); why.classList.toggle('s34-on'); });
+            why.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); why.classList.toggle('s34-on'); } });
+            document.addEventListener('pointerdown', e => { if (!why.contains(e.target)) why.classList.remove('s34-on'); }, true);
             pill.querySelector('.s34-cf-pill-x').addEventListener('click', () => { cfPillHidden = true; hideCloudflarePill(); });
             document.body.appendChild(pill);
         }
@@ -10382,7 +10467,7 @@
         const panel = document.createElement('div');
         panel.className = 's34-quick';
         const justified = CONFIG.thumbLayout === 'justified';
-        const sizeKey = justified ? 'thumbRowHeight' : 'thumbMinWidth';
+        const sizeKey = thumbSizeKeys()[justified ? 0 : 1]; // (phones: their own size)
         const sizeVar = justified ? '--s34-row' : '--s34-tile';
         // (The White / Dark / OLED picker lived here until Beta 3.3 - it's in
         // Settings → Look and the welcome tour now: you set it once.)
@@ -12473,7 +12558,7 @@
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
                     [`${k('X')}`, `${nu}Censored mode: blurs every picture and video (and comments) – safe for screenshots; X again to turn it off`],
-                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – click "Solve"; only the extras wait until then`]
+                    [`"Quick check needed" at the bottom`, `${nu}Cloudflare wants a robot check – click "Solve"; nothing new loads until then`]
                 ]],
                 searchGroup, sidebarGroup
             ],
@@ -12494,7 +12579,7 @@
                     [`Following in the ${k('Menu')}`, `${nu}Your artists' newest posts in a full-screen grid – tap a circle to switch, Back closes`],
                     [`${k('♥')} on a thumbnail`, 'Add the post to your favourites (needs a rule34 login)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
-                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
+                    [`"Quick check needed" at the bottom`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
                     [`Hover previews`, 'Need a mouse – on a phone, just open the post']
                 ]],
                 searchGroup, sidebarGroup
@@ -12606,6 +12691,11 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.6.3', date: '2026-11-21', items: [
+            'The Cloudflare check can\'t be missed any more: a big notice at the bottom of the screen that keeps pulsing until it\'s solved. The ? on it explains why it matters – without the check, rule34 loads nothing new.',
+            'Bigger thumbnails on phones: they have their own size now (about two posts to a row). The Size slider in the ☰ Menu changes it.',
+            'Phone menu: tapping an artist under Following now closes the menu and opens the Following window.'
+        ] },
         { v: 'Beta 3.6.1', date: '2026-11-21', items: [
             'The little tip bubbles are gone – the welcome tour and the quick tips (?) still explain everything when you want them.'
         ] },
@@ -15145,7 +15235,8 @@
                 // A tool that opens a window (or select mode): the menu steps
                 // aside so the window is on top. Switches & sliders keep it open.
                 if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
-            });
+            }, true); // (checked before the tool reacts: opening the Following window
+                      // redraws the Following list, and the tapped row would be gone)
             document.addEventListener('keydown', onKey, true);
             document.body.appendChild(overlay);
             requestAnimationFrame(() => overlay.classList.add('s34-show'));

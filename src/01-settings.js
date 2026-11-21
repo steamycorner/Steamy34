@@ -54,6 +54,8 @@
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
                                  // 'grid'      = uniform square tiles
         thumbRowHeight: 220,     // px - target row height for 'justified'
+        thumbRowHeightPhone: 320, // the same on phones (Beta 3.6.3: own size - 220 made tiles too small there)
+        thumbMinWidthPhone: 170, // square tiles on phones: two to a row
         thumbMinWidth: 200,      // px - minimum tile width for 'grid'
         thumbGap: 6,             // px between tiles
         thumbFit: 'cover',       // 'grid' only: 'cover' crops to squares, 'contain' shows whole image
@@ -141,9 +143,6 @@
         GM_setValue(SETTINGS_KEY, saved);
     }
 
-    // Thumbnail size as CSS variables, so the sidebar slider can change it live
-    document.documentElement.style.setProperty('--s34-row', CONFIG.thumbRowHeight + 'px');
-    document.documentElement.style.setProperty('--s34-tile', CONFIG.thumbMinWidth + 'px');
 
     // What the settings window shows, section by section.
     // Row: [key, label, extra]; extra: options / min / max / unit / text /
@@ -160,6 +159,8 @@
             ['thumbExtras', 'Tags & buttons on thumbnails', { options: { on: 'On the picture', hover: 'Only on hover', below: 'Below the picture' }, hint: 'Keep the pictures free. "Only on hover" still shows VID / GIF, viewed / downloaded marks and favourited ♥ – and on phones, where you can\'t hover, everything stays visible. "Below" needs the modern thumbnail layout' }],
             ['thumbRowHeight', 'Row height (original ratios)', { min: 80, max: 600, unit: 'px', adv: true, hint: 'Also changed by the Size slider in the sidebar' }],
             ['thumbMinWidth', 'Tile size (square tiles)', { min: 80, max: 600, unit: 'px', adv: true }],
+            ['thumbRowHeightPhone', 'Row height on phones', { min: 80, max: 600, unit: 'px', adv: true, hint: 'Phones have their own size – the Size slider in the ☰ Menu changes this one' }],
+            ['thumbMinWidthPhone', 'Tile size on phones', { min: 80, max: 600, unit: 'px', adv: true }],
             ['thumbFit', 'Square tiles show', { options: { cover: 'Cropped to fill', contain: 'Whole image' }, adv: true }],
             ['thumbGap', 'Gap between thumbnails', { min: 0, max: 40, unit: 'px', adv: true }]
         ] },
@@ -245,6 +246,17 @@
     const NO_HOVER = (() => { try { return matchMedia('(hover: none)').matches; } catch (e) { return false; } })();
     const PHONE_MQ = '(max-width: 760px), (pointer: coarse) and (max-width: 1000px)';
     const isPhoneLayout = () => { try { return matchMedia(PHONE_MQ).matches; } catch (e) { return false; } };
+
+    // Thumbnail size as CSS variables, so the sidebar slider can change it live.
+    // Phones have their own sizes (the slider there changes those)
+    const thumbSizeKeys = () => (isPhoneLayout() ? ['thumbRowHeightPhone', 'thumbMinWidthPhone'] : ['thumbRowHeight', 'thumbMinWidth']);
+    function applyThumbSize() {
+        const [row, tile] = thumbSizeKeys();
+        document.documentElement.style.setProperty('--s34-row', CONFIG[row] + 'px');
+        document.documentElement.style.setProperty('--s34-tile', CONFIG[tile] + 'px');
+    }
+    applyThumbSize();
+    try { matchMedia(PHONE_MQ).addEventListener('change', applyThumbSize); } catch (e) {}
 
     // Phones: loading the next / previous post in advance costs mobile data,
     // so it's off there unless you switched it on yourself

@@ -102,7 +102,8 @@
                 // A tool that opens a window (or select mode): the menu steps
                 // aside so the window is on top. Switches & sliders keep it open.
                 if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
-            });
+            }, true); // (checked before the tool reacts: opening the Following window
+                      // redraws the Following list, and the tapped row would be gone)
             document.addEventListener('keydown', onKey, true);
             document.body.appendChild(overlay);
             requestAnimationFrame(() => overlay.classList.add('s34-show'));

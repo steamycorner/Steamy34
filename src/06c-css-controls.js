@@ -280,50 +280,76 @@
             .s34-set-nav nav button span { white-space: nowrap; }
         }
 
-        /* Cloudflare check (Beta 3.5): a small pill in the bottom-right corner
-           with the Steamy34 pink-to-purple glow - noticeable, not in the way.
-           It pulses a few times when something you asked for is blocked. */
+        /* Cloudflare check (Beta 3.6.3): big and centred at the bottom, with a
+           pulse that keeps going - without the check nothing loads, so it must
+           not be missed. (Beta 3.5 had a small pill in the corner.) */
         @keyframes s34-cf-glow {
-            0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18); }
-            50%      { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 18px rgba(255,95,143,0.65), 0 0 38px rgba(139,61,255,0.45); }
+            0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 14px rgba(255,95,143,0.35), 0 0 30px rgba(139,61,255,0.22); }
+            50%      { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 26px rgba(255,95,143,0.75), 0 0 56px rgba(139,61,255,0.55); }
+        }
+        @keyframes s34-cf-ring {
+            0%   { transform: scale(1, 1); opacity: .85; }
+            100% { transform: scale(1.08, 1.45); opacity: 0; }
         }
         .s34-cf-pill {
             position: fixed;
-            right: 12px;
-            bottom: 12px;
+            left: 50%;
+            bottom: 22px;
             z-index: 100003;
             display: flex;
             align-items: center;
-            gap: 9px;
+            gap: 14px;
             max-width: calc(100vw - 24px);
             box-sizing: border-box;
-            padding: 6px 6px 6px 8px;
+            padding: 10px 10px 10px 12px;
             border-radius: 999px;
-            border: 1.5px solid transparent !important;
-            background: linear-gradient(rgba(24,22,30,0.97), rgba(24,22,30,0.97)) padding-box,
+            border: 2px solid transparent !important;
+            background: linear-gradient(rgba(24,22,30,0.98), rgba(24,22,30,0.98)) padding-box,
                         linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
             color: #e8e8ee !important;
-            font: 12px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
+            font: 14px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
             text-align: left;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 14px rgba(255,95,143,0.35), 0 0 30px rgba(139,61,255,0.22);
             opacity: 0;
-            transform: translateY(12px);
+            transform: translate(-50%, 16px);
             transition: opacity .25s ease, transform .25s ease;
+            animation: s34-cf-glow 1.8s ease-in-out infinite;
         }
-        .s34-cf-pill.s34-show { opacity: 1; transform: none; }
-        .s34-cf-pill.s34-cf-pulse { animation: s34-cf-glow 1.6s ease-in-out 3; }
-        /* Above the "Censored mode" label, and above the messages on phones */
-        html.s34-sfw .s34-cf-pill { bottom: 48px; }
+        /* a ring that keeps rippling outwards */
+        .s34-cf-pill::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            border: 2px solid #ff5f8f;
+            pointer-events: none;
+            animation: s34-cf-ring 1.8s ease-out infinite;
+        }
+        .s34-cf-pill.s34-show { opacity: 1; transform: translate(-50%, 0); }
+        /* Messages and the download bar move up above it */
+        body:has(.s34-cf-pill.s34-show) .s34-toasts,
+        body:has(.s34-cf-pill.s34-show) .s34-batch { bottom: 104px; }
         @media (max-width: 760px) {
-            .s34-cf-pill { bottom: 76px; }
-            html.s34-sfw .s34-cf-pill { bottom: 112px; }
+            .s34-cf-pill {
+                bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+                width: calc(100vw - 24px);
+                gap: 12px;
+            }
+            .s34-cf-pill-text b, .s34-cf-pill-text small { white-space: normal !important; }
+            .s34-cf-pill { padding-left: 16px; gap: 10px; }
+            .s34-cf-pill .s34-cf-pill-icon { display: none; }
+            .s34-cf-pill .s34-cf-pill-text b { font-size: 15px; }
+            .s34-cf-pill.s34-cf-pill .s34-cf-pill-solve { padding: 0 18px !important; } /* (doubled: beats the rule further down) */
+            html.s34-sfw .s34-cf-pill { bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+            body:has(.s34-cf-pill.s34-show) .s34-toasts,
+            body:has(.s34-cf-pill.s34-show) .s34-batch { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
         }
         /* Not needed while the check window itself is open */
         body:has(.s34-cf-overlay) .s34-cf-pill { opacity: 0; pointer-events: none; }
         .s34-cf-pill-icon {
             flex: none;
-            width: 28px;
-            height: 28px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -332,9 +358,49 @@
             color: #ff8fb0 !important;
         }
         .s34-cf-pill-icon svg { display: block; }
+        .s34-cf-pill .s34-cf-pill-icon svg { width: 22px; height: 22px; }
+        .s34-cf-inline .s34-cf-pill-icon { width: 28px; height: 28px; }
+        /* ? with the explanation (hover, focus or tap) */
+        .s34-cf-why {
+            flex: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid rgba(255,255,255,0.28) !important;
+            color: #d6d6de !important;
+            font: 700 14px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: help;
+            outline: none;
+        }
+        .s34-cf-why:hover, .s34-cf-why:focus-visible, .s34-cf-why.s34-on { border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-cf-why-pop {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 14px);
+            width: min(380px, calc(100vw - 24px));
+            box-sizing: border-box;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,95,143,0.45) !important;
+            background-color: #1c1a22 !important;
+            color: #cfcfd8 !important;
+            font: 400 13px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            cursor: default;
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, 6px);
+            transition: opacity .15s ease, transform .15s ease, visibility .15s;
+        }
+        .s34-cf-why-pop b { color: #fff !important; }
+        .s34-cf-why-pop > b:first-child { display: block; margin-bottom: 4px; font-size: 14px; }
+        .s34-cf-why:hover .s34-cf-why-pop, .s34-cf-why:focus-visible .s34-cf-why-pop, .s34-cf-why.s34-on .s34-cf-why-pop { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
         .s34-cf-pill-text { display: flex; flex-direction: column; min-width: 0; }
-        .s34-cf-pill-text b { font-size: 12.5px; color: #f2f2f6 !important; white-space: nowrap; }
-        .s34-cf-pill-text small { font-size: 11px; color: #a9a9b3 !important; white-space: nowrap; }
+        .s34-cf-pill-text { flex: 1; } .s34-cf-pill-text b { font-size: 16px; color: #f2f2f6 !important; white-space: nowrap; }
+        .s34-cf-pill-text small { font-size: 13px; color: #a9a9b3 !important; white-space: nowrap; }
         .s34-cf-pill .s34-cf-pill-solve, .s34-cf-inline .s34-cf-pill-solve {
             flex: none;
             height: 28px;
@@ -347,6 +413,7 @@
             cursor: pointer;
             box-shadow: 0 0 12px rgba(255,95,143,0.35);
         }
+        .s34-cf-pill .s34-cf-pill-solve { height: 42px; padding: 0 24px !important; font-size: 15px; }
         .s34-cf-pill .s34-cf-pill-solve:hover, .s34-cf-inline .s34-cf-pill-solve:hover { filter: brightness(1.12); box-shadow: 0 0 16px rgba(255,95,143,0.55); }
         .s34-cf-pill .s34-cf-pill-x {
             flex: none;
@@ -381,7 +448,7 @@
         .s34-cf-inline-text { color: inherit !important; }
         .s34-pv-tags .s34-cf-inline { display: flex; margin: 10px 0; }
         @media (prefers-reduced-motion: reduce) {
-            .s34-cf-pill.s34-cf-pulse, .s34-cf-inline { animation: none; }
+            .s34-cf-pill, .s34-cf-pill::after, .s34-cf-inline { animation: none; }
             .s34-cf-pill { transition: none; }
         }
 

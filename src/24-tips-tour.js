@@ -68,7 +68,7 @@
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
                     [`${k('X')}`, `${nu}Censored mode: blurs every picture and video (and comments) – safe for screenshots; X again to turn it off`],
-                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – click "Solve"; only the extras wait until then`]
+                    [`"Quick check needed" at the bottom`, `${nu}Cloudflare wants a robot check – click "Solve"; nothing new loads until then`]
                 ]],
                 searchGroup, sidebarGroup
             ],
@@ -89,7 +89,7 @@
                     [`Following in the ${k('Menu')}`, `${nu}Your artists' newest posts in a full-screen grid – tap a circle to switch, Back closes`],
                     [`${k('♥')} on a thumbnail`, 'Add the post to your favourites (needs a rule34 login)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
-                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
+                    [`"Quick check needed" at the bottom`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
                     [`Hover previews`, 'Need a mouse – on a phone, just open the post']
                 ]],
                 searchGroup, sidebarGroup
@@ -201,6 +201,11 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.6.3', date: '2026-11-21', items: [
+            'The Cloudflare check can\'t be missed any more: a big notice at the bottom of the screen that keeps pulsing until it\'s solved. The ? on it explains why it matters – without the check, rule34 loads nothing new.',
+            'Bigger thumbnails on phones: they have their own size now (about two posts to a row). The Size slider in the ☰ Menu changes it.',
+            'Phone menu: tapping an artist under Following now closes the menu and opens the Following window.'
+        ] },
         { v: 'Beta 3.6.1', date: '2026-11-21', items: [
             'The little tip bubbles are gone – the welcome tour and the quick tips (?) still explain everything when you want them.'
         ] },

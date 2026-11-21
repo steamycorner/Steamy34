@@ -82,7 +82,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Infinite scrolling with "Page N" dividers – and "Continue at page N" when you come back to a search
 - "Copy info for a bug report" in Settings → Help
 - With an ad blocker on, no empty ad spaces next to or above the posts – without one, every ad stays exactly as rule34 shows it
-- Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a small notice sits in the corner and only the extras pause
+- Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a clear, pulsing notice at the bottom of the screen asks you to solve it (the *?* explains why: without it rule34 loads nothing new)
 - A short welcome tour and a quick tips window with all shortcuts
 - Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
 - Settings with a search box

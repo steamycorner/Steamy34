@@ -191,7 +191,7 @@
         const panel = document.createElement('div');
         panel.className = 's34-quick';
         const justified = CONFIG.thumbLayout === 'justified';
-        const sizeKey = justified ? 'thumbRowHeight' : 'thumbMinWidth';
+        const sizeKey = thumbSizeKeys()[justified ? 0 : 1]; // (phones: their own size)
         const sizeVar = justified ? '--s34-row' : '--s34-tile';
         // (The White / Dark / OLED picker lived here until Beta 3.3 - it's in
         // Settings → Look and the welcome tour now: you set it once.)

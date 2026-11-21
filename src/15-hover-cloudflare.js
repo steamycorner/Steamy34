@@ -222,10 +222,16 @@
             pill.className = 's34-cf-pill';
             pill.setAttribute('role', 'status');
             pill.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span>
-                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Some loading is paused</small></span>
+                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Nothing new loads until it's solved</small></span>
+                <span class="s34-cf-why" tabindex="0" role="button" aria-label="Why is this needed?">?<span class="s34-cf-why-pop" role="tooltip"><b>Why is this needed?</b>rule34 is protected by Cloudflare, which now and then asks for a quick check that a real person is browsing. Until it's solved, rule34 turns down every request: no new pages, no post info in the popup, no hover previews, no Following updates. Steamy34 pauses its loading meanwhile, so it doesn't make things worse. <b>Solve</b> opens the check right here – afterwards everything carries on.</span></span>
                 <button type="button" class="s34-cf-pill-solve">Solve</button>
                 <button type="button" class="s34-cf-pill-x" title="Hide – loading stays paused until the check is solved" aria-label="Hide">✕</button>`;
             pill.querySelector('.s34-cf-pill-solve').addEventListener('click', openCloudflarePanel);
+            // ? : the explanation on hover - and on a tap (phones can't hover)
+            const why = pill.querySelector('.s34-cf-why');
+            why.addEventListener('click', e => { e.stopPropagation(); why.classList.toggle('s34-on'); });
+            why.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); why.classList.toggle('s34-on'); } });
+            document.addEventListener('pointerdown', e => { if (!why.contains(e.target)) why.classList.remove('s34-on'); }, true);
             pill.querySelector('.s34-cf-pill-x').addEventListener('click', () => { cfPillHidden = true; hideCloudflarePill(); });
             document.body.appendChild(pill);
         }
