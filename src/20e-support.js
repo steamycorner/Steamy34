@@ -156,7 +156,7 @@
         } catch (e) { return; }
         if (asked || Date.now() - first < 7 * 24 * 3600 * 1000 || isPostView) return;
         setTimeout(() => {
-            if (document.querySelector('.s34-overlay, .s34-hint')) return; // try again another time
+            if (document.querySelector('.s34-overlay')) return; // try again another time
             try { GM_setValue(RATE_ASKED_KEY, true); } catch (e) {}
             showToast('Enjoying Steamy34? A rating on Sleazy Fork helps others find it – thank you! 💜', 'Rate it',
                       () => window.open(SLEAZY_URL + '/feedback', '_blank', 'noopener'), 15000);

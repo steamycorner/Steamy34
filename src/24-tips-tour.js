@@ -208,6 +208,7 @@
             'New start page: rule34\'s start page becomes a small home. Your search, "Continue" where you left off, your recent searches and favourite tags on the left (the post count as plain text), the newest posts from who you follow on the right – click a circle to see just that artist. New to Steamy34? It shows three first steps instead. Settings → Look & feel brings back the site\'s own.',
             'Collections: a post opens in the popup viewer on top of the collection – ← / → go through the collection, Esc brings you back. (Ctrl + click still opens the post page in a new tab.)',
             'Video previews on hover no longer turn the thumbnail dark: they start a little into the clip and only appear once the first picture is there.',
+            'The little tip bubbles are gone – the welcome tour and the quick tips (?) still explain everything when you want them.',
             'Settings has a Discord button – ideas, bugs and news in the steamycorner Discord.',
             'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
             'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',

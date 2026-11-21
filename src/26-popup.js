@@ -224,7 +224,6 @@
             ? { startThumb: popupState.startThumb, startScroll: popupState.startScroll, list: popupState.list,
                 pushedHistory: popupState.pushedHistory, prevScrollRestoration: popupState.prevScrollRestoration }
             : { startThumb: thumb, startScroll: window.scrollY, list: list || null };
-        if (!browsing) hintAfterPopupOpen(); // the first time only: how to get around
         popupState = Object.assign({
             id: myId, thumb, overlay,
             postUrl: link.href,

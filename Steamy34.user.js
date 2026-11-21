@@ -178,7 +178,6 @@
         thumbExtras: 'hover',    // tags, labels and buttons on thumbnails: 'on' the picture,
                                  // only on 'hover', or in a strip 'below' the picture
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
-        contextHints: true,      // little one-time tips the first time you meet a feature
         homePage: true,          // rule34's start page as Steamy34's home (Beta 3.6): search, continue, recent, following
         censorComments: true,    // Censored mode (X) also blurs comment texts and names
 
@@ -271,7 +270,6 @@
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
             ['homePage', 'Steamy34 start page', { hint: 'rule34\'s start page with your search, where you left off, your recent searches and the newest posts from who you follow – off: the site\'s own start page' }],
-            ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
             ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
             ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
             ['thumbBadges', 'VID / GIF labels on thumbnails', { hint: 'Small labels in the corner of animated posts' }],
@@ -3174,60 +3172,6 @@
     `;
 
     const MISC_CSS = `
-        /* Little one-time tips (src\\20b-hints.js) */
-        .s34-hint {
-            position: fixed;
-            z-index: 100002;
-            box-sizing: border-box;
-            width: 290px;
-            max-width: calc(100vw - 20px);
-            padding: 11px 13px 9px;
-            border-radius: 12px;
-            background-color: #1d1c23 !important;
-            border: 1px solid rgba(255,143,176,0.45) !important;
-            box-shadow: 0 10px 28px rgba(0,0,0,0.5);
-            color: #e8e8ee !important;
-            font: 12.5px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
-            opacity: 0;
-            transform: translateY(4px);
-            transition: opacity .2s, transform .2s;
-        }
-        .s34-hint.s34-hint-top { top: 14px; left: 50%; margin-left: -145px; }
-        @media (max-width: 310px) { .s34-hint.s34-hint-top { left: 10px; margin-left: 0; } }
-        .s34-hint.s34-hint-in { opacity: 1; transform: none; }
-        .s34-hint-text::before { content: '💡 '; }
-        .s34-hint-text b { color: #fff !important; }
-        .s34-hint kbd {
-            display: inline-block;
-            padding: 0 5px;
-            border-radius: 5px;
-            font: 700 11px/17px system-ui, -apple-system, Segoe UI, sans-serif;
-            background-color: #2a2a31 !important;
-            border: 1px solid #3c3c46 !important;
-            color: #f0f0f4 !important;
-        }
-        .s34-hint-foot { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 7px; }
-        .s34-hint .s34-hint-off {
-            margin-right: auto;
-            padding: 0 !important;
-            border: none !important;
-            background: transparent !important;
-            color: #9a9aa6 !important;
-            font: 11.5px system-ui, -apple-system, Segoe UI, sans-serif;
-            cursor: pointer;
-        }
-        .s34-hint .s34-hint-off:hover { color: #e8e8ee !important; text-decoration: underline; }
-        .s34-hint .s34-hint-ok {
-            height: 26px;
-            padding: 0 14px !important;
-            border-radius: 8px;
-            border: none !important;
-            background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important;
-            color: #fff !important;
-            font: 700 12px system-ui, -apple-system, Segoe UI, sans-serif;
-            cursor: pointer;
-        }
-
         /* Saved search: "+N new" */
         .s34-sb-new {
             display: inline-block;
@@ -5657,7 +5601,6 @@
         if (!downloadedUnreadable) GM_setValue(DOWNLOADED_KEY, downloaded);
         bumpMarksRev();
         showDownloadedState();
-        hintAfterDownload(); // the first time only: a little tip about names / folders
     }
 
     // Change counter for the downloaded / viewed lists (see the focus handler)
@@ -9165,7 +9108,6 @@
                     <div class="s34-set-actions">
                         <button type="button" class="s34-set-btn" data-act="welcome">✨ Welcome tour</button>
                         <button type="button" class="s34-set-btn" data-act="tips"><span class="s34-qmark">?</span> Shortcuts &amp; tips</button>
-                        <button type="button" class="s34-set-btn" data-act="hints-reset" title="The little one-time tips appear again (one at a time)">💡 Show the little tips again</button>
                         <button type="button" class="s34-set-btn" data-act="changelog">What's new</button>
                         <button type="button" class="s34-set-btn" data-act="mobile">${PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"')} On your phone</button>
                     </div>
@@ -9327,10 +9269,6 @@
                 openWelcome(0);
             } else if (act === 'debug') {
                 openDebugInfo();
-            } else if (act === 'hints-reset') {
-                GM_deleteValue(HINTS_KEY);
-                saveSettingsNow({ contextHints: true });
-                showToast('The little tips will show up again, one at a time.');
             } else if (act === 'tips') {
                 openQuickTips();
             } else if (act === 'changelog') {
@@ -9451,128 +9389,6 @@
         return slot;
     }
 
-    // ---- Little tips at the right moment ----
-    // A small bubble the first time you meet something (popup, search box,
-    // filters, a download, clean thumbnails). Calm on purpose:
-    //  - every tip appears only ONCE, ever
-    //  - at most one per page, and at most one every 3 minutes
-    //  - never on top of a window, never before the welcome tour was seen
-    //  - closes by itself; "No more tips" switches them all off
-    const HINTS_KEY = 'steamy34_hints_seen';
-    const HINT_GAP = 3 * 60 * 1000;
-    let hintShownThisPage = false;
-
-    function hintsSeen() {
-        try {
-            const v = GM_getValue(HINTS_KEY, {});
-            return v && typeof v === 'object' ? v : {};
-        } catch (e) { return {}; }
-    }
-
-    // html: the tip (trusted, written here); anchor: element to point at (optional)
-    function showHint(id, html, anchor) {
-        if (!CONFIG.contextHints || hintShownThisPage) return false;
-        const seen = hintsSeen();
-        if (seen[id] || Date.now() - (seen._last || 0) < HINT_GAP) return false;
-        let tipsSeen = 0;
-        try { tipsSeen = GM_getValue(TIPS_KEY, 0); } catch (e) {}
-        if (!tipsSeen) return false; // brand new: the welcome tour comes first
-        if (document.querySelector('.s34-overlay, .s34-hint')) return false;
-        hintShownThisPage = true;
-        seen[id] = seen._last = Date.now();
-        GM_setValue(HINTS_KEY, seen);
-
-        const box = document.createElement('div');
-        box.className = 's34-hint';
-        box.setAttribute('role', 'status');
-        box.innerHTML = `<div class="s34-hint-text">${html}</div>
-            <div class="s34-hint-foot"><button type="button" class="s34-hint-off">No more tips</button><button type="button" class="s34-hint-ok">Got it</button></div>`;
-        document.body.appendChild(box);
-
-        // Next to the anchor (below, or above if there's no room) - else top centre
-        const r = anchor && anchor.isConnected ? anchor.getBoundingClientRect() : null;
-        if (r && r.width && r.bottom > 0 && r.top < innerHeight) {
-            const w = box.offsetWidth, h = box.offsetHeight;
-            let top = r.bottom + 10;
-            if (top + h > innerHeight - 10) top = r.top - h - 10;
-            box.style.top = Math.max(10, Math.min(top, innerHeight - h - 10)) + 'px';
-            box.style.left = Math.max(10, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 10)) + 'px';
-        } else {
-            box.classList.add('s34-hint-top');
-        }
-        requestAnimationFrame(() => box.classList.add('s34-hint-in'));
-
-        let timer = setTimeout(close, 10000);
-        box.addEventListener('mouseenter', () => clearTimeout(timer));
-        box.addEventListener('mouseleave', () => { clearTimeout(timer); timer = setTimeout(close, 4000); });
-        function close() {
-            clearTimeout(timer);
-            box.classList.remove('s34-hint-in');
-            setTimeout(() => box.remove(), 200);
-        }
-        box.querySelector('.s34-hint-ok').addEventListener('click', close);
-        box.querySelector('.s34-hint-off').addEventListener('click', () => {
-            saveSettingsNow({ contextHints: false });
-            close();
-            showToast('Little tips are off – turn them on again in Settings → Viewing posts.');
-        });
-        return true;
-    }
-
-    function setupHints() {
-        if (!CONFIG.contextHints) return;
-        const phone = isPhoneLayout();
-        // First typing in the search box
-        document.addEventListener('input', e => {
-            const sb = e.target && e.target.closest && e.target.closest('.s34-sb-box');
-            if (!sb) return;
-            showHint('search', phone
-                ? 'Pick a suggestion to add it as a <b>bubble</b>. Tap a bubble to <b>exclude</b> that tag – tap again to bring it back.'
-                : '<kbd>Space</kbd> or <kbd>Enter</kbd> turns the word into a <b>bubble</b>. Click a bubble to <b>exclude</b> that tag – click again to bring it back.', sb);
-        }, true);
-        // First change of a filter menu
-        document.addEventListener('change', e => {
-            const sel = e.target && e.target.closest && e.target.closest('.s34-sb-filters select');
-            if (!sel) return;
-            showHint('pin', 'The 📌 next to a filter keeps it for <b>every</b> new search – e.g. always "score ≥ 100".', sel);
-        }, true);
-        // Clean thumbnails: after looking at a few, say where the tags went
-        if (CONFIG.thumbExtras === 'hover' && !NO_HOVER && !isPhoneLayout() && !isPostView) {
-            const hovered = new Set();
-            document.addEventListener('mouseover', e => {
-                const t = e.target && e.target.closest && e.target.closest('.image-list span.thumb');
-                if (!t || hovered.has(t)) return;
-                hovered.add(t);
-                if (hovered.size === 6) {
-                    showHint('hover-extras', 'Tags and the ♥ appear while you hover, so the pictures stay clean. Want them always visible? <b>Settings → Look → Tags &amp; buttons on thumbnails</b>.', t);
-                }
-            });
-        }
-    }
-
-    // First popup: how to get around
-    function hintAfterPopupOpen() {
-        if (!CONFIG.contextHints) return;
-        setTimeout(() => {
-            if (!document.querySelector('.s34-pv-overlay')) return;
-            showHint('popup', isPhoneLayout()
-                ? 'Swipe ← / → for the next post, swipe down or press Back to close. Tap the picture for full size.'
-                : `<kbd>${browseKeyText()}</kbd> next / previous post · <kbd>Esc</kbd> or a middle click closes · <kbd>${keyLabel(CONFIG.downloadKey)}</kbd> downloads`);
-        }, 900);
-    }
-
-    // First download: the file name, and where it can go
-    function hintAfterDownload() {
-        if (!CONFIG.contextHints || batchRunning) return;
-        setTimeout(() => {
-            let folder = '';
-            try { folder = GM_getValue('steamy34_dlfolder', ''); } catch (e) {}
-            const more = folderPickerAvailable() && !folder
-                ? ' Want them in a certain folder? <b>Settings → Downloads → Choose folder…</b>' : '';
-            const btn = Array.from(document.querySelectorAll('.s34-dl-btn')).find(b => b.getClientRects().length);
-            showHint('download', 'Saved with a tidy name: <b>[character] [series] [artist]</b>.' + more, btn);
-        }, 1500);
-    }
     // =====================================================================
     //  FOLLOWING: artists (only artists since Beta 3.6)
     //  The bell next to an artist (popup, post pages) follows them. The
@@ -10367,7 +10183,7 @@
         } catch (e) { return; }
         if (asked || Date.now() - first < 7 * 24 * 3600 * 1000 || isPostView) return;
         setTimeout(() => {
-            if (document.querySelector('.s34-overlay, .s34-hint')) return; // try again another time
+            if (document.querySelector('.s34-overlay')) return; // try again another time
             try { GM_setValue(RATE_ASKED_KEY, true); } catch (e) {}
             showToast('Enjoying Steamy34? A rating on Sleazy Fork helps others find it – thank you! 💜', 'Rate it',
                       () => window.open(SLEAZY_URL + '/feedback', '_blank', 'noopener'), 15000);
@@ -12797,6 +12613,7 @@
             'New start page: rule34\'s start page becomes a small home. Your search, "Continue" where you left off, your recent searches and favourite tags on the left (the post count as plain text), the newest posts from who you follow on the right – click a circle to see just that artist. New to Steamy34? It shows three first steps instead. Settings → Look & feel brings back the site\'s own.',
             'Collections: a post opens in the popup viewer on top of the collection – ← / → go through the collection, Esc brings you back. (Ctrl + click still opens the post page in a new tab.)',
             'Video previews on hover no longer turn the thumbnail dark: they start a little into the clip and only appear once the first picture is there.',
+            'The little tip bubbles are gone – the welcome tour and the quick tips (?) still explain everything when you want them.',
             'Settings has a Discord button – ideas, bugs and news in the steamycorner Discord.',
             'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
             'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',
@@ -14852,7 +14669,6 @@
             ? { startThumb: popupState.startThumb, startScroll: popupState.startScroll, list: popupState.list,
                 pushedHistory: popupState.pushedHistory, prevScrollRestoration: popupState.prevScrollRestoration }
             : { startThumb: thumb, startScroll: window.scrollY, list: list || null };
-        if (!browsing) hintAfterPopupOpen(); // the first time only: how to get around
         popupState = Object.assign({
             id: myId, thumb, overlay,
             postUrl: link.href,
@@ -15387,7 +15203,6 @@
         addTipsLink();         // "? Shortcuts & tips" under the settings button
         arrangeSidebarTools(); // Following above View; Collections · Stats · Blacklist · Settings as one 2×2 block
         maybeShowQuickTips();  // once: the most important keys & clicks
-        setupHints();          // little tips the first time you meet something
         setupScreenshotMode(); // Censored mode: X blurs every picture (safe screenshots)
         checkSiteShape();      // rule34 changed its layout? a calm note instead of half-working features
         maybeAskForRating();   // once ever, after a week of use

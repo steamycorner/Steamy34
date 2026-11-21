@@ -26,7 +26,6 @@ All parts share one scope (the script is one big function), so a part can use an
 | `18-tag-bar` | Artist / character tags on thumbnails, tag types, blocking with Undo |
 | `19-settings-window` | The settings window (incl. search, Help, Privacy) |
 | `20-extras` | Favourites, hover info, sidebar "View" switches |
-| `20b-hints` | Little one-time tips |
 | `20c-following` | Following (artists): new-post counts, the sidebar box, Manage window |
 | `20d-screenshot-mode` | Censored mode (X blurs every picture, video and comment) |
 | `20e-support` | "Copy info for a bug report", the site check, the one-time rating nudge |

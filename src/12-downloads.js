@@ -187,7 +187,6 @@
         if (!downloadedUnreadable) GM_setValue(DOWNLOADED_KEY, downloaded);
         bumpMarksRev();
         showDownloadedState();
-        hintAfterDownload(); // the first time only: a little tip about names / folders
     }
 
     // Change counter for the downloaded / viewed lists (see the focus handler)

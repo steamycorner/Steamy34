@@ -83,7 +83,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - "Copy info for a bug report" in Settings → Help
 - With an ad blocker on, no empty ad spaces next to or above the posts – without one, every ad stays exactly as rule34 shows it
 - Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a small notice sits in the corner and only the extras pause
-- A short welcome tour, small one-time tips and a quick tips window with all shortcuts
+- A short welcome tour and a quick tips window with all shortcuts
 - Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
 - Settings with a search box
 - Backup and restore of all settings and data

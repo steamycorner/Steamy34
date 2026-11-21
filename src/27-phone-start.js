@@ -162,7 +162,6 @@
         addTipsLink();         // "? Shortcuts & tips" under the settings button
         arrangeSidebarTools(); // Following above View; Collections · Stats · Blacklist · Settings as one 2×2 block
         maybeShowQuickTips();  // once: the most important keys & clicks
-        setupHints();          // little tips the first time you meet something
         setupScreenshotMode(); // Censored mode: X blurs every picture (safe screenshots)
         checkSiteShape();      // rule34 changed its layout? a calm note instead of half-working features
         maybeAskForRating();   // once ever, after a week of use

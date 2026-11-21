@@ -217,7 +217,6 @@
                     <div class="s34-set-actions">
                         <button type="button" class="s34-set-btn" data-act="welcome">✨ Welcome tour</button>
                         <button type="button" class="s34-set-btn" data-act="tips"><span class="s34-qmark">?</span> Shortcuts &amp; tips</button>
-                        <button type="button" class="s34-set-btn" data-act="hints-reset" title="The little one-time tips appear again (one at a time)">💡 Show the little tips again</button>
                         <button type="button" class="s34-set-btn" data-act="changelog">What's new</button>
                         <button type="button" class="s34-set-btn" data-act="mobile">${PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"')} On your phone</button>
                     </div>
@@ -379,10 +378,6 @@
                 openWelcome(0);
             } else if (act === 'debug') {
                 openDebugInfo();
-            } else if (act === 'hints-reset') {
-                GM_deleteValue(HINTS_KEY);
-                saveSettingsNow({ contextHints: true });
-                showToast('The little tips will show up again, one at a time.');
             } else if (act === 'tips') {
                 openQuickTips();
             } else if (act === 'changelog') {
