@@ -66,6 +66,18 @@
                    ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length);
         const site = siteShapeProblems();
         lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));
+        // The last Cloudflare check: what hit it, and what loaded in the 2 minutes before
+        const cf = lastCheckInfo();
+        if (cf && cf.at) {
+            const mins = Math.round((Date.now() - cf.at) / 60000);
+            const ago = mins < 60 ? mins + ' min ago' : mins < 2880 ? Math.round(mins / 60) + ' h ago' : Math.round(mins / 1440) + ' days ago';
+            const before = Object.keys(cf.before || {}).map(k => pageKind(k).label + ' ' + cf.before[k]).join(', ');
+            lines.push('Last Cloudflare check: ' + ago + ', hit by ' + pageKind(cf.kind).label + ' · page loads in the 2 min before: ' + (before || 'none'));
+        } else {
+            lines.push('Last Cloudflare check: none');
+        }
+        const now = recentPages(600000);
+        lines.push('Page loads, last 10 min: ' + (Object.keys(now).map(k => pageKind(k).label + ' ' + now[k]).join(', ') || 'none'));
         lines.push('Recent problems:' + (PROBLEMS.length ? '\n  ' + PROBLEMS.join('\n  ') : ' none'));
         return lines.join('\n');
     }

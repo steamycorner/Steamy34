@@ -89,9 +89,9 @@
     async function downloadThumb(thumb) {
         const a = thumb.querySelector('a[href]');
         if (!a) return false;
-        const doc = await fetchPostDoc(a.href);
+        const doc = await fetchPostDoc(a.href, 'batch');
         if (!doc) return false;
-        const media = await getPostMedia(a.href);
+        const media = await getPostMedia(a.href, 'batch');
         const url = media && (media.video || media.image);
         if (!url) return false;
         const g = readPostTags(doc);
@@ -443,6 +443,7 @@
         ['steamy34_theater', 'Theater mode', 'Whether the popup opens without its sidebar', false],
         ['steamy34_tagtypes', 'Tag types', 'Which tags are artists / characters / … (makes tag bars faster)', {}],
         ['steamy34_mediahosts', 'Media servers', 'Which file servers worked (faster previews)', {}],
+        ['steamy34_cf_last', 'Last Cloudflare check', 'When the last check came and what Steamy34 was loading just before (for bug reports)', {}],
         ['steamy34_lastsearch', 'Last search', 'The search you came from (for the + buttons)', ''],
         ['steamy34_dlfolder', 'Download folder', 'The name of the folder you picked for downloads (the browser keeps the access to it)', ''],
         ['steamy34_sbmenu_open', 'Small preferences', 'Whether lists are folded, sort order, which tips / news / guides you\'ve seen, whether an ad blocker was found', null],

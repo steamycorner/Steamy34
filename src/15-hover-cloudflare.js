@@ -15,6 +15,9 @@
     // (which only makes the checks come more often).
     let cfPausedUntil = 0;
     const CF_PAUSE_MS = 3 * 60 * 1000;
+    // After a check everything loads more slowly for a while (Beta 3.5)
+    const CF_SLOW_MS = 10 * 60 * 1000;
+    let cfSlowUntil = 0;
 
     // NOTE: normal pages also contain Cloudflare's "challenge-platform" helper
     // script, so that alone must NOT count. A real check page has the
@@ -32,88 +35,238 @@
 
     let cfCheckUrl = location.href; // a page that showed the check
 
-    function pauseForCloudflare(url) {
-        const wasPaused = cloudflarePaused();
-        cfPausedUntil = Date.now() + CF_PAUSE_MS;
-        if (url) cfCheckUrl = url;
-        console.warn('[Steamy34] Cloudflare check detected - background loading paused.');
-        // Background requests can't pass a Cloudflare check themselves -
-        // you have to. A banner you can't miss stays until it's solved.
-        if (!wasPaused || !document.querySelector('.s34-cf-banner')) showCloudflareBanner();
+    // ---- One line for every page Steamy34 loads from rule34 (Beta 3.5) ----
+    // Cloudflare asks for a check when one browser loads many pages in a
+    // short time. Before 3.5 the popup, preloads, hover sizes, artist
+    // lookups, scrolling and the Following check all loaded at once, in
+    // bursts. Now they wait in one line: what you asked for first, a short
+    // gap between loads, the extras at most BG_PER_MINUTE a minute, and the
+    // Following check only while you're not clicking around.
+    // (Pictures and videos come from the image servers - not part of this.)
+    const PAGE_KINDS = {
+        action:  { prio: 0, gap: 0,    label: 'vote / favourite' },
+        popup:   { prio: 0, gap: 250,  label: 'popup' },
+        scroll:  { prio: 1, gap: 400,  label: 'scrolling' },
+        batch:   { prio: 2, gap: 900,  label: 'batch / collection download' },
+        followNow: { prio: 2, gap: 900, label: 'Following "Check now"' },
+        preload: { prio: 3, gap: 1000, label: 'next post in advance' },
+        hover:   { prio: 3, gap: 1000, label: 'size on hover' },
+        lookup:  { prio: 4, gap: 1200, label: 'artist lookup' },
+        follow:  { prio: 5, gap: 1500, label: 'Following check' }
+    };
+    const pageKind = k => PAGE_KINDS[k] || PAGE_KINDS.lookup;
+    const isUserKind = k => pageKind(k).prio <= 1; // you asked for it (popup, scrolling, a click)
+    const BG_PER_MINUTE = 20;
+    const FOLLOW_IDLE_MS = 15000;
+    const pageQueue = [];
+    const pageLog = []; // { at, kind } of the last 10 minutes - for the bug report info
+    let pageJobN = 0, pagePumping = false, pageStartedAt = 0, pageDoneAt = 0, pagesInFlight = 0;
+    let lastUserInputAt = 0;
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t =>
+        window.addEventListener(t, () => { lastUserInputAt = Date.now(); }, { capture: true, passive: true }));
+
+    const pageSleep = ms => new Promise(r => setTimeout(r, ms));
+    const pageError = (msg, flags) => Object.assign(new Error(msg), flags);
+
+    function logPage(kind) {
+        const now = Date.now();
+        pageLog.push({ at: now, kind });
+        while (pageLog.length && now - pageLog[0].at > 600000) pageLog.shift();
+    }
+    function recentPages(ms) {
+        const since = Date.now() - ms, out = {};
+        pageLog.forEach(p => { if (p.at >= since) out[p.kind] = (out[p.kind] || 0) + 1; });
+        return out;
     }
 
-    // ---- Big banner across the top + ⚠ in the tab title ----
+    // Loads a rule34 page through the line -> { status, ok, html }.
+    // Fails with err.cloudflare (the page was a check), err.paused (an extra,
+    // while a check waits) or err.cancelled (opts.wanted() said no longer needed).
+    function loadPage(url, kind = 'popup', opts = {}) {
+        const abs = new URL(url, location.href).href;
+        if (pageQueue.some(j => j.url === abs)) { bumpPage(abs, kind, opts.wanted); return pageQueue.find(j => j.url === abs).promise; }
+        let job;
+        const promise = new Promise((resolve, reject) => {
+            job = { url: abs, kind, prio: pageKind(kind).prio, n: ++pageJobN, wanted: opts.wanted || null, ms: opts.ms || 12000, resolve, reject };
+        });
+        job.promise = promise;
+        pageQueue.push(job);
+        pumpPages();
+        return promise;
+    }
+    // Something more important needs a page that's already waiting
+    function bumpPage(url, kind, wanted) {
+        const abs = new URL(url, location.href).href;
+        const j = pageQueue.find(x => x.url === abs);
+        if (!j) return;
+        if (pageKind(kind).prio < j.prio) { j.prio = pageKind(kind).prio; j.kind = kind; }
+        if (!wanted) j.wanted = null; // needed for sure now
+    }
+
+    function pageGap(kind) {
+        const g = pageKind(kind).gap;
+        return Date.now() < cfSlowUntil ? g * 2.5 + 500 : g;
+    }
+    // Extras: at most BG_PER_MINUTE a minute (half after a check)
+    function extrasWait(now) {
+        const cap = now < cfSlowUntil ? BG_PER_MINUTE / 2 : BG_PER_MINUTE;
+        const recent = pageLog.filter(p => pageKind(p.kind).prio >= 3 && now - p.at < 60000);
+        return recent.length < cap ? 0 : recent[recent.length - cap].at + 60000 - now;
+    }
+    function stillWanted(j) {
+        if (!j.wanted) return true;
+        try { return !!j.wanted(); } catch (e) { return false; }
+    }
+
+    async function pumpPages() {
+        if (pagePumping) return;
+        pagePumping = true;
+        try {
+            while (pageQueue.length) {
+                const now = Date.now();
+                for (let i = pageQueue.length - 1; i >= 0; i--) {
+                    const j = pageQueue[i];
+                    // While a check waits, the extras give up (they come back
+                    // later) - what you asked for still tries: maybe it's solved
+                    if (cloudflarePaused() && !isUserKind(j.kind)) { pageQueue.splice(i, 1); j.reject(pageError('waiting for the Cloudflare check', { paused: true })); }
+                    // Gone stale meanwhile (mouse left, popup closed, scrolled away)
+                    else if (!stillWanted(j)) { pageQueue.splice(i, 1); j.reject(pageError('no longer needed', { cancelled: true })); }
+                }
+                if (!pageQueue.length) break;
+                pageQueue.sort((a, b) => a.prio - b.prio || a.n - b.n);
+                const job = pageQueue.find(j => j.kind !== 'follow' || now - lastUserInputAt > FOLLOW_IDLE_MS);
+                if (!job) { await pageSleep(2000); continue; }
+                // What you asked for may run next to one other load; extras one at a time
+                if (pagesInFlight >= (isUserKind(job.kind) ? 2 : 1)) { await pageSleep(100); continue; }
+                const from = isUserKind(job.kind) ? pageStartedAt : Math.max(pageStartedAt, pageDoneAt);
+                const wait = Math.max(from + pageGap(job.kind) - now, pageKind(job.kind).prio >= 3 ? extrasWait(now) : 0);
+                if (wait > 0) { await pageSleep(Math.min(wait, 300)); continue; } // look again: something more important may have come in
+                pageQueue.splice(pageQueue.indexOf(job), 1);
+                runPageJob(job);
+            }
+        } finally {
+            pagePumping = false;
+        }
+    }
+
+    async function runPageJob(job) {
+        pagesInFlight++;
+        pageStartedAt = Date.now();
+        logPage(job.kind);
+        try {
+            const r = await fetchWithTimeout(job.url, job.ms);
+            const html = await r.text();
+            if (isCloudflareCheck(r.status, html)) {
+                pauseForCloudflare(job.url, job.kind);
+                job.reject(pageError('Cloudflare check (HTTP ' + r.status + ')', { cloudflare: true }));
+            } else {
+                job.resolve({ status: r.status, ok: r.ok, html });
+            }
+        } catch (e) {
+            job.reject(e);
+        } finally {
+            pagesInFlight--;
+            pageDoneAt = Date.now();
+        }
+    }
+
+    // What set off the last check - shown in "Copy info for a bug report"
+    const CF_LAST_KEY = 'steamy34_cf_last';
+    function lastCheckInfo() {
+        try { return GM_getValue(CF_LAST_KEY, null); } catch (e) { return null; }
+    }
+
+    // kind: what hit the check. Something you asked for (popup, scrolling, a
+    // click) makes the notice pulse; for the extras it just sits in the corner.
+    function pauseForCloudflare(url, kind) {
+        kind = kind || 'action';
+        const wasPaused = cloudflarePaused();
+        cfPausedUntil = Date.now() + CF_PAUSE_MS;
+        cfSlowUntil = Date.now() + CF_PAUSE_MS + CF_SLOW_MS;
+        if (url) cfCheckUrl = url;
+        if (!wasPaused) {
+            try { GM_setValue(CF_LAST_KEY, { at: Date.now(), kind, before: recentPages(120000) }); } catch (e) {}
+        }
+        console.warn('[Steamy34] Cloudflare check (' + pageKind(kind).label + ') - background loading paused.');
+        showCloudflarePill(isUserKind(kind));
+    }
+
+    // ---- The notice: a small glowing pill in the bottom-right corner ----
+    // (before 3.5 a big banner across the top, for every check)
+    const CF_SHIELD_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';
     let cfTitleBefore = null;
-    let cfTitleTimer = null;
+    let cfPillHidden = false; // ✕ clicked: stays away until something you asked for is blocked
 
     // The pause ran out (check solved elsewhere, e.g. in another tab)? Drop
-    // the banner; if the check is still there, the next request brings it back.
-    // Only runs while a banner is up - no timer at all the rest of the time.
+    // the notice; if the check is still there, the next request brings it back.
+    // Only runs while the notice is up - no timer at all the rest of the time.
     let cfWatchTimer = null;
     function watchCloudflarePause() {
         if (cfWatchTimer) return;
         cfWatchTimer = setInterval(() => {
-            const b = document.querySelector('.s34-cf-banner');
-            if (!b) { clearInterval(cfWatchTimer); cfWatchTimer = null; return; }
-            if (cloudflarePaused() || !b.classList.contains('s34-show')) return;
+            if (cloudflarePaused()) return;
             clearInterval(cfWatchTimer);
             cfWatchTimer = null;
-            clearInterval(cfTitleTimer);
-            cfTitleTimer = null;
-            if (cfTitleBefore !== null) document.title = cfTitleBefore;
-            cfTitleBefore = null;
-            b.classList.remove('s34-show');
-            setTimeout(() => b.remove(), 250);
+            hideCloudflarePill();
         }, 5000);
     }
 
-    function showCloudflareBanner() {
-        if (!document.body) { document.addEventListener('DOMContentLoaded', showCloudflareBanner, { once: true }); return; }
-        let banner = document.querySelector('.s34-cf-banner');
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.className = 's34-cf-banner';
-            banner.setAttribute('role', 'alert');
-            banner.innerHTML = `
-                <div class="s34-cf-banner-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
-                <div class="s34-cf-banner-text">
-                    <b>Quick check needed</b>
-                    <span>rule34 wants to confirm you're human. Some loading is paused meanwhile.</span>
-                </div>
-                <button type="button" class="s34-cf-banner-solve">Solve check</button>
-                <button type="button" class="s34-cf-banner-x" title="Hide (loading stays paused until the check is solved)">✕</button>`;
-            banner.querySelector('.s34-cf-banner-solve').addEventListener('click', openCloudflarePanel);
-            banner.querySelector('.s34-cf-banner-x').addEventListener('click', () => hideCloudflareBanner(false));
-            document.body.appendChild(banner);
-        }
-        requestAnimationFrame(() => banner.classList.add('s34-show'));
+    function showCloudflarePill(loud) {
+        if (!document.body) { document.addEventListener('DOMContentLoaded', () => showCloudflarePill(loud), { once: true }); return; }
+        if (loud) cfPillHidden = false;
         watchCloudflarePause();
-
-        // A quiet note in the tab title, so it's seen from other tabs too
-        if (cfTitleBefore === null) cfTitleBefore = document.title;
-        clearInterval(cfTitleTimer);
-        cfTitleTimer = null;
-        document.title = 'Check needed · ' + cfTitleBefore;
+        if (cfPillHidden) return;
+        let pill = document.querySelector('.s34-cf-pill');
+        if (!pill) {
+            pill = document.createElement('div');
+            pill.className = 's34-cf-pill';
+            pill.setAttribute('role', 'status');
+            pill.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span>
+                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Some loading is paused</small></span>
+                <button type="button" class="s34-cf-pill-solve">Solve</button>
+                <button type="button" class="s34-cf-pill-x" title="Hide – loading stays paused until the check is solved" aria-label="Hide">✕</button>`;
+            pill.querySelector('.s34-cf-pill-solve').addEventListener('click', openCloudflarePanel);
+            pill.querySelector('.s34-cf-pill-x').addEventListener('click', () => { cfPillHidden = true; hideCloudflarePill(); });
+            document.body.appendChild(pill);
+        }
+        pill.title = 'rule34 (Cloudflare) wants to confirm you\'re human. Steamy34 pauses its extra loading until then.';
+        // Something you asked for is blocked: a few pulses of the glow
+        if (loud) {
+            pill.classList.remove('s34-cf-pulse');
+            void pill.offsetWidth; // restart the animation
+            pill.classList.add('s34-cf-pulse');
+            // A quiet note in the tab title, so it's seen from other tabs too
+            if (cfTitleBefore === null) { cfTitleBefore = document.title; document.title = 'Check needed · ' + cfTitleBefore; }
+        }
+        setTimeout(() => pill.classList.add('s34-show'), 20); // (not requestAnimationFrame: background tabs skip those)
     }
 
-    function hideCloudflareBanner(solved) {
-        const banner = document.querySelector('.s34-cf-banner');
-        if (banner) {
-            banner.classList.remove('s34-show');
-            setTimeout(() => banner.remove(), 250);
+    function hideCloudflarePill() {
+        const pill = document.querySelector('.s34-cf-pill');
+        if (pill) {
+            pill.classList.remove('s34-show');
+            setTimeout(() => { if (!pill.classList.contains('s34-show')) pill.remove(); }, 250);
         }
-        clearInterval(cfTitleTimer);
-        cfTitleTimer = null;
-        if (cfTitleBefore !== null) document.title = cfTitleBefore;
+        if (cfTitleBefore !== null) document.title = document.title.replace('Check needed · ', '');
         cfTitleBefore = null;
-        if (!solved) showToast('Loading stays paused until the check is solved.', 'Solve check', openCloudflarePanel, 10000);
+    }
+
+    // "Solve check" right where something stopped (end of the list, popup tags)
+    function cloudflareInline(text) {
+        const box = document.createElement('div');
+        box.className = 's34-cf-inline';
+        box.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span><span class="s34-cf-inline-text"></span><button type="button" class="s34-cf-pill-solve">Solve check</button>`;
+        box.querySelector('.s34-cf-inline-text').textContent = text;
+        box.querySelector('button').addEventListener('click', e => { e.stopPropagation(); openCloudflarePanel(); });
+        return box;
     }
 
     // Called once the check has been passed: everything resumes
     function cloudflarePassed() {
         cfPausedUntil = 0;
+        cfPillHidden = false;
         console.log('[Steamy34] Cloudflare check passed - resuming.');
-        hideCloudflareBanner(true);
+        hideCloudflarePill();
         // Drop "loading stays paused…" reminders
         document.querySelectorAll('.s34-toasts .s34-toast').forEach(t => {
             if (/paused|Cloudflare|check/i.test(t.textContent)) hideToast(t);
@@ -201,38 +354,35 @@
         return fetch(url, { credentials: 'include', signal: ctrl.signal });
     }
 
-    function fetchPostDoc(postUrl) {
-        if (cloudflarePaused()) return Promise.resolve(null);
-        if (!postDocCache.has(postUrl)) {
-            const p = fetchWithTimeout(postUrl)
-                .then(async r => {
-                    const html = await r.text();
-                    if (isCloudflareCheck(r.status, html)) {
-                        pauseForCloudflare(postUrl);
-                        throw new Error('Cloudflare check (HTTP ' + r.status + ')');
-                    }
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return html;
-                })
-                .then(html => {
-                    const doc = new DOMParser().parseFromString(html, 'text/html');
-                    learnTagTypes(doc);
-                    return doc;
-                })
-                .catch(err => {
-                    console.warn('[Steamy34] Could not read post', postUrl, err.message || err);
-                    postDocCache.delete(postUrl); // allow a retry later
-                    return null;
-                });
-            postDocCache.set(postUrl, p);
+    // kind: who needs it (PAGE_KINDS) - decides its place in the line.
+    // opts.wanted: () => false drops it if it hasn't started yet.
+    function fetchPostDoc(postUrl, kind = 'popup', opts) {
+        if (postDocCache.has(postUrl)) {
+            bumpPage(postUrl, kind, opts && opts.wanted);
+            return postDocCache.get(postUrl);
         }
-        return postDocCache.get(postUrl);
+        if (!isUserKind(kind) && cloudflarePaused()) return Promise.resolve(null);
+        const p = loadPage(postUrl, kind, opts)
+            .then(page => {
+                if (!page.ok) throw new Error('HTTP ' + page.status);
+                const doc = new DOMParser().parseFromString(page.html, 'text/html');
+                learnTagTypes(doc);
+                return doc;
+            })
+            .catch(err => {
+                if (!err.cancelled && !err.paused) console.warn('[Steamy34] Could not read post', postUrl, err.message || err);
+                postDocCache.delete(postUrl); // allow a retry later
+                return null;
+            });
+        postDocCache.set(postUrl, p);
+        return p;
     }
 
     // Read the post page once: video source, or the full-quality image
-    function getPostMedia(postUrl) {
+    function getPostMedia(postUrl, kind = 'popup', opts) {
+        if (mediaCache.has(postUrl)) bumpPage(postUrl, kind, opts && opts.wanted);
         if (!mediaCache.has(postUrl)) {
-            const p = fetchPostDoc(postUrl)
+            const p = fetchPostDoc(postUrl, kind, opts)
                 .then(doc => {
                     if (!doc) throw new Error('post page not available');
                     const abs = u => u ? new URL(u, location.href).href : null;
@@ -391,7 +541,7 @@
                         }
                         if (triedPostPage) { thumb.classList.remove('s34-loading'); return; }
                         triedPostPage = true;
-                        const media = await getPostMedia(link.href);
+                        const media = await getPostMedia(link.href, 'hover', { wanted: () => overlay === el });
                         const url = media && (isVideo ? media.video : media.image);
                         if (overlay !== el) return;
                         if (url) {

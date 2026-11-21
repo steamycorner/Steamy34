@@ -96,9 +96,9 @@
     // ---- Download any post by its id (collections) ----
     async function downloadPostById(id, thumb) {
         const url = postPageUrl(id);
-        const doc = await fetchPostDoc(url);
+        const doc = await fetchPostDoc(url, 'batch');
         if (!doc) return false;
-        const media = await getPostMedia(url);
+        const media = await getPostMedia(url, 'batch');
         const file = media && (media.video || media.image);
         if (!file) return false;
         const g = readPostTags(doc);
@@ -583,30 +583,40 @@
         if (dl) dl.after(btn); else slot.prepend(btn);
     }
 
-    // ---- Popup: load the next / previous post in advance ----
+    // ---- Popup: the next post in advance ----
+    // Since Beta 3.5 only the next one (not next AND previous), and gently:
+    // its picture comes straight from the image server (guessed from the
+    // thumbnail like the popup does - no rule34 page needed), its post page
+    // (tags, info) only once you've stayed on a post for a moment - flipping
+    // fast loads nothing extra. Fewer page loads = fewer Cloudflare checks.
     const preloadedPosts = new Set();
+    const PRELOAD_DWELL_MS = 1500;
 
-    function preloadThumb(thumb) {
+    function preloadPicture(img) {
+        const urls = mediaCandidates(img, false);
+        let i = 0;
+        const pre = new Image();
+        pre.decoding = 'async';
+        pre.onerror = () => { if (++i < urls.length) pre.src = urls[i]; };
+        if (urls.length) pre.src = urls[0];
+    }
+
+    function preloadThumb(thumb, stillThere) {
         const a = thumb && thumb.querySelector('a[href]');
         const img = thumb && thumb.querySelector('img');
         if (!a || !img || preloadedPosts.has(a.href)) return;
         preloadedPosts.add(a.href);
-        // Tags + media address; for images also the picture itself
-        getPostMedia(a.href).then(m => {
-            if (m && m.image && !isVideoThumb(img)) {
-                const pre = new Image();
-                pre.src = m.image;
-            }
-        });
+        if (!isVideoThumb(img)) preloadPicture(img);
+        fetchPostDoc(a.href, 'preload', { wanted: stillThere }); // waits in line behind what you asked for
     }
 
     function preloadNeighbours(thumb) {
         if (!CONFIG.popupPreload) return;
         const list = visibleThumbs();
         const i = list.indexOf(thumb);
-        if (i < 0) return;
-        setTimeout(() => preloadThumb(list[i + 1]), 300);
-        setTimeout(() => preloadThumb(list[i - 1]), 900);
+        if (i < 0 || !list[i + 1]) return;
+        const stillThere = () => !!popupState && popupState.thumb === thumb;
+        setTimeout(() => { if (stillThere()) preloadThumb(list[i + 1], () => !!popupState); }, PRELOAD_DWELL_MS);
     }
 
     // ---- Popup: click an image to see it at full size, drag to move ----

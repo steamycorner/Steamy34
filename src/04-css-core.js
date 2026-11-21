@@ -385,9 +385,12 @@
             width: min(860px, calc(100vw - 32px));
             border-radius: 18px;
             overflow: hidden;
-            background-color: #17161c !important;
-            border: 1px solid rgba(255,255,255,0.08) !important;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+            /* our window around the check gets the pink-to-purple glow
+               (the check page inside stays exactly as Cloudflare sends it) */
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(#17161c, #17161c) padding-box,
+                        linear-gradient(135deg, rgba(255,95,143,0.9), rgba(139,61,255,0.9)) border-box !important;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 28px rgba(255,95,143,0.28), 0 0 60px rgba(139,61,255,0.22);
             animation: s34-blm-in .16s ease-out;
         }
         .s34-cf-panel .s34-panel-head { padding: 18px 20px 6px; border-bottom: none !important; }

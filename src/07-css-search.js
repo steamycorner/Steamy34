@@ -149,6 +149,9 @@
         .s34-pins-note svg { flex: none; margin-top: 2px; color: #ffb347 !important; }
         .s34-pins-note svg * { color: inherit !important; }
         .s34-pins-note span { color: inherit !important; }
+        .s34-pins-note > svg { width: 12px; height: 12px; }
+        .s34-pins-note a.s34-pins-out { color: inherit !important; text-decoration: underline !important; font-weight: 600; white-space: nowrap; }
+        .s34-pins-note a.s34-pins-out:hover { color: #ffb347 !important; }
         .s34-sb .s34-sb-filter select {
             width: 100%;
             min-width: 0;

@@ -272,7 +272,11 @@
         // post they're added when the new search starts)
         // (the Following feed's "( a ~ b ~ … )" search stays out of the box - it starts empty)
         // (a followed search shows its own words, without pins)
-        let { terms, f } = parseQuery(onSearchFeed() ? input.value : onFeedPage() ? '' : isPostView ? input.value : withPins(input.value));
+        // (an artist / "All artists" page: the box shows that page's filters and
+        // a search from it stays on the page - searchInFeed in 20c-following.js)
+        const feedNow = onArtistFeed();
+        let { terms, f } = feedNow ? { terms: [], f: parseQuery(feedQueryNow()).f }
+            : parseQuery(onSearchFeed() ? input.value : isPostView ? input.value : withPins(input.value));
 
         const root = document.createElement('div');
         root.className = 's34-sb';
@@ -326,13 +330,26 @@
         const pinsPaused = onFeedPage();
         if (pinsPaused) {
             root.classList.add('s34-pins-paused');
-            if (Object.keys(getPins()).some(k => k !== 'scoreOp' && getPins()[k])) {
+            const hasPins = Object.keys(getPins()).some(k => k !== 'scoreOp' && getPins()[k]);
+            if (feedNow || hasPins) {
                 const note = document.createElement('div');
                 note.className = 's34-pins-note';
-                note.innerHTML = PIN_SVG + '<span></span>';
-                note.querySelector('span').textContent = onSearchFeed()
+                note.innerHTML = (feedNow ? BELL_SVG : PIN_SVG) + '<span></span>';
+                const feed = feedFromHash(location.hash);
+                const who = feedNow && feed.kind === 'artist' ? prettyTag(feed.tag) + '\'s posts' : 'your followed artists';
+                note.querySelector('span').textContent = !feedNow
                     ? 'Your pinned filters are paused here – a followed search shows exactly what you followed.'
-                    : 'Your pinned filters are paused here, so you see every new post from the artists you follow. Their own filter is under Following → Manage.';
+                    : `Filters and tags here only search ${who}.` + (hasPins ? ' Your pinned filters are paused.' : '');
+                if (feedNow) {
+                    // The way out: the same search over all of rule34
+                    const out = document.createElement('a');
+                    out.href = '#';
+                    out.className = 's34-pins-out';
+                    out.textContent = 'Search all posts instead';
+                    out.title = 'Run what\'s in the search box over all of rule34, not just this page';
+                    out.addEventListener('click', e => { e.preventDefault(); commitField(true); runSearch(query()); });
+                    note.querySelector('span').append(' ', out);
+                }
                 filtersEl.before(note);
             }
         }
@@ -571,10 +588,18 @@
         }
 
         // 🔔 Follow / Following for the search in the box
+        // What the bell follows: the box - on an artist page together with the artist(s)
+        function followQuery() {
+            const q = query();
+            if (!feedNow || !q) return q;
+            const base = feedBaseTerms() || [];
+            const have = new Set(base.map(t => t.toLowerCase()));
+            return base.concat(q.split(' ').filter(w => !have.has(w.toLowerCase()))).join(' ');
+        }
         function styleFollowSearchBtn() {
             const b = root.querySelector('.s34-sb-follow');
             if (!b) return;
-            const q = query();
+            const q = followQuery();
             const on = !!q && isQueryFollowed(q);
             b.classList.toggle('s34-following', on);
             // Just the bell (the word is there for screen readers)
@@ -637,6 +662,7 @@
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
+            if (feedNow && searchInFeed(ta.value)) return; // stays on the artist page
             const form = ta.form;
             if (!form) { runSearch(ta.value); return; }
             if (form.requestSubmit) form.requestSubmit(); else form.submit();
@@ -747,7 +773,7 @@
         followBtn.addEventListener('click', () => {
             commitField(true);
             sync();
-            const q = query();
+            const q = followQuery();
             if (!q) { showToast('Type a search first – then the bell follows it.'); return; }
             // Count new posts from now on (from the results you're looking at)
             toggleFollowSearch(q, seenIdForQuery(q));
@@ -792,10 +818,11 @@
         }
 
         // The site's own Search button: take along what's still typed
-        if (ta.form) ta.form.addEventListener('submit', () => {
+        if (ta.form) ta.form.addEventListener('submit', e => {
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
+            if (feedNow) { e.preventDefault(); searchInFeed(ta.value); } // stays on the artist page
         });
         sync();
     }

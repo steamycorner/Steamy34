@@ -260,75 +260,109 @@
             .s34-set-nav nav button span { white-space: nowrap; }
         }
 
-        /* Cloudflare check: a calm notice at the top (noticeable, not alarming) */
-        .s34-cf-banner {
+        /* Cloudflare check (Beta 3.5): a small pill in the bottom-right corner
+           with the Steamy34 pink-to-purple glow - noticeable, not in the way.
+           It pulses a few times when something you asked for is blocked. */
+        @keyframes s34-cf-glow {
+            0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18); }
+            50%      { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 18px rgba(255,95,143,0.65), 0 0 38px rgba(139,61,255,0.45); }
+        }
+        .s34-cf-pill {
             position: fixed;
-            top: 12px;
-            left: 50%;
+            right: 12px;
+            bottom: 12px;
             z-index: 100003;
-            width: min(560px, calc(100vw - 24px));
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            max-width: calc(100vw - 24px);
             box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 10px 10px 12px;
-            border-radius: 14px;
-            background-color: rgba(28,27,34,0.96) !important;
-            border: 1px solid rgba(255,255,255,0.10) !important;
-            border-left: 3px solid #ffb347 !important;
-            backdrop-filter: blur(8px);
+            padding: 6px 6px 6px 8px;
+            border-radius: 999px;
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(rgba(24,22,30,0.97), rgba(24,22,30,0.97)) padding-box,
+                        linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
             color: #e8e8ee !important;
-            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif;
+            font: 12px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
             text-align: left;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.45);
-            transform: translate(-50%, -140%);
-            transition: transform .3s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity .25s ease, transform .25s ease;
         }
-        .s34-cf-banner.s34-show { transform: translate(-50%, 0); }
+        .s34-cf-pill.s34-show { opacity: 1; transform: none; }
+        .s34-cf-pill.s34-cf-pulse { animation: s34-cf-glow 1.6s ease-in-out 3; }
+        /* Above the "Censored mode" label, and above the messages on phones */
+        html.s34-sfw .s34-cf-pill { bottom: 48px; }
+        @media (max-width: 760px) {
+            .s34-cf-pill { bottom: 76px; }
+            html.s34-sfw .s34-cf-pill { bottom: 112px; }
+        }
         /* Not needed while the check window itself is open */
-        body:has(.s34-cf-overlay) .s34-cf-banner { opacity: 0; pointer-events: none; }
-        .s34-cf-banner-icon {
-            flex: none;
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255,179,71,0.14) !important;
-            color: #ffb347 !important;
-        }
-        .s34-cf-banner-icon svg { display: block; }
-        .s34-cf-banner-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .s34-cf-banner-text b { font-size: 13.5px; color: #f2f2f6 !important; }
-        .s34-cf-banner-text span { font-size: 12px; color: #a9a9b3 !important; }
-        .s34-cf-banner .s34-cf-banner-solve {
-            flex: none;
-            height: 32px;
-            padding: 0 14px !important;
-            border-radius: 9px;
-            border: none !important;
-            background-color: #ffb347 !important;
-            color: #2a1a05 !important;
-            font: 700 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
-            cursor: pointer;
-        }
-        .s34-cf-banner .s34-cf-banner-solve:hover { background-color: #ffc46e !important; }
-        .s34-cf-banner .s34-cf-banner-x {
+        body:has(.s34-cf-overlay) .s34-cf-pill { opacity: 0; pointer-events: none; }
+        .s34-cf-pill-icon {
             flex: none;
             width: 28px;
             height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(255,95,143,0.22), rgba(139,61,255,0.22)) !important;
+            color: #ff8fb0 !important;
+        }
+        .s34-cf-pill-icon svg { display: block; }
+        .s34-cf-pill-text { display: flex; flex-direction: column; min-width: 0; }
+        .s34-cf-pill-text b { font-size: 12.5px; color: #f2f2f6 !important; white-space: nowrap; }
+        .s34-cf-pill-text small { font-size: 11px; color: #a9a9b3 !important; white-space: nowrap; }
+        .s34-cf-pill .s34-cf-pill-solve, .s34-cf-inline .s34-cf-pill-solve {
+            flex: none;
+            height: 28px;
+            padding: 0 13px !important;
+            border-radius: 999px;
+            border: none !important;
+            background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important;
+            color: #fff !important;
+            font: 700 12px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255,95,143,0.35);
+        }
+        .s34-cf-pill .s34-cf-pill-solve:hover, .s34-cf-inline .s34-cf-pill-solve:hover { filter: brightness(1.12); box-shadow: 0 0 16px rgba(255,95,143,0.55); }
+        .s34-cf-pill .s34-cf-pill-x {
+            flex: none;
+            width: 24px;
+            height: 24px;
             padding: 0 !important;
-            border-radius: 8px;
+            border-radius: 50%;
             border: none !important;
             background: transparent !important;
             color: #8a8a94 !important;
+            font-size: 11px;
             cursor: pointer;
         }
-        .s34-cf-banner .s34-cf-banner-x:hover { color: #e8e8ee !important; background-color: rgba(255,255,255,0.06) !important; }
-        @media (max-width: 560px) {
-            .s34-cf-banner { flex-wrap: wrap; }
-            .s34-cf-banner-text { flex-basis: calc(100% - 50px); }
+        .s34-cf-pill .s34-cf-pill-x:hover { color: #e8e8ee !important; background-color: rgba(255,255,255,0.08) !important; }
+        /* The same, right where something stopped (end of the list, popup tags) */
+        .s34-cf-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px auto;
+            padding: 6px 6px 6px 8px;
+            border-radius: 999px;
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(rgba(24,22,30,0.97), rgba(24,22,30,0.97)) padding-box,
+                        linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
+            color: #e8e8ee !important;
+            font: 12.5px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
+            text-align: left;
+            animation: s34-cf-glow 1.6s ease-in-out 3;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18);
+        }
+        .s34-cf-inline-text { color: inherit !important; }
+        .s34-pv-tags .s34-cf-inline { display: flex; margin: 10px 0; }
+        @media (prefers-reduced-motion: reduce) {
+            .s34-cf-pill.s34-cf-pulse, .s34-cf-inline { animation: none; }
+            .s34-cf-pill { transition: none; }
         }
 
         /* Search: 5th filter (Rating) uses the whole row */

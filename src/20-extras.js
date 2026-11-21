@@ -34,12 +34,10 @@
     async function addFavourite(id) {
         if (!id) return false;
         try {
-            const r = await fetchWithTimeout('public/addfav.php?id=' + encodeURIComponent(id));
-            const text = (await r.text()).trim();
-            if (isCloudflareCheck(r.status, text)) {
-                pauseForCloudflare(location.href);
-                return false;
-            }
+            let r;
+            try { r = await loadPage('public/addfav.php?id=' + encodeURIComponent(id), 'action'); }
+            catch (e) { if (e.cloudflare) { showToast('Favourite not saved – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
+            const text = r.html.trim();
             if (!r.ok) throw new Error('HTTP ' + r.status);
             if (text === '2') {
                 showToast('Log in to rule34.xxx to use favourites.');
@@ -123,12 +121,14 @@
         if (thumb.dataset.s34Size) return;
 
         // Resolution is only on the post page: load it if you keep hovering
+        // (a full second since Beta 3.5, and in line behind what you asked
+        // for - sweeping the mouse over the list loads nothing)
         setTimeout(() => {
             if (!thumb.matches(':hover') || thumb.dataset.s34Size) return;
             const a = thumb.querySelector('a[href]');
             if (!a) return;
             pill.classList.add('s34-info-loading');
-            fetchPostDoc(a.href).then(doc => {
+            fetchPostDoc(a.href, 'hover', { wanted: () => thumb.matches(':hover') }).then(doc => {
                 pill.classList.remove('s34-info-loading');
                 if (!doc) return;
                 const text = (doc.querySelector('#stats') || doc.body || doc.documentElement).textContent;
@@ -138,7 +138,7 @@
                 if (sc) thumb.dataset.s34Score = sc[1];
                 renderHoverInfo(pill, thumb.dataset.s34Score || score, thumb.dataset.s34Size || '');
             });
-        }, 400);
+        }, 1000);
     }
 
     function setupHoverInfo(thumbs) {

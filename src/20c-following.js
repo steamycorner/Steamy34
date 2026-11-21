@@ -181,6 +181,38 @@
     // A followed search's page: a normal search otherwise (its words show in the box)
     function onSearchFeed() { const f = !isPostView && feedFromHash(location.hash); return !!f && f.kind === 'search'; }
 
+    // ---- Searching on an artist / "All artists" page stays on that page ----
+    // The search box there only holds the filters and extra tags; the
+    // artist(s) stay in the address, so a filter narrows the page instead
+    // of starting a new search over everything.
+    function onArtistFeed() { return onFeedPage() && !onSearchFeed(); }
+    function feedQueryNow() { return (new URLSearchParams(location.search).get('tags') || '').trim(); }
+    // What the page shows without any narrowing (null: not an artist page)
+    function feedDefaultQuery(d) {
+        const feed = onArtistFeed() ? feedFromHash(location.hash) : null;
+        if (!feed) return null;
+        d = d || getFollowing();
+        if (feed.kind === 'artist') return [feed.tag].concat(artistFilterWords(findArtist(feed.tag, d), d)).join(' ');
+        return groupQuery(followGroups(d)[feed.group] || [], d);
+    }
+    function feedNarrowed(d) {
+        const def = feedDefaultQuery(d);
+        return def !== null && normalizeQuery(def) !== normalizeQuery(feedQueryNow());
+    }
+    // The page's own words (the artist or artists) - what the box leaves out
+    function feedBaseTerms() { return onArtistFeed() ? parseQuery(feedQueryNow()).terms : null; }
+    // Run q (tags + filters from the box) inside this page. false: not an artist page.
+    function searchInFeed(q) {
+        const base = feedBaseTerms();
+        if (!base) return false;
+        const have = new Set(base.map(t => t.toLowerCase()));
+        const extra = String(q || '').split(/\s+/).filter(w => w && !have.has(w.toLowerCase()));
+        const next = base.concat(extra).join(' ');
+        if (normalizeQuery(next) === normalizeQuery(feedQueryNow())) { showToast('This page already shows that.'); return true; }
+        location.href = location.pathname + '?page=post&s=list&tags=' + encodeURIComponent(next) + location.hash;
+        return true;
+    }
+
     // includeSearches: everything (Manage window) - otherwise artists only ("All artists")
     function followTotals(d, includeSearches) {
         d = d || getFollowing();
@@ -524,9 +556,12 @@
         tags.forEach(t => { feedSeenBefore[t] = (findArtist(t, d) || {}).seen || 0; });
         const newCount = thumbs.filter(isFeedNew).length;
         markFeedNew(thumbs);
+        // Narrowed with a filter from the search box: only part of the new
+        // posts is on the page, so the "new" counts stay as they are
+        const narrowed = !feed.plain && feedNarrowed(d);
 
         // Everyone on this page is now "seen" up to their newest post here
-        tags.forEach(t => {
+        if (!narrowed) tags.forEach(t => {
             const a = findArtist(t, d);
             if (!a) return;
             const ids = thumbs.filter(th => thumbArtists(th, [t]).length || feed.kind === 'artist')
@@ -577,11 +612,22 @@
                 box.appendChild(a);
             });
         }
-        bar.querySelector('.s34-feed-sub').textContent = '· ' + sub;
+        bar.querySelector('.s34-feed-sub').textContent = '· ' + (narrowed ? 'filtered' : sub);
+        if (narrowed) {
+            // "Filtered" + a way back to everything this page normally shows
+            const reset = document.createElement('button');
+            reset.type = 'button';
+            reset.className = 's34-feed-btn s34-feed-reset';
+            reset.dataset.f = 'reset';
+            reset.textContent = '✕ Remove filters';
+            reset.title = 'Back to this page without the filters you picked in the search box';
+            bar.querySelector('[data-f="manage"]').before(reset);
+        }
         bar.addEventListener('click', e => {
             const b = e.target.closest('[data-f]');
             if (!b) return;
-            if (b.dataset.f === 'manage') openFollowingWindow();
+            if (b.dataset.f === 'reset') location.href = feed.kind === 'artist' ? artistFeedUrl(feed.tag, d) : allFeedUrl(feed.group, d);
+            else if (b.dataset.f === 'manage') openFollowingWindow();
             else if (b.dataset.f === 'unfollow') {
                 const on = toggleFollow(feed.tag);
                 b.innerHTML = on ? BELL_ON_SVG + ' Following' : BELL_SVG + ' Follow';
@@ -606,11 +652,11 @@
                 if (cloudflarePaused()) { stopped = true; break; }
                 let html, status;
                 try {
-                    const r = await fetchWithTimeout('index.php?page=post&s=list&tags=' + encodeURIComponent(groupQuery(groups[i], d)));
+                    // (in the shared line; on its own it waits until you're not clicking around)
+                    const r = await loadPage('index.php?page=post&s=list&tags=' + encodeURIComponent(groupQuery(groups[i], d)), force ? 'followNow' : 'follow');
                     status = r.status;
-                    html = await r.text();
-                } catch (e) { continue; }
-                if (isCloudflareCheck(status, html)) { pauseForCloudflare(location.href); stopped = true; break; }
+                    html = r.html;
+                } catch (e) { if (e.cloudflare || e.paused) { stopped = true; break; } continue; }
                 if (status < 200 || status >= 300) continue;
                 const doc = new DOMParser().parseFromString(html, 'text/html');
                 const posts = Array.from(doc.querySelectorAll('span.thumb')).map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, thumb: t }));
@@ -640,11 +686,10 @@
                 if (cloudflarePaused()) break;
                 let html, status;
                 try {
-                    const r = await fetchWithTimeout('index.php?page=post&s=list&tags=' + encodeURIComponent(searches[i]));
+                    const r = await loadPage('index.php?page=post&s=list&tags=' + encodeURIComponent(searches[i]), force ? 'followNow' : 'follow');
                     status = r.status;
-                    html = await r.text();
-                } catch (e) { continue; }
-                if (isCloudflareCheck(status, html)) { pauseForCloudflare(location.href); break; }
+                    html = r.html;
+                } catch (e) { if (e.cloudflare || e.paused) break; continue; }
                 if (status < 200 || status >= 300) continue;
                 const doc = new DOMParser().parseFromString(html, 'text/html');
                 const ids = Array.from(doc.querySelectorAll('span.thumb')).map(t => parseInt(thumbPostId(t), 10) || 0);

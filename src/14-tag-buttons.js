@@ -206,7 +206,7 @@
         GM_setValue(LAST_SEARCH_KEY, next);
         refreshSearchButtons();
         showToast(next ? `Search: ${next.replace(/_/g, ' ')}` : 'Search is now empty.',
-                  'Search now', () => runSearch(next), 8000);
+                  'Search now', () => searchInFeed(next) || runSearch(next), 8000); // an artist page: stays on it
     }
 
     // +  : add the tag            Shift+click: add it as -tag

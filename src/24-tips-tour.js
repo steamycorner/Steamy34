@@ -68,7 +68,7 @@
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
                     [`${k('X')}`, `${nu}Censored mode: blurs every picture and video (and comments) – safe for screenshots; X again to turn it off`],
-                    [`"Quick check needed" at the top`, 'Cloudflare wants a robot check – click "Solve check"; some loading waits until then']
+                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – click "Solve"; only the extras wait until then`]
                 ]],
                 searchGroup, sidebarGroup
             ],
@@ -88,7 +88,7 @@
                     [`${k('+')} / ${k('⊘')} on a tag`, `${nu}Add the tag to your search / blacklist it – always shown on phones`],
                     [`${k('♥')} on a thumbnail`, 'Add the post to your favourites (needs a rule34 login)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
-                    [`"Quick check needed" at the top`, 'Cloudflare wants a robot check – tap "Solve check"'],
+                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
                     [`Hover previews`, 'Need a mouse – on a phone, just open the post']
                 ]],
                 searchGroup, sidebarGroup
@@ -200,6 +200,15 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.5', date: '2026-11-21', notify: true, items: [
+            'Far fewer Cloudflare checks: everything Steamy34 loads from rule34 now waits in one line and is spaced out – what you asked for (the popup, scrolling) goes first, the extras after it. After a check, it all runs slower for a while.',
+            'Fewer page loads: the popup loads only the next post in advance (its picture straight from the image server), the size on hover waits a full second, and the Following check waits until you stop clicking around.',
+            'When a check does come, it no longer covers the top of the page: a small glowing "Quick check needed" sits in the corner, and "Solve check" shows up right where something stopped – at the end of the list or in the popup\'s tags.',
+            '"Copy info for a bug report" now says what set off the last check, so we can find out what causes them.'
+        ] },
+        { v: 'Beta 3.4.2', date: '2026-11-21', items: [
+            'On a followed artist\'s page (and "All artists"), the search box now stays on that page: a filter like Size 1440p+ or an extra tag only narrows that artist\'s posts instead of starting a new search over everything. "✕ Remove filters" in the bar at the top brings the full page back, and "Search all posts instead" in the sidebar searches everything.'
+        ] },
         { v: 'Beta 3.4.1', date: '2026-11-20', items: [
             'New license: CC BY-NC-SA 4.0 – Steamy34 stays free to share and change, with credit to steamycorner, never commercially, and changed versions under the same license.'
         ] },

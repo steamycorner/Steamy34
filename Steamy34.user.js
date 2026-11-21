@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.4.1-beta
+// @version      3.5-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -145,7 +145,7 @@
         hideDownloaded: false,   // posts page: hide posts you already downloaded (sidebar switch)
         hoverInfo: true,         // score and resolution on thumbnails while hovering
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
-        popupPreload: true,      // popup: load the next/previous post in advance
+        popupPreload: true,      // popup: load the next post in advance (once you stay on a post for a moment)
 
         // Fit to viewport
         padding: 10,             // px gap kept to the window edges
@@ -304,7 +304,7 @@
             ['collectKey', 'Add to collection key', { hotkey: true }],
             ['theaterKey', 'Theater mode key', { hotkey: true }],
             ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
-            ['popupPreload', 'Load the next / previous post in advance', { hint: 'Browsing feels instant. Off on phones by default (saves mobile data)' }],
+            ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
             ['useOriginalImage', 'Show the full-resolution picture', { hint: 'On single post pages, instead of the smaller sample' }],
@@ -1024,9 +1024,12 @@
             width: min(860px, calc(100vw - 32px));
             border-radius: 18px;
             overflow: hidden;
-            background-color: #17161c !important;
-            border: 1px solid rgba(255,255,255,0.08) !important;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+            /* our window around the check gets the pink-to-purple glow
+               (the check page inside stays exactly as Cloudflare sends it) */
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(#17161c, #17161c) padding-box,
+                        linear-gradient(135deg, rgba(255,95,143,0.9), rgba(139,61,255,0.9)) border-box !important;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 28px rgba(255,95,143,0.28), 0 0 60px rgba(139,61,255,0.22);
             animation: s34-blm-in .16s ease-out;
         }
         .s34-cf-panel .s34-panel-head { padding: 18px 20px 6px; border-bottom: none !important; }
@@ -2428,75 +2431,109 @@
             .s34-set-nav nav button span { white-space: nowrap; }
         }
 
-        /* Cloudflare check: a calm notice at the top (noticeable, not alarming) */
-        .s34-cf-banner {
+        /* Cloudflare check (Beta 3.5): a small pill in the bottom-right corner
+           with the Steamy34 pink-to-purple glow - noticeable, not in the way.
+           It pulses a few times when something you asked for is blocked. */
+        @keyframes s34-cf-glow {
+            0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18); }
+            50%      { box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 18px rgba(255,95,143,0.65), 0 0 38px rgba(139,61,255,0.45); }
+        }
+        .s34-cf-pill {
             position: fixed;
-            top: 12px;
-            left: 50%;
+            right: 12px;
+            bottom: 12px;
             z-index: 100003;
-            width: min(560px, calc(100vw - 24px));
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            max-width: calc(100vw - 24px);
             box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 10px 10px 12px;
-            border-radius: 14px;
-            background-color: rgba(28,27,34,0.96) !important;
-            border: 1px solid rgba(255,255,255,0.10) !important;
-            border-left: 3px solid #ffb347 !important;
-            backdrop-filter: blur(8px);
+            padding: 6px 6px 6px 8px;
+            border-radius: 999px;
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(rgba(24,22,30,0.97), rgba(24,22,30,0.97)) padding-box,
+                        linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
             color: #e8e8ee !important;
-            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif;
+            font: 12px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
             text-align: left;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.45);
-            transform: translate(-50%, -140%);
-            transition: transform .3s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity .25s ease, transform .25s ease;
         }
-        .s34-cf-banner.s34-show { transform: translate(-50%, 0); }
+        .s34-cf-pill.s34-show { opacity: 1; transform: none; }
+        .s34-cf-pill.s34-cf-pulse { animation: s34-cf-glow 1.6s ease-in-out 3; }
+        /* Above the "Censored mode" label, and above the messages on phones */
+        html.s34-sfw .s34-cf-pill { bottom: 48px; }
+        @media (max-width: 760px) {
+            .s34-cf-pill { bottom: 76px; }
+            html.s34-sfw .s34-cf-pill { bottom: 112px; }
+        }
         /* Not needed while the check window itself is open */
-        body:has(.s34-cf-overlay) .s34-cf-banner { opacity: 0; pointer-events: none; }
-        .s34-cf-banner-icon {
-            flex: none;
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255,179,71,0.14) !important;
-            color: #ffb347 !important;
-        }
-        .s34-cf-banner-icon svg { display: block; }
-        .s34-cf-banner-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .s34-cf-banner-text b { font-size: 13.5px; color: #f2f2f6 !important; }
-        .s34-cf-banner-text span { font-size: 12px; color: #a9a9b3 !important; }
-        .s34-cf-banner .s34-cf-banner-solve {
-            flex: none;
-            height: 32px;
-            padding: 0 14px !important;
-            border-radius: 9px;
-            border: none !important;
-            background-color: #ffb347 !important;
-            color: #2a1a05 !important;
-            font: 700 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
-            cursor: pointer;
-        }
-        .s34-cf-banner .s34-cf-banner-solve:hover { background-color: #ffc46e !important; }
-        .s34-cf-banner .s34-cf-banner-x {
+        body:has(.s34-cf-overlay) .s34-cf-pill { opacity: 0; pointer-events: none; }
+        .s34-cf-pill-icon {
             flex: none;
             width: 28px;
             height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(255,95,143,0.22), rgba(139,61,255,0.22)) !important;
+            color: #ff8fb0 !important;
+        }
+        .s34-cf-pill-icon svg { display: block; }
+        .s34-cf-pill-text { display: flex; flex-direction: column; min-width: 0; }
+        .s34-cf-pill-text b { font-size: 12.5px; color: #f2f2f6 !important; white-space: nowrap; }
+        .s34-cf-pill-text small { font-size: 11px; color: #a9a9b3 !important; white-space: nowrap; }
+        .s34-cf-pill .s34-cf-pill-solve, .s34-cf-inline .s34-cf-pill-solve {
+            flex: none;
+            height: 28px;
+            padding: 0 13px !important;
+            border-radius: 999px;
+            border: none !important;
+            background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important;
+            color: #fff !important;
+            font: 700 12px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255,95,143,0.35);
+        }
+        .s34-cf-pill .s34-cf-pill-solve:hover, .s34-cf-inline .s34-cf-pill-solve:hover { filter: brightness(1.12); box-shadow: 0 0 16px rgba(255,95,143,0.55); }
+        .s34-cf-pill .s34-cf-pill-x {
+            flex: none;
+            width: 24px;
+            height: 24px;
             padding: 0 !important;
-            border-radius: 8px;
+            border-radius: 50%;
             border: none !important;
             background: transparent !important;
             color: #8a8a94 !important;
+            font-size: 11px;
             cursor: pointer;
         }
-        .s34-cf-banner .s34-cf-banner-x:hover { color: #e8e8ee !important; background-color: rgba(255,255,255,0.06) !important; }
-        @media (max-width: 560px) {
-            .s34-cf-banner { flex-wrap: wrap; }
-            .s34-cf-banner-text { flex-basis: calc(100% - 50px); }
+        .s34-cf-pill .s34-cf-pill-x:hover { color: #e8e8ee !important; background-color: rgba(255,255,255,0.08) !important; }
+        /* The same, right where something stopped (end of the list, popup tags) */
+        .s34-cf-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px auto;
+            padding: 6px 6px 6px 8px;
+            border-radius: 999px;
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(rgba(24,22,30,0.97), rgba(24,22,30,0.97)) padding-box,
+                        linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
+            color: #e8e8ee !important;
+            font: 12.5px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
+            text-align: left;
+            animation: s34-cf-glow 1.6s ease-in-out 3;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35), 0 0 10px rgba(255,95,143,0.30), 0 0 22px rgba(139,61,255,0.18);
+        }
+        .s34-cf-inline-text { color: inherit !important; }
+        .s34-pv-tags .s34-cf-inline { display: flex; margin: 10px 0; }
+        @media (prefers-reduced-motion: reduce) {
+            .s34-cf-pill.s34-cf-pulse, .s34-cf-inline { animation: none; }
+            .s34-cf-pill { transition: none; }
         }
 
         /* Search: 5th filter (Rating) uses the whole row */
@@ -4152,6 +4189,9 @@
         .s34-pins-note svg { flex: none; margin-top: 2px; color: #ffb347 !important; }
         .s34-pins-note svg * { color: inherit !important; }
         .s34-pins-note span { color: inherit !important; }
+        .s34-pins-note > svg { width: 12px; height: 12px; }
+        .s34-pins-note a.s34-pins-out { color: inherit !important; text-decoration: underline !important; font-weight: 600; white-space: nowrap; }
+        .s34-pins-note a.s34-pins-out:hover { color: #ffb347 !important; }
         .s34-sb .s34-sb-filter select {
             width: 100%;
             min-width: 0;
@@ -4740,7 +4780,7 @@
     //  thumbnails, the theater buttons…) and floating dark bars keep their
     //  dark look in every mode.
     // =====================================================================
-    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-banner|batch)|span\.thumb\.s34-(selected|was)|s34-selecting/;
+    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-pill|cf-inline|batch)|span\.thumb\.s34-(selected|was)|s34-selecting/;
 
     function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
@@ -6045,7 +6085,7 @@
         GM_setValue(LAST_SEARCH_KEY, next);
         refreshSearchButtons();
         showToast(next ? `Search: ${next.replace(/_/g, ' ')}` : 'Search is now empty.',
-                  'Search now', () => runSearch(next), 8000);
+                  'Search now', () => searchInFeed(next) || runSearch(next), 8000); // an artist page: stays on it
     }
 
     // +  : add the tag            Shift+click: add it as -tag
@@ -6146,6 +6186,9 @@
     // (which only makes the checks come more often).
     let cfPausedUntil = 0;
     const CF_PAUSE_MS = 3 * 60 * 1000;
+    // After a check everything loads more slowly for a while (Beta 3.5)
+    const CF_SLOW_MS = 10 * 60 * 1000;
+    let cfSlowUntil = 0;
 
     // NOTE: normal pages also contain Cloudflare's "challenge-platform" helper
     // script, so that alone must NOT count. A real check page has the
@@ -6163,88 +6206,238 @@
 
     let cfCheckUrl = location.href; // a page that showed the check
 
-    function pauseForCloudflare(url) {
-        const wasPaused = cloudflarePaused();
-        cfPausedUntil = Date.now() + CF_PAUSE_MS;
-        if (url) cfCheckUrl = url;
-        console.warn('[Steamy34] Cloudflare check detected - background loading paused.');
-        // Background requests can't pass a Cloudflare check themselves -
-        // you have to. A banner you can't miss stays until it's solved.
-        if (!wasPaused || !document.querySelector('.s34-cf-banner')) showCloudflareBanner();
+    // ---- One line for every page Steamy34 loads from rule34 (Beta 3.5) ----
+    // Cloudflare asks for a check when one browser loads many pages in a
+    // short time. Before 3.5 the popup, preloads, hover sizes, artist
+    // lookups, scrolling and the Following check all loaded at once, in
+    // bursts. Now they wait in one line: what you asked for first, a short
+    // gap between loads, the extras at most BG_PER_MINUTE a minute, and the
+    // Following check only while you're not clicking around.
+    // (Pictures and videos come from the image servers - not part of this.)
+    const PAGE_KINDS = {
+        action:  { prio: 0, gap: 0,    label: 'vote / favourite' },
+        popup:   { prio: 0, gap: 250,  label: 'popup' },
+        scroll:  { prio: 1, gap: 400,  label: 'scrolling' },
+        batch:   { prio: 2, gap: 900,  label: 'batch / collection download' },
+        followNow: { prio: 2, gap: 900, label: 'Following "Check now"' },
+        preload: { prio: 3, gap: 1000, label: 'next post in advance' },
+        hover:   { prio: 3, gap: 1000, label: 'size on hover' },
+        lookup:  { prio: 4, gap: 1200, label: 'artist lookup' },
+        follow:  { prio: 5, gap: 1500, label: 'Following check' }
+    };
+    const pageKind = k => PAGE_KINDS[k] || PAGE_KINDS.lookup;
+    const isUserKind = k => pageKind(k).prio <= 1; // you asked for it (popup, scrolling, a click)
+    const BG_PER_MINUTE = 20;
+    const FOLLOW_IDLE_MS = 15000;
+    const pageQueue = [];
+    const pageLog = []; // { at, kind } of the last 10 minutes - for the bug report info
+    let pageJobN = 0, pagePumping = false, pageStartedAt = 0, pageDoneAt = 0, pagesInFlight = 0;
+    let lastUserInputAt = 0;
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t =>
+        window.addEventListener(t, () => { lastUserInputAt = Date.now(); }, { capture: true, passive: true }));
+
+    const pageSleep = ms => new Promise(r => setTimeout(r, ms));
+    const pageError = (msg, flags) => Object.assign(new Error(msg), flags);
+
+    function logPage(kind) {
+        const now = Date.now();
+        pageLog.push({ at: now, kind });
+        while (pageLog.length && now - pageLog[0].at > 600000) pageLog.shift();
+    }
+    function recentPages(ms) {
+        const since = Date.now() - ms, out = {};
+        pageLog.forEach(p => { if (p.at >= since) out[p.kind] = (out[p.kind] || 0) + 1; });
+        return out;
     }
 
-    // ---- Big banner across the top + ⚠ in the tab title ----
+    // Loads a rule34 page through the line -> { status, ok, html }.
+    // Fails with err.cloudflare (the page was a check), err.paused (an extra,
+    // while a check waits) or err.cancelled (opts.wanted() said no longer needed).
+    function loadPage(url, kind = 'popup', opts = {}) {
+        const abs = new URL(url, location.href).href;
+        if (pageQueue.some(j => j.url === abs)) { bumpPage(abs, kind, opts.wanted); return pageQueue.find(j => j.url === abs).promise; }
+        let job;
+        const promise = new Promise((resolve, reject) => {
+            job = { url: abs, kind, prio: pageKind(kind).prio, n: ++pageJobN, wanted: opts.wanted || null, ms: opts.ms || 12000, resolve, reject };
+        });
+        job.promise = promise;
+        pageQueue.push(job);
+        pumpPages();
+        return promise;
+    }
+    // Something more important needs a page that's already waiting
+    function bumpPage(url, kind, wanted) {
+        const abs = new URL(url, location.href).href;
+        const j = pageQueue.find(x => x.url === abs);
+        if (!j) return;
+        if (pageKind(kind).prio < j.prio) { j.prio = pageKind(kind).prio; j.kind = kind; }
+        if (!wanted) j.wanted = null; // needed for sure now
+    }
+
+    function pageGap(kind) {
+        const g = pageKind(kind).gap;
+        return Date.now() < cfSlowUntil ? g * 2.5 + 500 : g;
+    }
+    // Extras: at most BG_PER_MINUTE a minute (half after a check)
+    function extrasWait(now) {
+        const cap = now < cfSlowUntil ? BG_PER_MINUTE / 2 : BG_PER_MINUTE;
+        const recent = pageLog.filter(p => pageKind(p.kind).prio >= 3 && now - p.at < 60000);
+        return recent.length < cap ? 0 : recent[recent.length - cap].at + 60000 - now;
+    }
+    function stillWanted(j) {
+        if (!j.wanted) return true;
+        try { return !!j.wanted(); } catch (e) { return false; }
+    }
+
+    async function pumpPages() {
+        if (pagePumping) return;
+        pagePumping = true;
+        try {
+            while (pageQueue.length) {
+                const now = Date.now();
+                for (let i = pageQueue.length - 1; i >= 0; i--) {
+                    const j = pageQueue[i];
+                    // While a check waits, the extras give up (they come back
+                    // later) - what you asked for still tries: maybe it's solved
+                    if (cloudflarePaused() && !isUserKind(j.kind)) { pageQueue.splice(i, 1); j.reject(pageError('waiting for the Cloudflare check', { paused: true })); }
+                    // Gone stale meanwhile (mouse left, popup closed, scrolled away)
+                    else if (!stillWanted(j)) { pageQueue.splice(i, 1); j.reject(pageError('no longer needed', { cancelled: true })); }
+                }
+                if (!pageQueue.length) break;
+                pageQueue.sort((a, b) => a.prio - b.prio || a.n - b.n);
+                const job = pageQueue.find(j => j.kind !== 'follow' || now - lastUserInputAt > FOLLOW_IDLE_MS);
+                if (!job) { await pageSleep(2000); continue; }
+                // What you asked for may run next to one other load; extras one at a time
+                if (pagesInFlight >= (isUserKind(job.kind) ? 2 : 1)) { await pageSleep(100); continue; }
+                const from = isUserKind(job.kind) ? pageStartedAt : Math.max(pageStartedAt, pageDoneAt);
+                const wait = Math.max(from + pageGap(job.kind) - now, pageKind(job.kind).prio >= 3 ? extrasWait(now) : 0);
+                if (wait > 0) { await pageSleep(Math.min(wait, 300)); continue; } // look again: something more important may have come in
+                pageQueue.splice(pageQueue.indexOf(job), 1);
+                runPageJob(job);
+            }
+        } finally {
+            pagePumping = false;
+        }
+    }
+
+    async function runPageJob(job) {
+        pagesInFlight++;
+        pageStartedAt = Date.now();
+        logPage(job.kind);
+        try {
+            const r = await fetchWithTimeout(job.url, job.ms);
+            const html = await r.text();
+            if (isCloudflareCheck(r.status, html)) {
+                pauseForCloudflare(job.url, job.kind);
+                job.reject(pageError('Cloudflare check (HTTP ' + r.status + ')', { cloudflare: true }));
+            } else {
+                job.resolve({ status: r.status, ok: r.ok, html });
+            }
+        } catch (e) {
+            job.reject(e);
+        } finally {
+            pagesInFlight--;
+            pageDoneAt = Date.now();
+        }
+    }
+
+    // What set off the last check - shown in "Copy info for a bug report"
+    const CF_LAST_KEY = 'steamy34_cf_last';
+    function lastCheckInfo() {
+        try { return GM_getValue(CF_LAST_KEY, null); } catch (e) { return null; }
+    }
+
+    // kind: what hit the check. Something you asked for (popup, scrolling, a
+    // click) makes the notice pulse; for the extras it just sits in the corner.
+    function pauseForCloudflare(url, kind) {
+        kind = kind || 'action';
+        const wasPaused = cloudflarePaused();
+        cfPausedUntil = Date.now() + CF_PAUSE_MS;
+        cfSlowUntil = Date.now() + CF_PAUSE_MS + CF_SLOW_MS;
+        if (url) cfCheckUrl = url;
+        if (!wasPaused) {
+            try { GM_setValue(CF_LAST_KEY, { at: Date.now(), kind, before: recentPages(120000) }); } catch (e) {}
+        }
+        console.warn('[Steamy34] Cloudflare check (' + pageKind(kind).label + ') - background loading paused.');
+        showCloudflarePill(isUserKind(kind));
+    }
+
+    // ---- The notice: a small glowing pill in the bottom-right corner ----
+    // (before 3.5 a big banner across the top, for every check)
+    const CF_SHIELD_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';
     let cfTitleBefore = null;
-    let cfTitleTimer = null;
+    let cfPillHidden = false; // ✕ clicked: stays away until something you asked for is blocked
 
     // The pause ran out (check solved elsewhere, e.g. in another tab)? Drop
-    // the banner; if the check is still there, the next request brings it back.
-    // Only runs while a banner is up - no timer at all the rest of the time.
+    // the notice; if the check is still there, the next request brings it back.
+    // Only runs while the notice is up - no timer at all the rest of the time.
     let cfWatchTimer = null;
     function watchCloudflarePause() {
         if (cfWatchTimer) return;
         cfWatchTimer = setInterval(() => {
-            const b = document.querySelector('.s34-cf-banner');
-            if (!b) { clearInterval(cfWatchTimer); cfWatchTimer = null; return; }
-            if (cloudflarePaused() || !b.classList.contains('s34-show')) return;
+            if (cloudflarePaused()) return;
             clearInterval(cfWatchTimer);
             cfWatchTimer = null;
-            clearInterval(cfTitleTimer);
-            cfTitleTimer = null;
-            if (cfTitleBefore !== null) document.title = cfTitleBefore;
-            cfTitleBefore = null;
-            b.classList.remove('s34-show');
-            setTimeout(() => b.remove(), 250);
+            hideCloudflarePill();
         }, 5000);
     }
 
-    function showCloudflareBanner() {
-        if (!document.body) { document.addEventListener('DOMContentLoaded', showCloudflareBanner, { once: true }); return; }
-        let banner = document.querySelector('.s34-cf-banner');
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.className = 's34-cf-banner';
-            banner.setAttribute('role', 'alert');
-            banner.innerHTML = `
-                <div class="s34-cf-banner-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
-                <div class="s34-cf-banner-text">
-                    <b>Quick check needed</b>
-                    <span>rule34 wants to confirm you're human. Some loading is paused meanwhile.</span>
-                </div>
-                <button type="button" class="s34-cf-banner-solve">Solve check</button>
-                <button type="button" class="s34-cf-banner-x" title="Hide (loading stays paused until the check is solved)">✕</button>`;
-            banner.querySelector('.s34-cf-banner-solve').addEventListener('click', openCloudflarePanel);
-            banner.querySelector('.s34-cf-banner-x').addEventListener('click', () => hideCloudflareBanner(false));
-            document.body.appendChild(banner);
-        }
-        requestAnimationFrame(() => banner.classList.add('s34-show'));
+    function showCloudflarePill(loud) {
+        if (!document.body) { document.addEventListener('DOMContentLoaded', () => showCloudflarePill(loud), { once: true }); return; }
+        if (loud) cfPillHidden = false;
         watchCloudflarePause();
-
-        // A quiet note in the tab title, so it's seen from other tabs too
-        if (cfTitleBefore === null) cfTitleBefore = document.title;
-        clearInterval(cfTitleTimer);
-        cfTitleTimer = null;
-        document.title = 'Check needed · ' + cfTitleBefore;
+        if (cfPillHidden) return;
+        let pill = document.querySelector('.s34-cf-pill');
+        if (!pill) {
+            pill = document.createElement('div');
+            pill.className = 's34-cf-pill';
+            pill.setAttribute('role', 'status');
+            pill.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span>
+                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Some loading is paused</small></span>
+                <button type="button" class="s34-cf-pill-solve">Solve</button>
+                <button type="button" class="s34-cf-pill-x" title="Hide – loading stays paused until the check is solved" aria-label="Hide">✕</button>`;
+            pill.querySelector('.s34-cf-pill-solve').addEventListener('click', openCloudflarePanel);
+            pill.querySelector('.s34-cf-pill-x').addEventListener('click', () => { cfPillHidden = true; hideCloudflarePill(); });
+            document.body.appendChild(pill);
+        }
+        pill.title = 'rule34 (Cloudflare) wants to confirm you\'re human. Steamy34 pauses its extra loading until then.';
+        // Something you asked for is blocked: a few pulses of the glow
+        if (loud) {
+            pill.classList.remove('s34-cf-pulse');
+            void pill.offsetWidth; // restart the animation
+            pill.classList.add('s34-cf-pulse');
+            // A quiet note in the tab title, so it's seen from other tabs too
+            if (cfTitleBefore === null) { cfTitleBefore = document.title; document.title = 'Check needed · ' + cfTitleBefore; }
+        }
+        setTimeout(() => pill.classList.add('s34-show'), 20); // (not requestAnimationFrame: background tabs skip those)
     }
 
-    function hideCloudflareBanner(solved) {
-        const banner = document.querySelector('.s34-cf-banner');
-        if (banner) {
-            banner.classList.remove('s34-show');
-            setTimeout(() => banner.remove(), 250);
+    function hideCloudflarePill() {
+        const pill = document.querySelector('.s34-cf-pill');
+        if (pill) {
+            pill.classList.remove('s34-show');
+            setTimeout(() => { if (!pill.classList.contains('s34-show')) pill.remove(); }, 250);
         }
-        clearInterval(cfTitleTimer);
-        cfTitleTimer = null;
-        if (cfTitleBefore !== null) document.title = cfTitleBefore;
+        if (cfTitleBefore !== null) document.title = document.title.replace('Check needed · ', '');
         cfTitleBefore = null;
-        if (!solved) showToast('Loading stays paused until the check is solved.', 'Solve check', openCloudflarePanel, 10000);
+    }
+
+    // "Solve check" right where something stopped (end of the list, popup tags)
+    function cloudflareInline(text) {
+        const box = document.createElement('div');
+        box.className = 's34-cf-inline';
+        box.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span><span class="s34-cf-inline-text"></span><button type="button" class="s34-cf-pill-solve">Solve check</button>`;
+        box.querySelector('.s34-cf-inline-text').textContent = text;
+        box.querySelector('button').addEventListener('click', e => { e.stopPropagation(); openCloudflarePanel(); });
+        return box;
     }
 
     // Called once the check has been passed: everything resumes
     function cloudflarePassed() {
         cfPausedUntil = 0;
+        cfPillHidden = false;
         console.log('[Steamy34] Cloudflare check passed - resuming.');
-        hideCloudflareBanner(true);
+        hideCloudflarePill();
         // Drop "loading stays paused…" reminders
         document.querySelectorAll('.s34-toasts .s34-toast').forEach(t => {
             if (/paused|Cloudflare|check/i.test(t.textContent)) hideToast(t);
@@ -6332,38 +6525,35 @@
         return fetch(url, { credentials: 'include', signal: ctrl.signal });
     }
 
-    function fetchPostDoc(postUrl) {
-        if (cloudflarePaused()) return Promise.resolve(null);
-        if (!postDocCache.has(postUrl)) {
-            const p = fetchWithTimeout(postUrl)
-                .then(async r => {
-                    const html = await r.text();
-                    if (isCloudflareCheck(r.status, html)) {
-                        pauseForCloudflare(postUrl);
-                        throw new Error('Cloudflare check (HTTP ' + r.status + ')');
-                    }
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return html;
-                })
-                .then(html => {
-                    const doc = new DOMParser().parseFromString(html, 'text/html');
-                    learnTagTypes(doc);
-                    return doc;
-                })
-                .catch(err => {
-                    console.warn('[Steamy34] Could not read post', postUrl, err.message || err);
-                    postDocCache.delete(postUrl); // allow a retry later
-                    return null;
-                });
-            postDocCache.set(postUrl, p);
+    // kind: who needs it (PAGE_KINDS) - decides its place in the line.
+    // opts.wanted: () => false drops it if it hasn't started yet.
+    function fetchPostDoc(postUrl, kind = 'popup', opts) {
+        if (postDocCache.has(postUrl)) {
+            bumpPage(postUrl, kind, opts && opts.wanted);
+            return postDocCache.get(postUrl);
         }
-        return postDocCache.get(postUrl);
+        if (!isUserKind(kind) && cloudflarePaused()) return Promise.resolve(null);
+        const p = loadPage(postUrl, kind, opts)
+            .then(page => {
+                if (!page.ok) throw new Error('HTTP ' + page.status);
+                const doc = new DOMParser().parseFromString(page.html, 'text/html');
+                learnTagTypes(doc);
+                return doc;
+            })
+            .catch(err => {
+                if (!err.cancelled && !err.paused) console.warn('[Steamy34] Could not read post', postUrl, err.message || err);
+                postDocCache.delete(postUrl); // allow a retry later
+                return null;
+            });
+        postDocCache.set(postUrl, p);
+        return p;
     }
 
     // Read the post page once: video source, or the full-quality image
-    function getPostMedia(postUrl) {
+    function getPostMedia(postUrl, kind = 'popup', opts) {
+        if (mediaCache.has(postUrl)) bumpPage(postUrl, kind, opts && opts.wanted);
         if (!mediaCache.has(postUrl)) {
-            const p = fetchPostDoc(postUrl)
+            const p = fetchPostDoc(postUrl, kind, opts)
                 .then(doc => {
                     if (!doc) throw new Error('post page not available');
                     const abs = u => u ? new URL(u, location.href).href : null;
@@ -6522,7 +6712,7 @@
                         }
                         if (triedPostPage) { thumb.classList.remove('s34-loading'); return; }
                         triedPostPage = true;
-                        const media = await getPostMedia(link.href);
+                        const media = await getPostMedia(link.href, 'hover', { wanted: () => overlay === el });
                         const url = media && (isVideo ? media.video : media.image);
                         if (overlay !== el) return;
                         if (url) {
@@ -6824,7 +7014,11 @@
         // post they're added when the new search starts)
         // (the Following feed's "( a ~ b ~ … )" search stays out of the box - it starts empty)
         // (a followed search shows its own words, without pins)
-        let { terms, f } = parseQuery(onSearchFeed() ? input.value : onFeedPage() ? '' : isPostView ? input.value : withPins(input.value));
+        // (an artist / "All artists" page: the box shows that page's filters and
+        // a search from it stays on the page - searchInFeed in 20c-following.js)
+        const feedNow = onArtistFeed();
+        let { terms, f } = feedNow ? { terms: [], f: parseQuery(feedQueryNow()).f }
+            : parseQuery(onSearchFeed() ? input.value : isPostView ? input.value : withPins(input.value));
 
         const root = document.createElement('div');
         root.className = 's34-sb';
@@ -6878,13 +7072,26 @@
         const pinsPaused = onFeedPage();
         if (pinsPaused) {
             root.classList.add('s34-pins-paused');
-            if (Object.keys(getPins()).some(k => k !== 'scoreOp' && getPins()[k])) {
+            const hasPins = Object.keys(getPins()).some(k => k !== 'scoreOp' && getPins()[k]);
+            if (feedNow || hasPins) {
                 const note = document.createElement('div');
                 note.className = 's34-pins-note';
-                note.innerHTML = PIN_SVG + '<span></span>';
-                note.querySelector('span').textContent = onSearchFeed()
+                note.innerHTML = (feedNow ? BELL_SVG : PIN_SVG) + '<span></span>';
+                const feed = feedFromHash(location.hash);
+                const who = feedNow && feed.kind === 'artist' ? prettyTag(feed.tag) + '\'s posts' : 'your followed artists';
+                note.querySelector('span').textContent = !feedNow
                     ? 'Your pinned filters are paused here – a followed search shows exactly what you followed.'
-                    : 'Your pinned filters are paused here, so you see every new post from the artists you follow. Their own filter is under Following → Manage.';
+                    : `Filters and tags here only search ${who}.` + (hasPins ? ' Your pinned filters are paused.' : '');
+                if (feedNow) {
+                    // The way out: the same search over all of rule34
+                    const out = document.createElement('a');
+                    out.href = '#';
+                    out.className = 's34-pins-out';
+                    out.textContent = 'Search all posts instead';
+                    out.title = 'Run what\'s in the search box over all of rule34, not just this page';
+                    out.addEventListener('click', e => { e.preventDefault(); commitField(true); runSearch(query()); });
+                    note.querySelector('span').append(' ', out);
+                }
                 filtersEl.before(note);
             }
         }
@@ -7123,10 +7330,18 @@
         }
 
         // 🔔 Follow / Following for the search in the box
+        // What the bell follows: the box - on an artist page together with the artist(s)
+        function followQuery() {
+            const q = query();
+            if (!feedNow || !q) return q;
+            const base = feedBaseTerms() || [];
+            const have = new Set(base.map(t => t.toLowerCase()));
+            return base.concat(q.split(' ').filter(w => !have.has(w.toLowerCase()))).join(' ');
+        }
         function styleFollowSearchBtn() {
             const b = root.querySelector('.s34-sb-follow');
             if (!b) return;
-            const q = query();
+            const q = followQuery();
             const on = !!q && isQueryFollowed(q);
             b.classList.toggle('s34-following', on);
             // Just the bell (the word is there for screen readers)
@@ -7189,6 +7404,7 @@
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
+            if (feedNow && searchInFeed(ta.value)) return; // stays on the artist page
             const form = ta.form;
             if (!form) { runSearch(ta.value); return; }
             if (form.requestSubmit) form.requestSubmit(); else form.submit();
@@ -7299,7 +7515,7 @@
         followBtn.addEventListener('click', () => {
             commitField(true);
             sync();
-            const q = query();
+            const q = followQuery();
             if (!q) { showToast('Type a search first – then the bell follows it.'); return; }
             // Count new posts from now on (from the results you're looking at)
             toggleFollowSearch(q, seenIdForQuery(q));
@@ -7344,10 +7560,11 @@
         }
 
         // The site's own Search button: take along what's still typed
-        if (ta.form) ta.form.addEventListener('submit', () => {
+        if (ta.form) ta.form.addEventListener('submit', e => {
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
+            if (feedNow) { e.preventDefault(); searchInFeed(ta.value); } // stays on the artist page
         });
         sync();
     }
@@ -7913,7 +8130,7 @@
                     // 2) Still no artist? Read the post page - unless Cloudflare is checking
                     if (!result.hasArtist && !cloudflarePaused() && (!acOk || result.hasUnknown)) {
                         usedPostPage = true;
-                        const doc = await fetchPostDoc(link.href);
+                        const doc = await fetchPostDoc(link.href, 'lookup', { wanted: () => thumb.isConnected && nearViewport(thumb) });
                         lookupProgressAt = Date.now();
                         if (myRun !== lookupRunId) { lookupQueue.push(thumb); break; }
                         if (!doc && !cloudflarePaused() && !acOk) {
@@ -8196,14 +8413,10 @@
 
             let ok = false;
             try {
-                const res = await fetch(nextUrl, { credentials: 'include' });
-                const html = await res.text();
-                if (isCloudflareCheck(res.status, html)) {
-                    pauseForCloudflare(nextUrl);
-                    throw Object.assign(new Error('Cloudflare check'), { cloudflare: true });
-                }
+                // (through the shared line - a check throws err.cloudflare)
+                const res = await loadPage(nextUrl, 'scroll', { ms: 30000 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
-                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const doc = new DOMParser().parseFromString(res.html, 'text/html');
 
                 // No post list at all = rate limit / check page, not the end
                 if (!doc.querySelector('.image-list')) throw new Error('page had no post list (rate limit or check page?)');
@@ -8242,12 +8455,10 @@
             } catch (err) {
                 if (err.cloudflare) {
                     // Can't continue until the check is solved: wait for it
-                    status.textContent = 'Cloudflare check – click here to solve it';
-                    status.style.cursor = 'pointer';
-                    status.onclick = openCloudflarePanel;
+                    // ("Solve check" right here, where loading stopped)
+                    status.replaceChildren(cloudflareInline('Loading more waits for a quick Cloudflare check.'));
                     window.addEventListener('s34-cf-passed', () => {
-                        status.onclick = null;
-                        status.style.cursor = '';
+                        status.textContent = '';
                         failures = 0;
                         loadNext();
                     }, { once: true });
@@ -9102,6 +9313,38 @@
     // A followed search's page: a normal search otherwise (its words show in the box)
     function onSearchFeed() { const f = !isPostView && feedFromHash(location.hash); return !!f && f.kind === 'search'; }
 
+    // ---- Searching on an artist / "All artists" page stays on that page ----
+    // The search box there only holds the filters and extra tags; the
+    // artist(s) stay in the address, so a filter narrows the page instead
+    // of starting a new search over everything.
+    function onArtistFeed() { return onFeedPage() && !onSearchFeed(); }
+    function feedQueryNow() { return (new URLSearchParams(location.search).get('tags') || '').trim(); }
+    // What the page shows without any narrowing (null: not an artist page)
+    function feedDefaultQuery(d) {
+        const feed = onArtistFeed() ? feedFromHash(location.hash) : null;
+        if (!feed) return null;
+        d = d || getFollowing();
+        if (feed.kind === 'artist') return [feed.tag].concat(artistFilterWords(findArtist(feed.tag, d), d)).join(' ');
+        return groupQuery(followGroups(d)[feed.group] || [], d);
+    }
+    function feedNarrowed(d) {
+        const def = feedDefaultQuery(d);
+        return def !== null && normalizeQuery(def) !== normalizeQuery(feedQueryNow());
+    }
+    // The page's own words (the artist or artists) - what the box leaves out
+    function feedBaseTerms() { return onArtistFeed() ? parseQuery(feedQueryNow()).terms : null; }
+    // Run q (tags + filters from the box) inside this page. false: not an artist page.
+    function searchInFeed(q) {
+        const base = feedBaseTerms();
+        if (!base) return false;
+        const have = new Set(base.map(t => t.toLowerCase()));
+        const extra = String(q || '').split(/\s+/).filter(w => w && !have.has(w.toLowerCase()));
+        const next = base.concat(extra).join(' ');
+        if (normalizeQuery(next) === normalizeQuery(feedQueryNow())) { showToast('This page already shows that.'); return true; }
+        location.href = location.pathname + '?page=post&s=list&tags=' + encodeURIComponent(next) + location.hash;
+        return true;
+    }
+
     // includeSearches: everything (Manage window) - otherwise artists only ("All artists")
     function followTotals(d, includeSearches) {
         d = d || getFollowing();
@@ -9445,9 +9688,12 @@
         tags.forEach(t => { feedSeenBefore[t] = (findArtist(t, d) || {}).seen || 0; });
         const newCount = thumbs.filter(isFeedNew).length;
         markFeedNew(thumbs);
+        // Narrowed with a filter from the search box: only part of the new
+        // posts is on the page, so the "new" counts stay as they are
+        const narrowed = !feed.plain && feedNarrowed(d);
 
         // Everyone on this page is now "seen" up to their newest post here
-        tags.forEach(t => {
+        if (!narrowed) tags.forEach(t => {
             const a = findArtist(t, d);
             if (!a) return;
             const ids = thumbs.filter(th => thumbArtists(th, [t]).length || feed.kind === 'artist')
@@ -9498,11 +9744,22 @@
                 box.appendChild(a);
             });
         }
-        bar.querySelector('.s34-feed-sub').textContent = '· ' + sub;
+        bar.querySelector('.s34-feed-sub').textContent = '· ' + (narrowed ? 'filtered' : sub);
+        if (narrowed) {
+            // "Filtered" + a way back to everything this page normally shows
+            const reset = document.createElement('button');
+            reset.type = 'button';
+            reset.className = 's34-feed-btn s34-feed-reset';
+            reset.dataset.f = 'reset';
+            reset.textContent = '✕ Remove filters';
+            reset.title = 'Back to this page without the filters you picked in the search box';
+            bar.querySelector('[data-f="manage"]').before(reset);
+        }
         bar.addEventListener('click', e => {
             const b = e.target.closest('[data-f]');
             if (!b) return;
-            if (b.dataset.f === 'manage') openFollowingWindow();
+            if (b.dataset.f === 'reset') location.href = feed.kind === 'artist' ? artistFeedUrl(feed.tag, d) : allFeedUrl(feed.group, d);
+            else if (b.dataset.f === 'manage') openFollowingWindow();
             else if (b.dataset.f === 'unfollow') {
                 const on = toggleFollow(feed.tag);
                 b.innerHTML = on ? BELL_ON_SVG + ' Following' : BELL_SVG + ' Follow';
@@ -9527,11 +9784,11 @@
                 if (cloudflarePaused()) { stopped = true; break; }
                 let html, status;
                 try {
-                    const r = await fetchWithTimeout('index.php?page=post&s=list&tags=' + encodeURIComponent(groupQuery(groups[i], d)));
+                    // (in the shared line; on its own it waits until you're not clicking around)
+                    const r = await loadPage('index.php?page=post&s=list&tags=' + encodeURIComponent(groupQuery(groups[i], d)), force ? 'followNow' : 'follow');
                     status = r.status;
-                    html = await r.text();
-                } catch (e) { continue; }
-                if (isCloudflareCheck(status, html)) { pauseForCloudflare(location.href); stopped = true; break; }
+                    html = r.html;
+                } catch (e) { if (e.cloudflare || e.paused) { stopped = true; break; } continue; }
                 if (status < 200 || status >= 300) continue;
                 const doc = new DOMParser().parseFromString(html, 'text/html');
                 const posts = Array.from(doc.querySelectorAll('span.thumb')).map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, thumb: t }));
@@ -9561,11 +9818,10 @@
                 if (cloudflarePaused()) break;
                 let html, status;
                 try {
-                    const r = await fetchWithTimeout('index.php?page=post&s=list&tags=' + encodeURIComponent(searches[i]));
+                    const r = await loadPage('index.php?page=post&s=list&tags=' + encodeURIComponent(searches[i]), force ? 'followNow' : 'follow');
                     status = r.status;
-                    html = await r.text();
-                } catch (e) { continue; }
-                if (isCloudflareCheck(status, html)) { pauseForCloudflare(location.href); break; }
+                    html = r.html;
+                } catch (e) { if (e.cloudflare || e.paused) break; continue; }
                 if (status < 200 || status >= 300) continue;
                 const doc = new DOMParser().parseFromString(html, 'text/html');
                 const ids = Array.from(doc.querySelectorAll('span.thumb')).map(t => parseInt(thumbPostId(t), 10) || 0);
@@ -9877,6 +10133,18 @@
                    ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length);
         const site = siteShapeProblems();
         lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));
+        // The last Cloudflare check: what hit it, and what loaded in the 2 minutes before
+        const cf = lastCheckInfo();
+        if (cf && cf.at) {
+            const mins = Math.round((Date.now() - cf.at) / 60000);
+            const ago = mins < 60 ? mins + ' min ago' : mins < 2880 ? Math.round(mins / 60) + ' h ago' : Math.round(mins / 1440) + ' days ago';
+            const before = Object.keys(cf.before || {}).map(k => pageKind(k).label + ' ' + cf.before[k]).join(', ');
+            lines.push('Last Cloudflare check: ' + ago + ', hit by ' + pageKind(cf.kind).label + ' · page loads in the 2 min before: ' + (before || 'none'));
+        } else {
+            lines.push('Last Cloudflare check: none');
+        }
+        const now = recentPages(600000);
+        lines.push('Page loads, last 10 min: ' + (Object.keys(now).map(k => pageKind(k).label + ' ' + now[k]).join(', ') || 'none'));
         lines.push('Recent problems:' + (PROBLEMS.length ? '\n  ' + PROBLEMS.join('\n  ') : ' none'));
         return lines.join('\n');
     }
@@ -9997,12 +10265,10 @@
     async function addFavourite(id) {
         if (!id) return false;
         try {
-            const r = await fetchWithTimeout('public/addfav.php?id=' + encodeURIComponent(id));
-            const text = (await r.text()).trim();
-            if (isCloudflareCheck(r.status, text)) {
-                pauseForCloudflare(location.href);
-                return false;
-            }
+            let r;
+            try { r = await loadPage('public/addfav.php?id=' + encodeURIComponent(id), 'action'); }
+            catch (e) { if (e.cloudflare) { showToast('Favourite not saved – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
+            const text = r.html.trim();
             if (!r.ok) throw new Error('HTTP ' + r.status);
             if (text === '2') {
                 showToast('Log in to rule34.xxx to use favourites.');
@@ -10086,12 +10352,14 @@
         if (thumb.dataset.s34Size) return;
 
         // Resolution is only on the post page: load it if you keep hovering
+        // (a full second since Beta 3.5, and in line behind what you asked
+        // for - sweeping the mouse over the list loads nothing)
         setTimeout(() => {
             if (!thumb.matches(':hover') || thumb.dataset.s34Size) return;
             const a = thumb.querySelector('a[href]');
             if (!a) return;
             pill.classList.add('s34-info-loading');
-            fetchPostDoc(a.href).then(doc => {
+            fetchPostDoc(a.href, 'hover', { wanted: () => thumb.matches(':hover') }).then(doc => {
                 pill.classList.remove('s34-info-loading');
                 if (!doc) return;
                 const text = (doc.querySelector('#stats') || doc.body || doc.documentElement).textContent;
@@ -10101,7 +10369,7 @@
                 if (sc) thumb.dataset.s34Score = sc[1];
                 renderHoverInfo(pill, thumb.dataset.s34Score || score, thumb.dataset.s34Size || '');
             });
-        }, 400);
+        }, 1000);
     }
 
     function setupHoverInfo(thumbs) {
@@ -10441,9 +10709,9 @@
     async function downloadThumb(thumb) {
         const a = thumb.querySelector('a[href]');
         if (!a) return false;
-        const doc = await fetchPostDoc(a.href);
+        const doc = await fetchPostDoc(a.href, 'batch');
         if (!doc) return false;
-        const media = await getPostMedia(a.href);
+        const media = await getPostMedia(a.href, 'batch');
         const url = media && (media.video || media.image);
         if (!url) return false;
         const g = readPostTags(doc);
@@ -10795,6 +11063,7 @@
         ['steamy34_theater', 'Theater mode', 'Whether the popup opens without its sidebar', false],
         ['steamy34_tagtypes', 'Tag types', 'Which tags are artists / characters / … (makes tag bars faster)', {}],
         ['steamy34_mediahosts', 'Media servers', 'Which file servers worked (faster previews)', {}],
+        ['steamy34_cf_last', 'Last Cloudflare check', 'When the last check came and what Steamy34 was loading just before (for bug reports)', {}],
         ['steamy34_lastsearch', 'Last search', 'The search you came from (for the + buttons)', ''],
         ['steamy34_dlfolder', 'Download folder', 'The name of the folder you picked for downloads (the browser keeps the access to it)', ''],
         ['steamy34_sbmenu_open', 'Small preferences', 'Whether lists are folded, sort order, which tips / news / guides you\'ve seen, whether an ad blocker was found', null],
@@ -11038,9 +11307,10 @@
 
     async function voteUp(id, type) {
         try {
-            const r = await fetchWithTimeout(`index.php?page=post&s=vote&id=${encodeURIComponent(id)}&type=${type || 'up'}`);
-            const body = (await r.text()).trim();
-            if (isCloudflareCheck(r.status, body)) { pauseForCloudflare(location.href); return null; }
+            let r;
+            try { r = await loadPage(`index.php?page=post&s=vote&id=${encodeURIComponent(id)}&type=${type || 'up'}`, 'action'); }
+            catch (e) { if (e.cloudflare) { showToast('Vote not counted – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return null; } throw e; }
+            const body = r.html.trim();
             if (!r.ok) throw new Error('HTTP ' + r.status);
             const votes = GM_getValue(VOTES_KEY, {}) || {};
             votes[id] = Date.now();
@@ -11522,9 +11792,9 @@
     // ---- Download any post by its id (collections) ----
     async function downloadPostById(id, thumb) {
         const url = postPageUrl(id);
-        const doc = await fetchPostDoc(url);
+        const doc = await fetchPostDoc(url, 'batch');
         if (!doc) return false;
-        const media = await getPostMedia(url);
+        const media = await getPostMedia(url, 'batch');
         const file = media && (media.video || media.image);
         if (!file) return false;
         const g = readPostTags(doc);
@@ -12009,30 +12279,40 @@
         if (dl) dl.after(btn); else slot.prepend(btn);
     }
 
-    // ---- Popup: load the next / previous post in advance ----
+    // ---- Popup: the next post in advance ----
+    // Since Beta 3.5 only the next one (not next AND previous), and gently:
+    // its picture comes straight from the image server (guessed from the
+    // thumbnail like the popup does - no rule34 page needed), its post page
+    // (tags, info) only once you've stayed on a post for a moment - flipping
+    // fast loads nothing extra. Fewer page loads = fewer Cloudflare checks.
     const preloadedPosts = new Set();
+    const PRELOAD_DWELL_MS = 1500;
 
-    function preloadThumb(thumb) {
+    function preloadPicture(img) {
+        const urls = mediaCandidates(img, false);
+        let i = 0;
+        const pre = new Image();
+        pre.decoding = 'async';
+        pre.onerror = () => { if (++i < urls.length) pre.src = urls[i]; };
+        if (urls.length) pre.src = urls[0];
+    }
+
+    function preloadThumb(thumb, stillThere) {
         const a = thumb && thumb.querySelector('a[href]');
         const img = thumb && thumb.querySelector('img');
         if (!a || !img || preloadedPosts.has(a.href)) return;
         preloadedPosts.add(a.href);
-        // Tags + media address; for images also the picture itself
-        getPostMedia(a.href).then(m => {
-            if (m && m.image && !isVideoThumb(img)) {
-                const pre = new Image();
-                pre.src = m.image;
-            }
-        });
+        if (!isVideoThumb(img)) preloadPicture(img);
+        fetchPostDoc(a.href, 'preload', { wanted: stillThere }); // waits in line behind what you asked for
     }
 
     function preloadNeighbours(thumb) {
         if (!CONFIG.popupPreload) return;
         const list = visibleThumbs();
         const i = list.indexOf(thumb);
-        if (i < 0) return;
-        setTimeout(() => preloadThumb(list[i + 1]), 300);
-        setTimeout(() => preloadThumb(list[i - 1]), 900);
+        if (i < 0 || !list[i + 1]) return;
+        const stillThere = () => !!popupState && popupState.thumb === thumb;
+        setTimeout(() => { if (stillThere()) preloadThumb(list[i + 1], () => !!popupState); }, PRELOAD_DWELL_MS);
     }
 
     // ---- Popup: click an image to see it at full size, drag to move ----
@@ -12165,7 +12445,7 @@
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
                     [`${k('X')}`, `${nu}Censored mode: blurs every picture and video (and comments) – safe for screenshots; X again to turn it off`],
-                    [`"Quick check needed" at the top`, 'Cloudflare wants a robot check – click "Solve check"; some loading waits until then']
+                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – click "Solve"; only the extras wait until then`]
                 ]],
                 searchGroup, sidebarGroup
             ],
@@ -12185,7 +12465,7 @@
                     [`${k('+')} / ${k('⊘')} on a tag`, `${nu}Add the tag to your search / blacklist it – always shown on phones`],
                     [`${k('♥')} on a thumbnail`, 'Add the post to your favourites (needs a rule34 login)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
-                    [`"Quick check needed" at the top`, 'Cloudflare wants a robot check – tap "Solve check"'],
+                    [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
                     [`Hover previews`, 'Need a mouse – on a phone, just open the post']
                 ]],
                 searchGroup, sidebarGroup
@@ -12297,6 +12577,15 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.5', date: '2026-11-21', notify: true, items: [
+            'Far fewer Cloudflare checks: everything Steamy34 loads from rule34 now waits in one line and is spaced out – what you asked for (the popup, scrolling) goes first, the extras after it. After a check, it all runs slower for a while.',
+            'Fewer page loads: the popup loads only the next post in advance (its picture straight from the image server), the size on hover waits a full second, and the Following check waits until you stop clicking around.',
+            'When a check does come, it no longer covers the top of the page: a small glowing "Quick check needed" sits in the corner, and "Solve check" shows up right where something stopped – at the end of the list or in the popup\'s tags.',
+            '"Copy info for a bug report" now says what set off the last check, so we can find out what causes them.'
+        ] },
+        { v: 'Beta 3.4.2', date: '2026-11-21', items: [
+            'On a followed artist\'s page (and "All artists"), the search box now stays on that page: a filter like Size 1440p+ or an extra tag only narrows that artist\'s posts instead of starting a new search over everything. "✕ Remove filters" in the bar at the top brings the full page back, and "Search all posts instead" in the sidebar searches everything.'
+        ] },
         { v: 'Beta 3.4.1', date: '2026-11-20', items: [
             'New license: CC BY-NC-SA 4.0 – Steamy34 stays free to share and change, with credit to steamycorner, never commercially, and changed versions under the same license.'
         ] },
@@ -13635,8 +13924,19 @@
         tryNext();
 
         // ---- full tag list (with counts) from the post page ----
-        fetchPostDoc(link.href).then(doc => {
-            if (!doc || !popupState || popupState.id !== myId) return;
+        const loadPostInfo = () => fetchPostDoc(link.href, 'popup').then(doc => {
+            if (!popupState || popupState.id !== myId) return;
+            if (!doc && cloudflarePaused()) {
+                // A Cloudflare check: "Solve check" right in the tag area, and
+                // the tags load by themselves once it's solved
+                popupState.tagsFromPost = true;
+                renderPopupTags();
+                const box = popupState.overlay.querySelector('.s34-pv-tags');
+                if (box) box.appendChild(cloudflareInline('Tags and info wait for a quick Cloudflare check.'));
+                window.addEventListener('s34-cf-passed', () => { if (popupState && popupState.id === myId) loadPostInfo(); }, { once: true });
+                return;
+            }
+            if (!doc) return;
             renderPopupInfo(popupState, readPostInfo(doc));
             renderComments(popupState, readComments(doc));
             const tags = readPostTags(doc);
@@ -13646,6 +13946,7 @@
             }
             renderPopupTags();
         });
+        loadPostInfo();
         // If the post page can't be loaded, at least drop the "loading" note
         setTimeout(() => {
             if (popupState && popupState.id === myId && !popupState.tagsFromPost) {

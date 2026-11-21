@@ -98,9 +98,10 @@
 
     async function voteUp(id, type) {
         try {
-            const r = await fetchWithTimeout(`index.php?page=post&s=vote&id=${encodeURIComponent(id)}&type=${type || 'up'}`);
-            const body = (await r.text()).trim();
-            if (isCloudflareCheck(r.status, body)) { pauseForCloudflare(location.href); return null; }
+            let r;
+            try { r = await loadPage(`index.php?page=post&s=vote&id=${encodeURIComponent(id)}&type=${type || 'up'}`, 'action'); }
+            catch (e) { if (e.cloudflare) { showToast('Vote not counted – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return null; } throw e; }
+            const body = r.html.trim();
             if (!r.ok) throw new Error('HTTP ' + r.status);
             const votes = GM_getValue(VOTES_KEY, {}) || {};
             votes[id] = Date.now();

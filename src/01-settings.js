@@ -28,7 +28,7 @@
         hideDownloaded: false,   // posts page: hide posts you already downloaded (sidebar switch)
         hoverInfo: true,         // score and resolution on thumbnails while hovering
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
-        popupPreload: true,      // popup: load the next/previous post in advance
+        popupPreload: true,      // popup: load the next post in advance (once you stay on a post for a moment)
 
         // Fit to viewport
         padding: 10,             // px gap kept to the window edges
@@ -187,7 +187,7 @@
             ['collectKey', 'Add to collection key', { hotkey: true }],
             ['theaterKey', 'Theater mode key', { hotkey: true }],
             ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
-            ['popupPreload', 'Load the next / previous post in advance', { hint: 'Browsing feels instant. Off on phones by default (saves mobile data)' }],
+            ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
             ['useOriginalImage', 'Show the full-resolution picture', { hint: 'On single post pages, instead of the smaller sample' }],

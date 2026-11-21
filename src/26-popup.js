@@ -334,8 +334,19 @@
         tryNext();
 
         // ---- full tag list (with counts) from the post page ----
-        fetchPostDoc(link.href).then(doc => {
-            if (!doc || !popupState || popupState.id !== myId) return;
+        const loadPostInfo = () => fetchPostDoc(link.href, 'popup').then(doc => {
+            if (!popupState || popupState.id !== myId) return;
+            if (!doc && cloudflarePaused()) {
+                // A Cloudflare check: "Solve check" right in the tag area, and
+                // the tags load by themselves once it's solved
+                popupState.tagsFromPost = true;
+                renderPopupTags();
+                const box = popupState.overlay.querySelector('.s34-pv-tags');
+                if (box) box.appendChild(cloudflareInline('Tags and info wait for a quick Cloudflare check.'));
+                window.addEventListener('s34-cf-passed', () => { if (popupState && popupState.id === myId) loadPostInfo(); }, { once: true });
+                return;
+            }
+            if (!doc) return;
             renderPopupInfo(popupState, readPostInfo(doc));
             renderComments(popupState, readComments(doc));
             const tags = readPostTags(doc);
@@ -345,6 +356,7 @@
             }
             renderPopupTags();
         });
+        loadPostInfo();
         // If the post page can't be loaded, at least drop the "loading" note
         setTimeout(() => {
             if (popupState && popupState.id === myId && !popupState.tagsFromPost) {

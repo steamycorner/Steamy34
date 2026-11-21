@@ -282,7 +282,7 @@
                     // 2) Still no artist? Read the post page - unless Cloudflare is checking
                     if (!result.hasArtist && !cloudflarePaused() && (!acOk || result.hasUnknown)) {
                         usedPostPage = true;
-                        const doc = await fetchPostDoc(link.href);
+                        const doc = await fetchPostDoc(link.href, 'lookup', { wanted: () => thumb.isConnected && nearViewport(thumb) });
                         lookupProgressAt = Date.now();
                         if (myRun !== lookupRunId) { lookupQueue.push(thumb); break; }
                         if (!doc && !cloudflarePaused() && !acOk) {
@@ -565,14 +565,10 @@
 
             let ok = false;
             try {
-                const res = await fetch(nextUrl, { credentials: 'include' });
-                const html = await res.text();
-                if (isCloudflareCheck(res.status, html)) {
-                    pauseForCloudflare(nextUrl);
-                    throw Object.assign(new Error('Cloudflare check'), { cloudflare: true });
-                }
+                // (through the shared line - a check throws err.cloudflare)
+                const res = await loadPage(nextUrl, 'scroll', { ms: 30000 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
-                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const doc = new DOMParser().parseFromString(res.html, 'text/html');
 
                 // No post list at all = rate limit / check page, not the end
                 if (!doc.querySelector('.image-list')) throw new Error('page had no post list (rate limit or check page?)');
@@ -611,12 +607,10 @@
             } catch (err) {
                 if (err.cloudflare) {
                     // Can't continue until the check is solved: wait for it
-                    status.textContent = 'Cloudflare check – click here to solve it';
-                    status.style.cursor = 'pointer';
-                    status.onclick = openCloudflarePanel;
+                    // ("Solve check" right here, where loading stopped)
+                    status.replaceChildren(cloudflareInline('Loading more waits for a quick Cloudflare check.'));
                     window.addEventListener('s34-cf-passed', () => {
-                        status.onclick = null;
-                        status.style.cursor = '';
+                        status.textContent = '';
                         failures = 0;
                         loadNext();
                     }, { once: true });

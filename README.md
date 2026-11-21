@@ -51,7 +51,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 **Follow artists and searches**
 - Click the bell next to an artist in a post to follow them – or the bell under the search box to follow any search (e.g. a character with a score filter)
 - The sidebar lists everything you follow, each with a count of its new posts
-- Each has its own page; posts since your last visit are marked NEW
+- Each has its own page; posts since your last visit are marked NEW. Filters you pick there only narrow that page
 - "All artists" mixes every followed artist in one feed; a shared filter (score, type, rating) – or a different one per artist
 - The browser tab shows "(12) rule34" while there are new posts; L in the popup follows the artist
 
@@ -76,6 +76,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 **More**
 - Infinite scrolling with "Page N" dividers – and "Continue at page N" when you come back to a search
 - "Copy info for a bug report" in Settings → Help
+- Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a small notice sits in the corner and only the extras pause
 - A short welcome tour, small one-time tips and a quick tips window with all shortcuts
 - Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
 - Settings with a search box

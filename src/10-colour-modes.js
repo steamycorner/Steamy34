@@ -9,7 +9,7 @@
     //  thumbnails, the theater buttons…) and floating dark bars keep their
     //  dark look in every mode.
     // =====================================================================
-    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-banner|batch)|span\.thumb\.s34-(selected|was)|s34-selecting/;
+    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-pill|cf-inline|batch)|span\.thumb\.s34-(selected|was)|s34-selecting/;
 
     function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
