@@ -142,60 +142,92 @@
     }
 
     // ---- New from who you follow ----
+    // A circle shows that artist's newest posts right here (All: everyone);
+    // "More" opens the Following window at the circle you're on
     function renderHomeFollow(card) {
         const d = getFollowing();
-        const tot = followTotals(d, true);
+        const items = fwItems(d);
+        if (!items.length) { renderHomeStart(card); return; }
+        const tot = followTotals(d);
         card.innerHTML = `
             <div class="s34-home-follow-head">
                 <div class="s34-home-label">New from who you follow</div>
                 ${tot.n ? `<span class="s34-home-new">${escapeHtml(tot.text)}</span>` : ''}
-                <button type="button" class="s34-home-btn" data-h="all" title="Open the Following window (${escapeHtml(keyLabel(CONFIG.followingKey))})">All <kbd>${escapeHtml(keyLabel(CONFIG.followingKey))}</kbd></button>
+                <button type="button" class="s34-home-btn" data-h="more" title="Open the Following window – more posts, older ones as you scroll (${escapeHtml(keyLabel(CONFIG.followingKey))})">More <kbd>${escapeHtml(keyLabel(CONFIG.followingKey))}</kbd></button>
             </div>
             <div class="s34-fw-circles s34-home-circles"></div>
             <div class="s34-fw-grid s34-home-grid"></div>
             <div class="s34-home-status"></div>`;
-        const items = fwItems(d);
-        if (!items.length) {
-            card.querySelector('.s34-home-follow-head button').hidden = true;
-            card.querySelector('.s34-home-circles').remove();
-            card.querySelector('.s34-home-status').innerHTML = `Follow an artist with the ${BELL_TEXT} next to their name in a post. Their newest posts show up here.`;
-            return;
-        }
         // Circles: new ones first (like the Following window)
-        const rank = i => (i.kind === 'all' ? 0 : i.kind === 'artist' ? (i.count ? 1 : 2) : (i.count ? 3 : 4));
+        const rank = i => (i.kind === 'all' ? 0 : i.count ? 1 : 2);
         const sorted = items.map((it, n) => [it, n]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(x => x[0]);
         card.querySelector('.s34-home-circles').innerHTML = sorted.map(it =>
-            `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}" data-key="${escapeHtml(it.key)}" title="${escapeHtml(it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : ''))}">
+            `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}" data-key="${escapeHtml(it.key)}" aria-pressed="false" title="${escapeHtml(it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : ''))}">
                 <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it)}</span><span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`).join('');
+        card._s34Key = sorted[0].key;
         card.addEventListener('click', e => {
             const c = e.target.closest('.s34-fw-c');
-            if (c) { openFollowPopup(c.dataset.key); return; }
-            if (e.target.closest('[data-h="all"]')) { openFollowPopup(); return; }
+            if (c) { showHomeCircle(card, c.dataset.key); return; }
+            if (e.target.closest('[data-h="more"]')) { openFollowPopup(card._s34Key); return; }
             const a = e.target.closest('.s34-home-grid span.thumb a[href]');
             if (!a || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
             e.preventDefault();
             const tiles = () => Array.from(card.querySelectorAll('.s34-home-grid span.thumb')).filter(t => t.isConnected);
             openPopup(a.closest('span.thumb'), { thumbs: tiles, state: () => 'done', more: () => {} });
         });
-        loadHomePosts(card, d);
+        showHomeCircle(card, card._s34Key);
     }
 
-    async function loadHomePosts(card, d) {
+    function showHomeCircle(card, key) {
+        card._s34Key = key;
+        card.querySelectorAll('.s34-home-circles .s34-fw-c').forEach(c => {
+            const on = c.dataset.key === key;
+            c.classList.toggle('s34-on', on);
+            c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        card.querySelector('.s34-home-label').textContent = key === FW_ALL ? 'New from who you follow' : 'Newest from ' + prettyTag(key.slice(2));
+        loadHomePosts(card, getFollowing(), key);
+    }
+
+    // ---- Brand new: nothing followed yet - how to get going ----
+    function renderHomeStart(card) {
+        card.classList.add('s34-home-start');
+        card.innerHTML = `
+            <div class="s34-home-label">Welcome to Steamy34</div>
+            <h3 class="s34-home-start-title">Make rule34 yours in three steps</h3>
+            <ol class="s34-home-steps">
+                <li><span class="s34-home-step-ico">🏷️</span><div><b>Search with bubbles</b><small>Type a tag – Space turns it into a bubble. Pin a filter (score, size…) to keep it for every search.</small></div></li>
+                <li><span class="s34-home-step-ico s34-home-bell">${BELL_SVG}</span><div><b>Follow artists you like</b><small>The bell next to an artist in any post. Their newest posts then show up right here, with NEW on what you haven't seen.</small></div></li>
+                <li><span class="s34-home-step-ico">★</span><div><b>Keep your favourite tags</b><small>"Tags" under the search box – one click puts one in the search. Your recent searches show up on this page too.</small></div></li>
+            </ol>
+            <div class="s34-home-start-btns">
+                <button type="button" class="s34-home-btn s34-home-primary" data-h="tour">✨ Welcome tour</button>
+                <a class="s34-home-btn" href="index.php?page=post&amp;s=list&amp;tags=all">Browse the newest posts →</a>
+            </div>`;
+        card.querySelector('[data-h="tour"]').addEventListener('click', () => openWelcome(0));
+    }
+
+    async function loadHomePosts(card, d, key) {
         const grid = card.querySelector('.s34-home-grid');
         const status = card.querySelector('.s34-home-status');
-        const groups = followGroups(d).slice(0, 3); // (more than 60 artists: the first 60 here, all in the window)
-        const sig = groups.map(g => g.join(' ')).join('|');
+        key = key || FW_ALL;
+        const groups = key === FW_ALL ? followGroups(d).slice(0, 3) : [[key.slice(2)]]; // (All, more than 60 artists: the first 60 here, all in the window)
+        const sig = key + '|' + groups.map(g => g.join(' ')).join('|');
+        const cacheKey = HOME_CACHE_KEY + ':' + key;
+        const stale = () => !card.isConnected || card._s34Key !== key; // switched to another circle meanwhile
         let posts = null;
         try {
-            const c = JSON.parse(sessionStorage.getItem(HOME_CACHE_KEY) || 'null');
+            const c = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
             if (c && c.sig === sig && Date.now() - c.at < HOME_CACHE_MS) posts = c.posts;
         } catch (e) {}
         if (!posts) {
+            grid.replaceChildren();
             status.innerHTML = '<span class="s34-spin"></span> Loading their newest posts…';
             posts = [];
             try {
                 for (const g of groups) {
                     const r = await loadPage(plainSearchUrl(groupQuery(g)), 'popup', { ms: 20000 });
+                    if (stale()) return;
                     if (!r.ok) throw new Error('status ' + r.status);
                     const doc = new DOMParser().parseFromString(r.html, 'text/html');
                     const thumbs = Array.from(doc.querySelectorAll('span.thumb')).filter(t => t.querySelector('a[href]') && t.querySelector('img'));
@@ -213,18 +245,20 @@
                 }
                 const seen = new Set();
                 posts = posts.sort((a, b) => b.id - a.id).filter(p => !seen.has(p.id) && seen.add(p.id)).slice(0, HOME_POSTS);
-                try { sessionStorage.setItem(HOME_CACHE_KEY, JSON.stringify({ sig, at: Date.now(), posts })); } catch (e) {}
+                try { sessionStorage.setItem(cacheKey, JSON.stringify({ sig, at: Date.now(), posts })); } catch (e) {}
             } catch (e) {
+                if (stale()) return;
                 status.replaceChildren();
                 if (e.cloudflare || e.paused) {
                     status.appendChild(cloudflareInline('Their newest posts wait for a quick Cloudflare check.'));
-                    window.addEventListener('s34-cf-passed', () => { if (card.isConnected) loadHomePosts(card, getFollowing()); }, { once: true });
+                    window.addEventListener('s34-cf-passed', () => { if (!stale()) loadHomePosts(card, getFollowing(), key); }, { once: true });
                 } else {
-                    status.textContent = 'Their newest posts couldn\'t be loaded right now – "All" opens the Following window.';
+                    status.textContent = 'Their newest posts couldn\'t be loaded right now – "More" opens the Following window.';
                 }
                 return;
             }
         }
+        if (stale()) return;
         status.textContent = posts.length ? '' : 'Nothing from them yet.';
         // NEW: after what you last saw of that artist (counts stay as they are)
         const seenOf = {};

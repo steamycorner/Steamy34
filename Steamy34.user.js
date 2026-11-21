@@ -356,7 +356,9 @@
 
     // Where people find Steamy34 and talk to steamycorner
     const SLEAZY_URL = 'https://sleazyfork.org/en/scripts/606445-steamy34';
-    const DISCORD_URL = 'https://discord.com/invite/Udg9sNTBHb';
+    const DISCORD_URL = 'https://discord.gg/Udg9sNTBHb';
+    // Discord's logo (for the invite button in Settings)
+    const DISCORD_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.44.87-.61 1.25a18.3 18.3 0 0 0-5.49 0 12.6 12.6 0 0 0-.62-1.25.08.08 0 0 0-.08-.04 19.7 19.7 0 0 0-4.88 1.52.07.07 0 0 0-.03.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.06 19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03c.46-.63.87-1.3 1.22-1.99a.08.08 0 0 0-.04-.11 13.1 13.1 0 0 1-1.87-.89.08.08 0 0 1 0-.13l.37-.29a.07.07 0 0 1 .08-.01c3.93 1.79 8.18 1.79 12.06 0a.07.07 0 0 1 .08.01l.37.29a.08.08 0 0 1 0 .13c-.6.35-1.22.64-1.87.89a.08.08 0 0 0-.04.11c.36.7.77 1.36 1.22 1.99a.08.08 0 0 0 .09.03 19.8 19.8 0 0 0 6-3.03.08.08 0 0 0 .03-.06c.5-5.18-.84-9.67-3.55-13.66a.06.06 0 0 0-.03-.03zM8.02 15.33c-1.18 0-2.16-1.09-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.33-.96 2.42-2.16 2.42zm7.97 0c-1.18 0-2.15-1.09-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42z"/></svg>';
 
     // Phones: no mouse to hover with, and a narrow screen
     const NO_HOVER = (() => { try { return matchMedia('(hover: none)').matches; } catch (e) { return false; } })();
@@ -2297,6 +2299,24 @@
             background-color: rgba(46,160,90,0.08) !important;
         }
         .s34-set-safe svg { flex: none; width: 15px; height: 15px; margin-top: 1px; }
+        /* Discord invite (Beta 3.6): always in reach, under the menu */
+        a.s34-set-discord:is(:link, :visited) {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            border-radius: 10px;
+            background-color: #5865f2 !important;
+            color: #fff !important;
+            text-decoration: none !important;
+        }
+        a.s34-set-discord:hover { background-color: #4752c4 !important; color: #fff !important; }
+        .s34-set-discord svg { flex: none; width: 20px; height: 20px; color: #fff !important; }
+        .s34-set-discord svg * { color: inherit !important; }
+        .s34-set-discord span { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; color: #fff !important; }
+        .s34-set-discord b { font-size: 12.5px; color: #fff !important; }
+        .s34-set-discord small { font-size: 11px; opacity: .85; color: #fff !important; }
         .s34-set-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
         .s34-set-head { display: flex; align-items: center; padding: 18px 22px 10px; }
         .s34-set-head h2 { margin: 0 !important; font-size: 19px !important; font-weight: 800; color: #fff !important; flex: 1; }
@@ -2434,6 +2454,8 @@
             .s34-set { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
             .s34-set-nav { flex-direction: row; overflow-x: auto; padding: 10px; border-right: none !important; }
             .s34-set-brand, .s34-set-safe { display: none; }
+            a.s34-set-discord:is(:link, :visited) { margin: 0 0 0 6px; padding: 6px 9px; flex: none; }
+            .s34-set-discord span { display: none; } /* just the logo at the end of the row */
             .s34-set-nav nav { flex-direction: row; }
             .s34-set-nav nav button span { white-space: nowrap; }
         }
@@ -4303,6 +4325,17 @@
         .s34-home-grid { --s34-fw-row: 170px; padding: 0; border-radius: 10px; overflow: hidden; }
         .s34-home-status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
         .s34-home-status:empty { display: none; }
+        /* Brand new (nothing followed yet): three steps instead of the circles */
+        .s34-home-start { gap: 12px; }
+        .s34-home-start-title { margin: 0; font: 700 18px/1.3 system-ui, -apple-system, Segoe UI, sans-serif; color: #f2f2f5 !important; }
+        .s34-home-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .s34-home-steps li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; border: 1px solid #24242b !important; background-color: #14141a !important; }
+        .s34-home-steps b { display: block; font-size: 13.5px; color: #f2f2f5 !important; }
+        .s34-home-steps small { display: block; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
+        .s34-home-step-ico { flex: none; width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; background: linear-gradient(135deg, rgba(255,95,143,0.22), rgba(139,61,255,0.22)) !important; color: #ffcf8a !important; }
+        .s34-home-bell svg { width: 16px; height: 16px; color: #ffb347 !important; }
+        .s34-home-start-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+        .s34-home .s34-home-primary { border: 0 !important; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; }
         /* Phones: one column - search, following, continue, recent */
         @media (max-width: 760px) {
             .s34-home { padding: 12px 12px 36px; }
@@ -8909,6 +8942,7 @@
                 </div>
                 <nav></nav>
                 <div class="s34-set-safe">${LOCK_SVG}<span>Nothing is collected – everything stays on this computer.</span></div>
+                <a class="s34-set-discord" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" title="Join the steamycorner Discord – #feedback and #new-ideas for Steamy34">${DISCORD_SVG}<span><b>Join the Discord</b><small>Ideas, bugs, news</small></span></a>
             </aside>
             <section class="s34-set-main">
                 <div class="s34-set-head">
@@ -12691,7 +12725,8 @@
             'New Following window: everything you follow in one window on top of the page you\'re on. Your artists sit in a row of circles at the top (a coloured ring = new posts), their newest posts in a grid below, with NEW on the ones since your last visit.',
             'Click a post and it opens in the popup as usual – ← / → go through that artist\'s posts and load more at the end. Close it and you\'re back in the grid; close the window and you\'re back on your page.',
             'Open it with the sidebar\'s Following box or the G key (changeable in Settings → Following). ← / → switch between artists, Esc closes. "Bigger" in its bottom right corner makes it nearly as big as the screen. On phones it fills the screen and Back closes it.',
-            'New start page: rule34\'s start page becomes a small home. Your search, "Continue" where you left off, your recent searches and favourite tags on the left (the post count as plain text), the newest posts from who you follow on the right. Settings → Look & feel brings back the site\'s own.',
+            'New start page: rule34\'s start page becomes a small home. Your search, "Continue" where you left off, your recent searches and favourite tags on the left (the post count as plain text), the newest posts from who you follow on the right – click a circle to see just that artist. New to Steamy34? It shows three first steps instead. Settings → Look & feel brings back the site\'s own.',
+            'Settings has a Discord button – ideas, bugs and news in the steamycorner Discord.',
             'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
             'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',
             'Sidebar: Recent and Tags open as small menus right next to the sidebar, instead of long lists inside it – on phones as a sheet that slides up from the bottom (swipe it down, tap the page or press Back to close). And when the sidebar is taller than the window, it scrolls on its own with the mouse wheel – Settings and the tips below it are always in reach.',
@@ -14361,60 +14396,92 @@
     }
 
     // ---- New from who you follow ----
+    // A circle shows that artist's newest posts right here (All: everyone);
+    // "More" opens the Following window at the circle you're on
     function renderHomeFollow(card) {
         const d = getFollowing();
-        const tot = followTotals(d, true);
+        const items = fwItems(d);
+        if (!items.length) { renderHomeStart(card); return; }
+        const tot = followTotals(d);
         card.innerHTML = `
             <div class="s34-home-follow-head">
                 <div class="s34-home-label">New from who you follow</div>
                 ${tot.n ? `<span class="s34-home-new">${escapeHtml(tot.text)}</span>` : ''}
-                <button type="button" class="s34-home-btn" data-h="all" title="Open the Following window (${escapeHtml(keyLabel(CONFIG.followingKey))})">All <kbd>${escapeHtml(keyLabel(CONFIG.followingKey))}</kbd></button>
+                <button type="button" class="s34-home-btn" data-h="more" title="Open the Following window – more posts, older ones as you scroll (${escapeHtml(keyLabel(CONFIG.followingKey))})">More <kbd>${escapeHtml(keyLabel(CONFIG.followingKey))}</kbd></button>
             </div>
             <div class="s34-fw-circles s34-home-circles"></div>
             <div class="s34-fw-grid s34-home-grid"></div>
             <div class="s34-home-status"></div>`;
-        const items = fwItems(d);
-        if (!items.length) {
-            card.querySelector('.s34-home-follow-head button').hidden = true;
-            card.querySelector('.s34-home-circles').remove();
-            card.querySelector('.s34-home-status').innerHTML = `Follow an artist with the ${BELL_TEXT} next to their name in a post. Their newest posts show up here.`;
-            return;
-        }
         // Circles: new ones first (like the Following window)
-        const rank = i => (i.kind === 'all' ? 0 : i.kind === 'artist' ? (i.count ? 1 : 2) : (i.count ? 3 : 4));
+        const rank = i => (i.kind === 'all' ? 0 : i.count ? 1 : 2);
         const sorted = items.map((it, n) => [it, n]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(x => x[0]);
         card.querySelector('.s34-home-circles').innerHTML = sorted.map(it =>
-            `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}" data-key="${escapeHtml(it.key)}" title="${escapeHtml(it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : ''))}">
+            `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}" data-key="${escapeHtml(it.key)}" aria-pressed="false" title="${escapeHtml(it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : ''))}">
                 <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it)}</span><span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`).join('');
+        card._s34Key = sorted[0].key;
         card.addEventListener('click', e => {
             const c = e.target.closest('.s34-fw-c');
-            if (c) { openFollowPopup(c.dataset.key); return; }
-            if (e.target.closest('[data-h="all"]')) { openFollowPopup(); return; }
+            if (c) { showHomeCircle(card, c.dataset.key); return; }
+            if (e.target.closest('[data-h="more"]')) { openFollowPopup(card._s34Key); return; }
             const a = e.target.closest('.s34-home-grid span.thumb a[href]');
             if (!a || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
             e.preventDefault();
             const tiles = () => Array.from(card.querySelectorAll('.s34-home-grid span.thumb')).filter(t => t.isConnected);
             openPopup(a.closest('span.thumb'), { thumbs: tiles, state: () => 'done', more: () => {} });
         });
-        loadHomePosts(card, d);
+        showHomeCircle(card, card._s34Key);
     }
 
-    async function loadHomePosts(card, d) {
+    function showHomeCircle(card, key) {
+        card._s34Key = key;
+        card.querySelectorAll('.s34-home-circles .s34-fw-c').forEach(c => {
+            const on = c.dataset.key === key;
+            c.classList.toggle('s34-on', on);
+            c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        card.querySelector('.s34-home-label').textContent = key === FW_ALL ? 'New from who you follow' : 'Newest from ' + prettyTag(key.slice(2));
+        loadHomePosts(card, getFollowing(), key);
+    }
+
+    // ---- Brand new: nothing followed yet - how to get going ----
+    function renderHomeStart(card) {
+        card.classList.add('s34-home-start');
+        card.innerHTML = `
+            <div class="s34-home-label">Welcome to Steamy34</div>
+            <h3 class="s34-home-start-title">Make rule34 yours in three steps</h3>
+            <ol class="s34-home-steps">
+                <li><span class="s34-home-step-ico">🏷️</span><div><b>Search with bubbles</b><small>Type a tag – Space turns it into a bubble. Pin a filter (score, size…) to keep it for every search.</small></div></li>
+                <li><span class="s34-home-step-ico s34-home-bell">${BELL_SVG}</span><div><b>Follow artists you like</b><small>The bell next to an artist in any post. Their newest posts then show up right here, with NEW on what you haven't seen.</small></div></li>
+                <li><span class="s34-home-step-ico">★</span><div><b>Keep your favourite tags</b><small>"Tags" under the search box – one click puts one in the search. Your recent searches show up on this page too.</small></div></li>
+            </ol>
+            <div class="s34-home-start-btns">
+                <button type="button" class="s34-home-btn s34-home-primary" data-h="tour">✨ Welcome tour</button>
+                <a class="s34-home-btn" href="index.php?page=post&amp;s=list&amp;tags=all">Browse the newest posts →</a>
+            </div>`;
+        card.querySelector('[data-h="tour"]').addEventListener('click', () => openWelcome(0));
+    }
+
+    async function loadHomePosts(card, d, key) {
         const grid = card.querySelector('.s34-home-grid');
         const status = card.querySelector('.s34-home-status');
-        const groups = followGroups(d).slice(0, 3); // (more than 60 artists: the first 60 here, all in the window)
-        const sig = groups.map(g => g.join(' ')).join('|');
+        key = key || FW_ALL;
+        const groups = key === FW_ALL ? followGroups(d).slice(0, 3) : [[key.slice(2)]]; // (All, more than 60 artists: the first 60 here, all in the window)
+        const sig = key + '|' + groups.map(g => g.join(' ')).join('|');
+        const cacheKey = HOME_CACHE_KEY + ':' + key;
+        const stale = () => !card.isConnected || card._s34Key !== key; // switched to another circle meanwhile
         let posts = null;
         try {
-            const c = JSON.parse(sessionStorage.getItem(HOME_CACHE_KEY) || 'null');
+            const c = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
             if (c && c.sig === sig && Date.now() - c.at < HOME_CACHE_MS) posts = c.posts;
         } catch (e) {}
         if (!posts) {
+            grid.replaceChildren();
             status.innerHTML = '<span class="s34-spin"></span> Loading their newest posts…';
             posts = [];
             try {
                 for (const g of groups) {
                     const r = await loadPage(plainSearchUrl(groupQuery(g)), 'popup', { ms: 20000 });
+                    if (stale()) return;
                     if (!r.ok) throw new Error('status ' + r.status);
                     const doc = new DOMParser().parseFromString(r.html, 'text/html');
                     const thumbs = Array.from(doc.querySelectorAll('span.thumb')).filter(t => t.querySelector('a[href]') && t.querySelector('img'));
@@ -14432,18 +14499,20 @@
                 }
                 const seen = new Set();
                 posts = posts.sort((a, b) => b.id - a.id).filter(p => !seen.has(p.id) && seen.add(p.id)).slice(0, HOME_POSTS);
-                try { sessionStorage.setItem(HOME_CACHE_KEY, JSON.stringify({ sig, at: Date.now(), posts })); } catch (e) {}
+                try { sessionStorage.setItem(cacheKey, JSON.stringify({ sig, at: Date.now(), posts })); } catch (e) {}
             } catch (e) {
+                if (stale()) return;
                 status.replaceChildren();
                 if (e.cloudflare || e.paused) {
                     status.appendChild(cloudflareInline('Their newest posts wait for a quick Cloudflare check.'));
-                    window.addEventListener('s34-cf-passed', () => { if (card.isConnected) loadHomePosts(card, getFollowing()); }, { once: true });
+                    window.addEventListener('s34-cf-passed', () => { if (!stale()) loadHomePosts(card, getFollowing(), key); }, { once: true });
                 } else {
-                    status.textContent = 'Their newest posts couldn\'t be loaded right now – "All" opens the Following window.';
+                    status.textContent = 'Their newest posts couldn\'t be loaded right now – "More" opens the Following window.';
                 }
                 return;
             }
         }
+        if (stale()) return;
         status.textContent = posts.length ? '' : 'Nothing from them yet.';
         // NEW: after what you last saw of that artist (counts stay as they are)
         const seenOf = {};

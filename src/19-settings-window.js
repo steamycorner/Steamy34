@@ -31,6 +31,7 @@
                 </div>
                 <nav></nav>
                 <div class="s34-set-safe">${LOCK_SVG}<span>Nothing is collected – everything stays on this computer.</span></div>
+                <a class="s34-set-discord" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" title="Join the steamycorner Discord – #feedback and #new-ideas for Steamy34">${DISCORD_SVG}<span><b>Join the Discord</b><small>Ideas, bugs, news</small></span></a>
             </aside>
             <section class="s34-set-main">
                 <div class="s34-set-head">

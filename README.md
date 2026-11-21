@@ -10,6 +10,8 @@
 
 > **A fan-made hobby project.** Steamy34 is free and will never be monetized: no ads, no paid features, no data collection. It isn't made by or connected to rule34.xxx.
 
+> **Made with AI, by a designer – not a programmer.** I'm steamycorner: web design and CI for over 12 years, and mostly 3D design – that's my day job. I'm not a programmer. I design how Steamy34 looks and works; the code is written by an AI (Claude). That also means bugs and issues are fixed by the AI, not by me – and the AI can make mistakes. Every version is tested before it's released, but if something breaks, please tell me: that's how it gets fixed.
+
 Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) on the [steamycorner Discord](https://discord.com/invite/Udg9sNTBHb)**, or write in the [Feedback tab on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34/feedback).
 
 ---

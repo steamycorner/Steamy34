@@ -556,6 +556,17 @@
         .s34-home-grid { --s34-fw-row: 170px; padding: 0; border-radius: 10px; overflow: hidden; }
         .s34-home-status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
         .s34-home-status:empty { display: none; }
+        /* Brand new (nothing followed yet): three steps instead of the circles */
+        .s34-home-start { gap: 12px; }
+        .s34-home-start-title { margin: 0; font: 700 18px/1.3 system-ui, -apple-system, Segoe UI, sans-serif; color: #f2f2f5 !important; }
+        .s34-home-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .s34-home-steps li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; border: 1px solid #24242b !important; background-color: #14141a !important; }
+        .s34-home-steps b { display: block; font-size: 13.5px; color: #f2f2f5 !important; }
+        .s34-home-steps small { display: block; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
+        .s34-home-step-ico { flex: none; width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; background: linear-gradient(135deg, rgba(255,95,143,0.22), rgba(139,61,255,0.22)) !important; color: #ffcf8a !important; }
+        .s34-home-bell svg { width: 16px; height: 16px; color: #ffb347 !important; }
+        .s34-home-start-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+        .s34-home .s34-home-primary { border: 0 !important; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; }
         /* Phones: one column - search, following, continue, recent */
         @media (max-width: 760px) {
             .s34-home { padding: 12px 12px 36px; }

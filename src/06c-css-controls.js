@@ -119,6 +119,24 @@
             background-color: rgba(46,160,90,0.08) !important;
         }
         .s34-set-safe svg { flex: none; width: 15px; height: 15px; margin-top: 1px; }
+        /* Discord invite (Beta 3.6): always in reach, under the menu */
+        a.s34-set-discord:is(:link, :visited) {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            border-radius: 10px;
+            background-color: #5865f2 !important;
+            color: #fff !important;
+            text-decoration: none !important;
+        }
+        a.s34-set-discord:hover { background-color: #4752c4 !important; color: #fff !important; }
+        .s34-set-discord svg { flex: none; width: 20px; height: 20px; color: #fff !important; }
+        .s34-set-discord svg * { color: inherit !important; }
+        .s34-set-discord span { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; color: #fff !important; }
+        .s34-set-discord b { font-size: 12.5px; color: #fff !important; }
+        .s34-set-discord small { font-size: 11px; opacity: .85; color: #fff !important; }
         .s34-set-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
         .s34-set-head { display: flex; align-items: center; padding: 18px 22px 10px; }
         .s34-set-head h2 { margin: 0 !important; font-size: 19px !important; font-weight: 800; color: #fff !important; flex: 1; }
@@ -256,6 +274,8 @@
             .s34-set { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
             .s34-set-nav { flex-direction: row; overflow-x: auto; padding: 10px; border-right: none !important; }
             .s34-set-brand, .s34-set-safe { display: none; }
+            a.s34-set-discord:is(:link, :visited) { margin: 0 0 0 6px; padding: 6px 9px; flex: none; }
+            .s34-set-discord span { display: none; } /* just the logo at the end of the row */
             .s34-set-nav nav { flex-direction: row; }
             .s34-set-nav nav button span { white-space: nowrap; }
         }
