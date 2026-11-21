@@ -10,7 +10,7 @@ By **steamycorner** · written with AI · License: CC BY-NC-SA 4.0 · Beta
 
 > **A fan-made hobby project.** Steamy34 is free and will never be monetized: no ads, no paid features, no data collection. It isn't made by or connected to rule34.xxx.
 
-> **Designed by a person, written by AI.** Hi, I'm steamycorner. Design is my day job: more than twelve years of web design and corporate identity, and mostly 3D these days. I'm not a programmer, though. I decide how Steamy34 looks, feels and behaves, and an AI (Claude) writes the code. That also means the AI is the one fixing bugs, and like anyone, it sometimes gets things wrong. Every version is tested before it goes out, but if something breaks or feels off, please let me know. That's how it gets better.
+> **About the code.** Steamy34 is designed by steamycorner, a designer (web design, corporate identity, 3D) rather than a programmer. The code is written with AI (Claude), and bug fixes are made the same way, so mistakes are possible. Each version is tested before release. Problems can be reported on Discord or in the Feedback tab.
 
 Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) on the [steamycorner Discord](https://discord.com/invite/Udg9sNTBHb)**, or write in the [Feedback tab on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34/feedback).
 
