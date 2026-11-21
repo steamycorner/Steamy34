@@ -21,13 +21,13 @@ All parts share one scope (the script is one big function), so a part can use an
 | `13-fit-autoplay` | Single post: fit to the window, autoplay |
 | `14-tag-buttons` | Block / add-to-search buttons next to tags |
 | `15-hover-cloudflare` | Cloudflare check handling, hover previews |
-| `16-search` | Modern search box: tag bubbles, filters, pinned filters, Recent · Tags · follow-this-search, suggestions |
+| `16-search` | Modern search box: tag bubbles, filters, pinned filters, Recent · Tags menus, suggestions |
 | `17-infinite-scroll` | Infinite scrolling, page dividers |
 | `18-tag-bar` | Artist / character tags on thumbnails, tag types, blocking with Undo |
 | `19-settings-window` | The settings window (incl. search, Help, Privacy) |
 | `20-extras` | Favourites, hover info, sidebar "View" switches |
 | `20b-hints` | Little one-time tips |
-| `20c-following` | Following: artists and searches, their pages, new-post counts, Manage window |
+| `20c-following` | Following (artists): new-post counts, the sidebar box, Manage window |
 | `20d-screenshot-mode` | Censored mode (X blurs every picture, video and comment) |
 | `20e-support` | "Copy info for a bug report", the site check, the one-time rating nudge |
 | `20f-resume` | Continue where you left off ("Continue at page N") |
@@ -37,6 +37,8 @@ All parts share one scope (the script is one big function), so a part can use an
 | `24-tips-tour` | Quick tips, **CHANGELOG**, phone guide, welcome tour |
 | `25-blacklist-window` | Blacklist window and sidebar button |
 | `26-popup` | The popup viewer itself |
+| `26b-following-popup` | The Following window: circles, header, grid of the newest posts (G) |
+| `26c-home` | Home: rule34's start page in two columns (search, continue, recent, following) |
 | `27-phone-start` | Phone menu, start-up (`init`), the logo, end of the main function |
 
 Version bump: `@version` in `00-header.js` + a new entry at the top of `CHANGELOG` in `24-tips-tour.js`, then build.

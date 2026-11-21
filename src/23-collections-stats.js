@@ -171,7 +171,7 @@
             ['Favourites', Object.keys(favs).length],
             ['In collections', colls.reduce((s, c) => s + c.posts.length, 0)],
             ['Blacklisted tags', readBlocklist().length],
-            ['Following', (f => f.artists.length + f.searches.length)(getFollowing())]
+            ['Following', getFollowing().artists.length]
         ];
         w.setSub(since ? 'Since ' + new Date(since).toLocaleDateString() + ' · only on this computer' : 'Only on this computer');
 

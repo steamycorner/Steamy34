@@ -395,28 +395,22 @@
             // Restore the real "blacklisted on" dates (writeBlocklist just stamped them "now")
             GM_setValue(BL_TIMES_KEY, Object.assign(getBlTimes(), obj(d.blacklistDates)));
 
-            // Following: add the artists and searches you don't follow yet (filter
-            // only if you have none). Older backups: "saved" searches -> followed searches
+            // Following: add the artists you don't follow yet. Searches from older
+            // backups (followed searches, "saved" searches) go into Recent - since
+            // Beta 3.6 only artists are followed
             const inArtists = d.following && (Array.isArray(d.following.artists) ? d.following.artists
                 : Array.isArray(d.following.tags) ? d.following.tags.filter(t => t && (!t.type || t.type === 'artist')) : null);
-            const inSearches = arr(d.following && d.following.searches)
-                .concat(arr(d.saved).map(s => s && { query: s.query, name: s.name, seen: s.seenId || 0 }));
-            if (inArtists || inSearches.length) {
+            if (inArtists) {
                 const fol = getFollowing();
-                (inArtists || []).forEach(t => {
+                inArtists.forEach(t => {
                     if (t && typeof t.tag === 'string' && t.tag && !isFollowed(t.tag, fol)) {
-                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false, filter: typeof t.filter === 'string' ? t.filter : '' });
+                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false });
                     }
                 });
-                inSearches.forEach(s => {
-                    if (s && typeof s.query === 'string' && s.query && !findSearch(s.query, fol)) {
-                        fol.searches.push({ query: s.query, name: s.name || s.query, added: s.added || Date.now(), seen: s.seen || 0, latest: s.seen || 0, count: 0, more: false });
-                    }
-                });
-                if (d.following && !fol.filter.score && !fol.filter.type && !fol.filter.rating && d.following.filter) fol.filter = Object.assign(fol.filter, obj(d.following.filter));
                 saveFollowing(fol);
             }
-
+            arr(d.following && d.following.searches).concat(arr(d.saved))
+                .map(s => s && typeof s.query === 'string' ? s.query : '').filter(Boolean).reverse().forEach(addToHistory);
             reloadWithMessage('Backup imported – your settings, searches, collections and marks are back.');
         });
         input.click();
@@ -426,7 +420,7 @@
     // [key, label, what it is, empty value]
     const STORED_DATA = [
         ['steamy34_settings', 'Settings', 'Your choices in this menu and the sidebar switches', {}],
-        ['steamy34_following', 'Following', 'Artists and searches you follow, the artist filter, and the newest post you\'ve seen from each', {}],
+        ['steamy34_following', 'Following', 'Artists you follow, and the newest post you\'ve seen from each', {}],
         ['steamy34_history', 'Recent searches', 'Your last searches', []],
         ['steamy34_resume', 'Where you left off', 'The page you were on per search, for "Continue at page N" (kept 24 hours)', {}],
         ['steamy34_favtags', 'Favourite tags', 'Tags in the ★ Favourite tags area', []],
@@ -450,7 +444,7 @@
         ['steamy34_blsort', null, null, null]
     ];
     // Everything that's shown together as "Small preferences"
-    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
+    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_fw_big', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
         'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen'];
 
     function storedCount(v) {

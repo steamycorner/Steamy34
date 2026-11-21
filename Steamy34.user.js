@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.5-beta
+// @version      3.6-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
 // @supportURL   https://sleazyfork.org/en/scripts/606445-steamy34/feedback
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjVmOGYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjNkZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNSIgZmlsbD0idXJsKCNnKSIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIzLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iLjk1Ij48cGF0aCBkPSJNMjIgMjZjLTMuMi0zIDMuMi01LjYgMC04LjZzMy4yLTUuNiAwLTguNCIvPjxwYXRoIGQ9Ik0zMSAyNmMtMy4yLTMgMy4yLTUuNiAwLTguNnMzLjItNS42IDAtOC40Ii8+PHBhdGggZD0iTTQwIDI2Yy0zLjItMyAzLjItNS42IDAtOC42czMuMi01LjYgMC04LjQiLz48L2c+PHBhdGggZD0iTTE0IDMxaDM0djdhMTMgMTMgMCAwIDEtMTMgMTNoLThhMTMgMTMgMCAwIDEtMTMtMTN6IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTQ3LjUgMzQuNWgyLjVhNS41IDUuNSAwIDAgMSAwIDExaC00IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIxMSIgeT0iNTMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzLjQiIHJ4PSIxLjciIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii45Ii8+PC9zdmc+
-// @description  [Vibecoded with AI] All-in-one rule34.xxx upgrade by steamycorner: dark / OLED mode, popup viewer, easy tag search with filters, follow artists & searches with new-post counts, downloads named after the tags (press B), batch downloads, collections, infinite scroll and a phone layout. A free fan-made hobby project, never monetized.
+// @description  [Vibecoded with AI] All-in-one rule34.xxx upgrade by steamycorner: dark / OLED mode, popup viewer, easy tag search with filters, follow artists in their own grid window with new-post counts, downloads named after the tags (press B), batch downloads, collections, infinite scroll and a phone layout. A free fan-made hobby project, never monetized.
 // @match        https://rule34.xxx/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -72,11 +72,11 @@
  *  - Favourite tags, recent searches.
  *  - Tag suggestions while typing.
  *
- *  Following (artists and searches)
- *  - The bell next to an artist (popup, post pages) follows them; the
- *    bell under the search box follows a whole search. The sidebar lists
- *    everything with a count of its new posts; each has its own page with
- *    NEW on the posts since your last visit.
+ *  Following (artists)
+ *  - The bell next to an artist (popup, post pages) follows them. The
+ *    sidebar lists them with a count of their new posts; G (or a click)
+ *    opens the Following window: circles, newest posts, NEW since your
+ *    last visit.
  *
  *  Downloads
  *  - B (changeable) or the Download button saves the original in
@@ -179,9 +179,11 @@
                                  // only on 'hover', or in a strip 'below' the picture
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         contextHints: true,      // little one-time tips the first time you meet a feature
+        homePage: true,          // rule34's start page as Steamy34's home (Beta 3.6): search, continue, recent, following
         censorComments: true,    // Censored mode (X) also blurs comment texts and names
 
         // Following
+        followingKey: 'KeyG',    // opens / closes the Following window (Beta 3.6)
         followButtons: true,     // bell (follow) next to artists (popup, post pages)
         checkFollowing: true,    // count new posts for followed artists & searches (in the background)
         tabBadge: true,          // "(12) rule34" in the browser tab while there are new posts
@@ -197,7 +199,7 @@
         tagBarMax: 2,            // max tags shown per type (rest as "+N")
 
         // Search box
-        searchChips: true,       // modern search: tags as chips, filter menus, recent searches, follow a search
+        searchChips: true,       // modern search: tags as chips, filter menus, recent searches
         searchMultiline: true,   // (only when searchChips is off) search box wraps and grows
         searchSuggestions: true, // tag suggestions while typing
         suggestionCount: 10,
@@ -268,6 +270,7 @@
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['homePage', 'Steamy34 start page', { hint: 'rule34\'s start page with your search, where you left off, your recent searches and the newest posts from who you follow – off: the site\'s own start page' }],
             ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
             ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
             ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
@@ -313,12 +316,13 @@
             ['padding', 'Gap to the window edges', { min: 0, max: 100, unit: 'px', adv: true }]
         ] },
         { id: 'following', title: 'Following', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 0 0-12 0c0 6.5-3 8.5-3 8.5h18s-3-2-3-8.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>', rows: [
-            ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages – searches are followed with the bell under the search box' }],
-            ['checkFollowing', 'Count new posts', { hint: 'For followed artists and searches – checked quietly in the background, at most every 20 minutes' }],
+            ['followingKey', 'Following window key', { hotkey: true, hint: 'Opens and closes the Following window – your artists\' newest posts in a grid' }],
+            ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages' }],
+            ['checkFollowing', 'Count new posts', { hint: 'For your followed artists – checked quietly in the background, at most every 20 minutes' }],
             ['tabBadge', 'New posts in the browser tab', { hint: 'The tab shows "(12) rule34" while there are new posts – handy when rule34 sits in a background tab' }]
         ] },
         { id: 'search', title: 'Search', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>', rows: [
-            ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, recent searches and the bell to follow a search' }],
+            ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, and recent searches' }],
             ['searchSuggestions', 'Tag suggestions while typing'],
             ['suggestionCount', 'Number of suggestions', { min: 3, max: 30, adv: true }],
             ['searchMultiline', 'Simple multi-line box (when the modern one is off)', { adv: true }]
@@ -639,10 +643,11 @@
     // layout off broke the popup.)
     const CORE_CSS = `
         /* Square corners (setting "Rounded corners" off): everything Steamy34
-           draws and styles - except loading circles and the video player */
-        html.s34-square body *:not(.s34-spin, .fluid_video_wrapper *),
-        html.s34-square body *:not(.s34-spin, .fluid_video_wrapper *)::before,
-        html.s34-square body *:not(.s34-spin, .fluid_video_wrapper *)::after { border-radius: 0 !important; }
+           draws and styles - except loading circles, the round pictures in
+           the Following window and the video player */
+        html.s34-square body *:not(.s34-spin, .s34-fw-av, .fluid_video_wrapper *),
+        html.s34-square body *:not(.s34-spin, .s34-fw-av, .fluid_video_wrapper *)::before,
+        html.s34-square body *:not(.s34-spin, .s34-fw-av, .fluid_video_wrapper *)::after { border-radius: 0 !important; }
         /* Download panel (batch downloads / collections): progress, pause, cancel */
         .s34-dlp {
             position: fixed;
@@ -1770,8 +1775,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            flex-wrap: wrap; /* the real site's sidebar is only 180px: two lines then */
+            gap: 0 4px;
             width: 100%;
+            box-sizing: border-box;
             margin: -6px 0 14px !important;
         }
         .s34-tools .s34-tipslink { margin: -2px 0 0 !important; }
@@ -3108,6 +3115,20 @@
         .s34-cm-text { white-space: pre-wrap; overflow-wrap: anywhere; color: #d4d4dc !important; }
         .s34-cm-text a { color: #8ab4f8 !important; }
         .s34-cm-empty { padding: 26px 4px; opacity: .6; font-style: italic; display: flex; align-items: center; gap: 8px; }
+        .s34-cm-more {
+            display: block;
+            width: 100%;
+            margin: 8px 0 4px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            background-color: rgba(255,255,255,0.05) !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+        }
+        .s34-cm-more:hover { border-color: #ff5f8f !important; }
+        .s34-cm-more:disabled { opacity: .6; cursor: progress; }
 
         /* Popup: zoom */
         .s34-pv-overlay { grid-template-rows: minmax(0, 1fr); }
@@ -3269,11 +3290,13 @@
             font: 700 11px system-ui, sans-serif;
         }
 
-        /* Right ad column, ad blocker on - posts use the space */
+        /* Ad spaces with an ad blocker on (right column, the box above the
+           posts) - posts use the space */
         .s34-empty-col { display: none !important; }
         /* Until the check (ad blocker seen last time): out of the layout */
         html.s34-adcol-early .content ~ span:has(.postListSidebarRight),
-        html.s34-adcol-early .content ~ .postListSidebarRight {
+        html.s34-adcol-early .content ~ .postListSidebarRight,
+        html.s34-adcol-early :is(span, div):has(~ .image-list):has(ins):not([class*="s34-"]) {
             position: absolute !important;
             visibility: hidden !important;
             pointer-events: none !important;
@@ -3722,7 +3745,7 @@
     `;
 
     // Modern search box (chips, filters, recent & saved)
-    // Following feed: bell buttons, sidebar box, feed bar, Manage window
+    // Following: bell buttons, sidebar box, Manage window, the Following window
     const FOLLOW_CSS = `
         /* The bell next to artist tags (outline = follow, filled = following) */
         svg.s34-bell, svg.s34-bell * { color: inherit !important; }
@@ -3740,8 +3763,8 @@
         .s34-chip .s34-chip-follow svg { width: 13px; height: 13px; }
         #tag-sidebar li a.r34-follow-btn svg { width: 13px; height: 13px; vertical-align: -2px; }
         .s34-bell-i svg { width: 1.05em; height: 1.05em; vertical-align: -.16em; color: #ffb347 !important; }
-        .s34-feed-bar .s34-feed-btn, .s34-follow-win .s34-follow-addbtn { display: inline-flex; align-items: center; gap: 6px; }
-        .s34-feed-btn svg, .s34-follow-addbtn svg { width: 14px; height: 14px; color: #ffb347 !important; }
+        .s34-follow-win .s34-follow-addbtn { display: inline-flex; align-items: center; gap: 6px; }
+        .s34-follow-addbtn svg { width: 14px; height: 14px; color: #ffb347 !important; }
         .s34-chip .s34-chip-follow:hover { opacity: 1; color: #ffcf6b !important; }
         .s34-chip .s34-chip-follow.s34-following { opacity: 1; color: #ffb347 !important; }
         #tag-sidebar li a.r34-follow-btn {
@@ -3781,6 +3804,10 @@
         }
         .s34-follow-head a { margin-left: auto; font-size: 11px; color: #9a9aa6 !important; text-decoration: none !important; }
         .s34-follow-head a:hover { color: #ffb347 !important; }
+        /* (the rows are real links since 3.6: :link / :visited keeps the general
+           "visited link" blue from colouring artists you once searched) */
+        .s34-follow-box a.s34-follow-row:is(:link, :visited) { color: #ff8a80 !important; }
+        .s34-follow-box a.s34-follow-row.s34-follow-allrow:is(:link, :visited) { color: #ffcf8a !important; }
         .s34-follow-row {
             display: flex;
             align-items: center;
@@ -3796,11 +3823,9 @@
         .s34-follow-row:hover { background-color: #2a2a31 !important; }
         .s34-follow-row.s34-on { background-color: rgba(255,179,71,0.12) !important; }
         .s34-follow-row.s34-follow-allrow { color: #ffcf8a !important; }
-        /* A followed search: magnifier + its words, in the search blue */
-        .s34-follow-row.s34-follow-srow { color: #8ab4f8 !important; }
-        .s34-follow-srow svg { flex: none; width: 12px; height: 12px; margin-right: -1px; opacity: .8; }
-        .s34-follow-chip.s34-follow-schip a { color: #8ab4f8 !important; }
-        .s34-feed-head b.s34-feed-q { color: #8ab4f8 !important; }
+        .s34-follow-chip a { text-decoration: none !important; font-weight: 600; }
+        .s34-follow-chip a:hover { text-decoration: underline !important; }
+        .s34-follow-chip.s34-feed-artist a { color: #ff8a80 !important; }
         .s34-follow-box small.s34-has-new, .s34-follow-chip small.s34-has-new {
             flex: none;
             padding: 0 6px;
@@ -3816,71 +3841,6 @@
         .s34-follow-more { display: block; padding: 4px 6px 1px; font-size: 11px; color: #9a9aa6 !important; text-decoration: none !important; }
         .s34-follow-more:hover { color: #ffb347 !important; }
         .s34-follow-none { padding: 0 4px 2px; font-size: 11.5px; opacity: .6; }
-
-        /* The feed page: a bar above the posts */
-        /* One calm line: [bell] name · what's new ........ [Following] [Manage] */
-        .s34-feed-bar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px 12px;
-            margin: 6px 0 4px;
-            padding: 8px 10px 8px 14px;
-            border-radius: 10px;
-            border: 1px solid #2e2e36 !important;
-            border-left: 3px solid #ffb347 !important;
-            background-color: #18181c !important;
-            color: #dcdce0 !important;
-            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif;
-        }
-        .s34-feed-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; min-width: 0; flex: 1 1 auto; }
-        .s34-feed-head svg { align-self: center; flex: none; color: #ffb347 !important; }
-        .s34-feed-head svg * { color: inherit !important; }
-        .s34-feed-head b { font-size: 15px; color: #fff !important; }
-        .s34-feed-head b.s34-feed-artist { color: #ff8a80 !important; }
-        .s34-feed-sub { font-size: 12px; opacity: .65; color: #dcdce0 !important; }
-        .s34-feed-tags { display: flex; flex-wrap: wrap; gap: 5px; flex: 1 1 260px; min-width: 0; }
-        .s34-feed-tag, .s34-follow-chip a {
-            text-decoration: none !important;
-            font-weight: 600;
-        }
-        .s34-feed-tag {
-            padding: 1px 8px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.14) !important;
-            background-color: rgba(18,18,22,0.85) !important;
-            font-size: 11.5px;
-        }
-        .s34-feed-tag:hover, .s34-follow-chip a:hover { text-decoration: underline !important; }
-        .s34-feed-artist, .s34-feed-artist a { color: #ff8a80 !important; }
-        .s34-feed-character, .s34-feed-character a { color: #7ee07e !important; }
-        .s34-feed-copyright, .s34-feed-copyright a { color: #d68cff !important; }
-        .s34-feed-general, .s34-feed-general a { color: #8ab4f8 !important; }
-        .s34-feed-groups { display: flex; gap: 4px; }
-        .s34-feed-groups a {
-            padding: 1px 8px;
-            border-radius: 6px;
-            border: 1px solid #3a3a44 !important;
-            font-size: 11.5px;
-            color: #dcdce0 !important;
-            text-decoration: none !important;
-        }
-        .s34-feed-groups a.s34-on { border-color: #ffb347 !important; color: #ffb347 !important; }
-        .s34-feed-bar .s34-feed-btn, .s34-follow-win .s34-follow-act, .s34-follow-win .s34-follow-addbtn {
-            height: 30px;
-            padding: 0 14px !important;
-            border-radius: 8px;
-            border: 1px solid #3a3a44 !important;
-            background-color: #26262c !important;
-            color: #e8e8ee !important;
-            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        /* The buttons stay together on the right */
-        .s34-feed-bar .s34-feed-btn { margin-left: 0; height: 28px; padding: 0 12px !important; }
-        .s34-feed-bar .s34-feed-btn[data-f="unfollow"] { border-color: rgba(255,179,71,0.45) !important; }
-        .s34-feed-bar .s34-feed-btn:hover, .s34-follow-win .s34-follow-act:hover, .s34-follow-win .s34-follow-addbtn:hover { border-color: #ffb347 !important; }
 
         /* ---- Sidebar layout (Beta 3.3) ---- */
         /* "View" header: same small caps as "Following" */
@@ -3960,7 +3920,6 @@
         }
         .s34-follow-win .s34-follow-addbtn { height: 34px; }
         .s34-follow-list { display: flex; flex-direction: column; gap: 6px; max-height: 42vh; overflow-y: auto; }
-        .s34-follow-group { margin-top: 4px; font-size: 10.5px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; opacity: .55; }
         .s34-follow-chips { display: flex; flex-wrap: wrap; gap: 6px; }
         .s34-follow-chip {
             display: inline-flex;
@@ -3998,25 +3957,19 @@
             color: #dcdce0 !important;
             font: 700 11px system-ui, sans-serif;
         }
-        /* Per-artist filter inside the artist's chip */
-        .s34-follow-chip select.s34-follow-afilter {
-            height: 20px;
-            margin: 0 0 0 6px !important;
-            padding: 0 2px !important;
-            border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.12) !important;
-            background-color: rgba(0,0,0,0.25) !important;
-            color: #b9b9c3 !important;
-            font: 11px system-ui, sans-serif;
-            cursor: pointer;
-        }
         .s34-follow-empty { padding: 14px 4px; font-size: 13px; line-height: 1.55; opacity: .75; }
-        .s34-follow-filter { padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08) !important; }
-        .s34-follow-label { font-size: 12.5px; font-weight: 700; margin-bottom: 8px; }
-        .s34-follow-label span { font-weight: 400; opacity: .55; }
-        .s34-follow-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-        .s34-follow-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; opacity: .85; }
-        .s34-follow-filters select { height: 30px; border-radius: 7px; font-size: 12.5px; }
+        .s34-follow-win .s34-follow-act, .s34-follow-win .s34-follow-addbtn {
+            height: 30px;
+            padding: 0 14px !important;
+            border-radius: 8px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #26262c !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .s34-follow-win .s34-follow-act:hover, .s34-follow-win .s34-follow-addbtn:hover { border-color: #ffb347 !important; }
         .s34-follow-foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
         .s34-follow-win .s34-follow-act[disabled] { opacity: .4; cursor: default; }
         .s34-follow-win .s34-follow-act[hidden] { display: none !important; }
@@ -4028,14 +3981,344 @@
         }
         .s34-follow-primary svg, .s34-follow-primary svg * { color: inherit !important; }
         @media (max-width: 760px) {
-            /* Phones: left-aligned, a bit smaller, buttons in one row below */
-            .s34-feed-bar { text-align: left; padding: 8px 10px 8px 12px; }
-            .s34-feed-head b { font-size: 14px; }
-            .s34-feed-head { flex-basis: 100%; }
-            .s34-follow-filters { grid-template-columns: 1fr; }
-            .s34-feed-bar .s34-feed-btn { margin-left: 0; }
             .s34-chip .s34-chip-follow { padding: 0 8px 0 4px; }
             .s34-chip .s34-chip-follow svg { width: 15px; height: 15px; }
+        }
+
+        /* ---- The Following window (Beta 3.6): circles, header, grid ---- */
+        html.s34-fw-open { overflow: hidden !important; }
+        .s34-fw-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99985; /* under the popup viewer (a tile opens on top), over the page */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+            /* nearly opaque: the page behind steps right back */
+            background-color: rgba(3,3,6,0.94) !important;
+        }
+        .s34-fw {
+            display: flex;
+            flex-direction: column;
+            width: min(1000px, 100%);
+            height: min(920px, 100%);
+            box-sizing: border-box;
+            overflow: hidden;
+            border-radius: 16px;
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(#18181c, #18181c) padding-box, linear-gradient(135deg, rgba(255,95,143,0.7), rgba(139,61,255,0.7)) border-box !important;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 30px rgba(255,95,143,0.12);
+            color: #e8e8ee !important;
+            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif;
+        }
+        .s34-fw * { box-sizing: border-box; }
+        /* "Bigger": nearly the whole window, with a margin of dimmed page around it */
+        .s34-fw-overlay.s34-fw-large { padding: 18px 22px; }
+        .s34-fw-overlay.s34-fw-large .s34-fw { width: 100%; height: 100%; }
+        .s34-fw-foot .s34-fw-size { margin-left: auto; height: 26px; padding: 0 10px !important; font-size: 12px; }
+        .s34-fw-top { display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 16px; border-bottom: 1px solid #2c2c33 !important; }
+        .s34-fw-title { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+        .s34-fw-title b { color: #f2f2f5 !important; }
+        .s34-fw-title svg { width: 16px; height: 16px; color: #ffb347 !important; }
+        .s34-fw-checked { flex: 1; min-width: 0; font-size: 11.5px; color: #8e8e9a !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .s34-fw-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 30px;
+            padding: 0 12px !important;
+            border-radius: 8px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #24242a !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            text-decoration: none !important;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .s34-fw-btn:hover { border-color: #ff5f8f !important; }
+        .s34-fw-btn svg { width: 14px; height: 14px; color: inherit !important; }
+        .s34-fw-btn svg * { color: inherit !important; }
+        .s34-fw-x { width: 30px; justify-content: center; padding: 0 !important; }
+        .s34-fw-follow.s34-following { border-color: rgba(255,179,71,0.5) !important; color: #ffb347 !important; }
+
+        /* The row of circles (scrolls sideways) */
+        .s34-fw-circles {
+            display: flex;
+            gap: 12px;
+            flex: none;
+            padding: 12px 16px 10px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            border-bottom: 1px solid #2c2c33 !important;
+        }
+        .s34-fw-c {
+            all: unset;
+            flex: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 68px;
+            cursor: pointer;
+            text-align: center;
+            background: transparent !important; /* beats the general button look */
+            border: 0 !important;
+        }
+        .s34-fw-ring {
+            display: grid;
+            place-items: center;
+            width: 62px;
+            height: 62px;
+            padding: 2.5px;
+            border-radius: 50%;
+            background: #3a3a44 !important;
+        }
+        .s34-fw-c.s34-new .s34-fw-ring { background: linear-gradient(135deg, #ffb347, #ff5f8f, #8b3dff) !important; }
+        .s34-fw-c.s34-on .s34-fw-ring { outline: 2px solid #f2f2f5; outline-offset: 2px; }
+        .s34-fw-c:focus-visible .s34-fw-ring { outline: 2px solid #ff5f8f; outline-offset: 2px; }
+        .s34-fw-c.s34-gone { opacity: .45; }
+        .s34-fw-pic {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 50%;
+            border: 2.5px solid #18181c !important;
+            background: linear-gradient(135deg, hsl(var(--h, 330) 62% 52%), hsl(calc(var(--h, 330) + 40) 58% 32%)) !important;
+            color: #fff !important;
+        }
+        .s34-fw-pic img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+        .s34-fw-pic svg { width: 42%; height: 42%; color: #fff !important; }
+        .s34-fw-pic svg * { color: inherit !important; }
+        .s34-fw-allpic { background: conic-gradient(from 200deg, #ff5f8f, #8b3dff, #ffb347, #ff5f8f) !important; }
+        .s34-fw-letter { font: 700 20px system-ui, -apple-system, Segoe UI, sans-serif; color: #fff !important; }
+        .s34-fw-name { max-width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: #a4a4b0 !important; }
+        .s34-fw-c.s34-on .s34-fw-name { color: #f2f2f5 !important; font-weight: 700; }
+
+        /* Header + grid scroll together (like a profile page) */
+        .s34-fw-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+        .s34-fw-head { display: flex; align-items: center; gap: 18px; padding: 16px 18px; flex-wrap: wrap; }
+        .s34-fw-big { flex: none; width: 76px; height: 76px; border-radius: 50%; }
+        .s34-fw-big .s34-fw-pic { border-color: transparent !important; }
+        .s34-fw-big .s34-fw-letter { font-size: 28px; }
+        .s34-fw-info { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+        .s34-fw-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .s34-fw-nm { font-size: 19px; color: #f2f2f5 !important; overflow-wrap: anywhere; }
+        .s34-fw-nums { display: flex; flex-wrap: wrap; gap: 4px 18px; color: #a4a4b0 !important; font-size: 13px; font-variant-numeric: tabular-nums; }
+        .s34-fw-nums b { color: #f2f2f5 !important; }
+        .s34-fw-empty { padding: 30px 8px; max-width: 520px; margin: 0 auto; text-align: center; font-size: 13.5px; line-height: 1.6; color: #b9b9c3 !important; }
+
+        /* Each post in its own shape, in rows of one height that fill the
+           width (like the posts page) - newest first, left to right. --r is
+           the picture's ratio (setThumbRatios); a tall guess until it's known */
+        .s34-fw { --s34-fw-row: 230px; }
+        .s34-fw-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 3px;
+            padding: 0 3px 3px;
+        }
+        .s34-fw-grid::after { content: ''; flex-grow: 1000000000; } /* the last row doesn't stretch */
+        .s34-fw-grid span.thumb {
+            position: relative;
+            display: block !important;
+            flex-grow: calc(var(--r, 0.75) * 100);
+            flex-basis: calc(var(--r, 0.75) * var(--s34-fw-row));
+            aspect-ratio: var(--r, 0.75);
+            max-height: calc(var(--s34-fw-row) * 1.8);
+            min-width: 0;
+            width: auto !important;
+            height: auto !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+            background-color: #26262c !important;
+            text-align: left;
+        }
+        .s34-fw-grid span.thumb > a { position: absolute; inset: 0; display: block; }
+        .s34-fw-grid span.thumb img {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            object-fit: cover;
+        }
+        .s34-fw-grid span.thumb:hover img { filter: brightness(.85); }
+        .s34-fw-by {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 14px 8px 5px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.75)) !important;
+            color: #fff !important;
+            font: 600 11px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+        }
+        .s34-fw-status { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 12px; color: #a4a4b0 !important; font-size: 12.5px; }
+        .s34-fw-foot {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 16px;
+            padding: 8px 16px;
+            border-top: 1px solid #2c2c33 !important;
+            color: #8e8e9a !important;
+            font-size: 12px;
+        }
+        .s34-fw-foot kbd {
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #24242a !important;
+            color: #e8e8ee !important;
+            font: 700 11px system-ui, sans-serif;
+        }
+        /* Phones: the whole screen, lower rows, no key hints */
+        @media (max-width: 760px) {
+            .s34-fw-overlay { padding: 0; }
+            .s34-fw { --s34-fw-row: 140px; width: 100%; height: 100%; border-radius: 0; border: 0 !important; background: #18181c !important; }
+            .s34-fw-grid { gap: 2px; padding: 0 0 2px; }
+            .s34-fw-head { gap: 14px; padding: 14px; }
+            .s34-fw-big { width: 64px; height: 64px; }
+            .s34-fw-info { min-width: 0; }
+            .s34-fw-nm { font-size: 17px; }
+            .s34-fw-foot { display: none; }
+            .s34-fw-top .s34-fw-btn { height: 34px; }
+            .s34-fw-x { width: 34px; }
+        }
+
+        /* ---- Home: rule34's start page as a small home (Beta 3.6, 26c-home.js) ---- */
+        html.s34-home-on div#static-index { display: block; text-align: left; align-items: stretch; }
+        .s34-home-old { display: none !important; }
+        .s34-home {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px 20px 48px;
+            box-sizing: border-box;
+            font: 13px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
+            color: #dcdce0 !important;
+        }
+        .s34-home * { box-sizing: border-box; }
+        .s34-home-head { display: flex; align-items: center; gap: 10px 26px; flex-wrap: wrap; margin-bottom: 16px; }
+        .s34-home-head .s34-home-logo { margin: 0; line-height: 0; }
+        .s34-home-head .s34-home-logo img { width: auto !important; max-width: 260px !important; max-height: 96px; height: auto; }
+        .s34-home-head #links { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; }
+        .s34-home-main { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+        .s34-home-left { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+        .s34-home-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #2c2c33 !important;
+            background-color: #101014 !important;
+        }
+        .s34-home-card[hidden] { display: none !important; }
+        .s34-home-label {
+            font: 800 10.5px/1.2 system-ui, -apple-system, Segoe UI, sans-serif;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: #9a9aa6 !important;
+        }
+        .s34-home-search .space, .s34-home-search form { margin: 0; }
+        /* Recent and favourite tags have their own card here (the bell needs a search) */
+        .s34-home .s34-sb-tools { display: none !important; }
+        .s34-home-resume { flex-direction: row; align-items: center; gap: 12px; }
+        .s34-home-resume-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+        .s34-home-resume-text b { font-size: 14px; color: #f2f2f5 !important; overflow-wrap: anywhere; }
+        .s34-home-resume-text small { font-size: 12px; color: #9a9aa6 !important; }
+        .s34-home-btn {
+            flex: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 30px;
+            padding: 0 12px !important;
+            border-radius: 8px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #24242a !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            text-decoration: none !important;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .s34-home-btn:hover { border-color: #ff5f8f !important; }
+        .s34-home-btn[hidden] { display: none !important; }
+        .s34-home-btn kbd { padding: 0 5px; border-radius: 4px; border: 1px solid #3a3a44 !important; background-color: #18181c !important; color: #e8e8ee !important; font: 700 11px system-ui, sans-serif; }
+        .s34-home-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .s34-home a.s34-home-recent-item:is(:link, :visited) {
+            max-width: 100%;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid #2c2c33 !important;
+            background-color: #17171b !important;
+            color: #c9c9d2 !important;
+            font-size: 12px;
+            text-decoration: none !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .s34-home a.s34-home-recent-item:hover { border-color: #3a6fd4 !important; color: #f2f2f5 !important; }
+        .s34-home .s34-home-fav-chip {
+            padding: 2px 10px !important;
+            border-radius: 999px;
+            border: 1px solid #34508c !important;
+            background-color: #1f2a44 !important;
+            color: #cfe0ff !important;
+            font: 600 12px/20px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+        }
+        .s34-home .s34-home-fav-chip:hover { border-color: #3a6fd4 !important; }
+        .s34-home .s34-home-fav-chip.s34-on { border-color: #3a6fd4 !important; background-color: rgba(44,95,204,0.45) !important; }
+        /* The post count as text, Terms · Contact · DMCA below it */
+        .s34-home-meta { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; font-size: 11.5px; color: #8e8e9a !important; }
+        .s34-home-meta p { margin: 0; }
+        .s34-home-meta small { font-size: 11px; line-height: 1.6; }
+        .s34-home-meta small a { margin-right: 10px; }
+        .s34-home-follow-head { display: flex; align-items: center; gap: 10px; }
+        .s34-home-follow-head .s34-home-label { flex: 1; min-width: 0; }
+        .s34-home-new { flex: none; padding: 0 7px; border-radius: 4px; background-color: #e0457b !important; color: #fff !important; font: 700 11px/19px system-ui, sans-serif; }
+        .s34-home .s34-home-circles { padding: 0 0 4px; border: 0 !important; }
+        .s34-home .s34-fw-pic { border-color: #101014 !important; }
+        .s34-home-grid { --s34-fw-row: 170px; padding: 0; border-radius: 10px; overflow: hidden; }
+        .s34-home-status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
+        .s34-home-status:empty { display: none; }
+        /* Phones: one column - search, following, continue, recent */
+        @media (max-width: 760px) {
+            .s34-home { padding: 12px 12px 36px; }
+            .s34-home-head { justify-content: center; text-align: center; }
+            .s34-home-head .s34-home-logo img { max-width: 220px !important; max-height: 80px; }
+            .s34-home-head #links { justify-content: center; }
+            .s34-home-main { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+            .s34-home-search .space, .s34-home-search form, .s34-home-search .s34-sb { width: 100% !important; max-width: none !important; }
+            .s34-home-grid span.thumb:nth-child(n+9) { display: none !important; } /* 8 here - all of them in the window */
+            .s34-home-left { display: contents; }
+            .s34-home-search { order: 1; }
+            .s34-home-follow { order: 2; }
+            .s34-home-resume { order: 3; }
+            .s34-home-recent { order: 4; }
+            .s34-home-meta { order: 5; text-align: center; }
+            .s34-home-grid { --s34-fw-row: 120px; }
         }
     `;
     const SEARCH_CSS = `
@@ -4168,30 +4451,6 @@
         .s34-sb .s34-pin.s34-on::before { content: 'pinned'; font: 500 10px/1 system-ui, -apple-system, Segoe UI, sans-serif; color: inherit; white-space: nowrap; }
         .s34-sb .s34-sb-filter.s34-pinned select,
         .s34-sb .s34-sb-filter.s34-pinned select.s34-sb-set { border-color: #c98a2e !important; color: #ffcf8a !important; }
-        /* Following pages: pins are paused - quiet, with a short note why */
-        .s34-sb.s34-pins-paused .s34-sb-filter.s34-pinned .s34-sb-filter-top > span { color: #9a9aa6 !important; opacity: .9; }
-        .s34-sb.s34-pins-paused .s34-pin.s34-on::before { content: 'paused'; }
-        .s34-sb.s34-pins-paused .s34-sb-filter.s34-pinned select { border-color: #3a3a44 !important; color: inherit !important; }
-        .s34-sb.s34-pins-paused .s34-pin.s34-on { opacity: .7; color: #9a9aa6 !important; }
-        .s34-pins-note {
-            display: flex;
-            gap: 7px;
-            align-items: flex-start;
-            margin: 2px 0 8px;
-            padding: 7px 9px;
-            border-radius: 7px;
-            border: 1px solid rgba(255,179,71,0.3) !important;
-            background-color: rgba(255,179,71,0.08) !important;
-            color: #ffd9ad !important;
-            font-size: 11.5px;
-            line-height: 1.4;
-        }
-        .s34-pins-note svg { flex: none; margin-top: 2px; color: #ffb347 !important; }
-        .s34-pins-note svg * { color: inherit !important; }
-        .s34-pins-note span { color: inherit !important; }
-        .s34-pins-note > svg { width: 12px; height: 12px; }
-        .s34-pins-note a.s34-pins-out { color: inherit !important; text-decoration: underline !important; font-weight: 600; white-space: nowrap; }
-        .s34-pins-note a.s34-pins-out:hover { color: #ffb347 !important; }
         .s34-sb .s34-sb-filter select {
             width: 100%;
             min-width: 0;
@@ -4308,7 +4567,7 @@
         /* 🕘 Recent · ★ Tags · 🔔 (follow this search) - one list opens below */
         .s34-sb-tools {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 30px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 6px;
         }
         .s34-sb .s34-sb-tools .s34-sb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px !important; }
@@ -4320,7 +4579,7 @@
         /* Narrow sidebar (the real site's is ~165px): words only, no icons */
         .s34-sb-tools { container-type: inline-size; }
         @container (max-width: 215px) {
-            .s34-sb .s34-sb-tools .s34-sb-btn:not(.s34-sb-follow) svg { display: none; }
+            .s34-sb .s34-sb-tools .s34-sb-btn svg { display: none; }
             .s34-sb .s34-sb-tools .s34-sb-btn { padding: 0 4px !important; }
         }
         .s34-sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -4340,9 +4599,6 @@
             background-color: #18181c !important;
             border: 1px solid #3a3a44 !important;
         }
-        .s34-sb .s34-sb-follow svg { width: 14px; height: 14px; flex: none; opacity: 1 !important; color: #b9b9c3 !important; }
-        .s34-sb .s34-sb-follow.s34-following { border-color: rgba(255,179,71,0.55) !important; }
-        .s34-sb .s34-sb-follow.s34-following svg { color: #ffb347 !important; }
         /* The site's "search options" gear (phone layout): hidden - it
            covered the Steamy34 search box and only unfolded a heading */
         #displayOptsLink { display: none !important; }
@@ -4359,6 +4615,79 @@
             border: 1px solid #33333a !important;
         }
         .s34-sb-menu[hidden] { display: none !important; }
+        /* Recent · Tags as small menus next to the sidebar (Beta 3.6), like
+           "Follow which artist?" */
+        .s34-sb .s34-sb-pop {
+            position: fixed;
+            z-index: 100004;
+            margin: 0;
+            max-height: min(60vh, 520px);
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 8px;
+            border-radius: 10px;
+            background-color: #1c1c20 !important;
+            border: 1px solid #3a3a44 !important;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.55);
+        }
+        /* the add field right under the title (its suggestions then drop over the tags) */
+        .s34-sb-pop .s34-ft-add { order: 1; }
+        .s34-sb-pop .s34-ft-chips { order: 2; }
+        /* Phones: a sheet from the bottom over the dimmed page - bigger to tap,
+           swipe it down (or tap the page, or Back) to close */
+        .s34-sb .s34-sb-pop.s34-sb-sheet {
+            top: auto;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: auto;
+            max-height: 72vh;
+            padding: 24px 14px calc(16px + env(safe-area-inset-bottom, 0px));
+            border-radius: 16px 16px 0 0;
+            border-bottom: 0 !important;
+            overscroll-behavior: contain;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+            animation: s34-sheet-up .22s ease-out;
+        }
+        .s34-sb-pop.s34-sb-sheet::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            width: 40px;
+            height: 4px;
+            margin-left: -20px;
+            border-radius: 2px;
+            background-color: #4a4a56 !important;
+        }
+        @keyframes s34-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+        .s34-sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 100003;
+            background-color: rgba(0,0,0,0.5) !important;
+            animation: s34-sheet-fade .2s ease-out;
+        }
+        @keyframes s34-sheet-fade { from { opacity: 0; } }
+        html.s34-sheet-open { overflow: hidden !important; }
+        .s34-sb-sheet .s34-sb-item-main { padding: 9px 8px; font-size: 14px; }
+        .s34-sb .s34-sb-sheet .s34-sb-item-del { padding: 0 12px !important; font-size: 15px; }
+        .s34-sb-sheet .s34-sb-menu-head, .s34-sb-sheet .s34-ft-head > span { font-size: 11px; }
+        .s34-sb .s34-sb-sheet .s34-sb-clear-recent { height: 36px; font-size: 13px; }
+        .s34-sb-sheet .s34-ft-chips { gap: 7px; }
+        .s34-sb-sheet .s34-ft-chip { font-size: 13.5px; line-height: 32px; }
+        .s34-sb-sheet .s34-ft-name { padding: 0 13px; }
+        .s34-sb .s34-sb-sheet .s34-ft-edit { font-size: 13px; padding: 4px 8px !important; }
+        .s34-sb .s34-sb-sheet .s34-ft-input { height: 38px; font-size: 15px; }
+        @media (prefers-reduced-motion: reduce) { .s34-sb-pop.s34-sb-sheet, .s34-sheet-backdrop { animation: none; } }
+        .s34-sb-menu-head {
+            padding: 2px 5px 6px;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            opacity: .6;
+        }
         .s34-sb-menu h5 {
             margin: 4px 2px 3px !important;
             font-size: 10px !important;
@@ -4382,19 +4711,6 @@
         .s34-sb .s34-sb-item-del:hover { opacity: 1; color: #ff6b6b !important; }
         .s34-sb-empty { padding: 2px 5px 4px; opacity: .5; font-style: italic; }
         .s34-sb .s34-sb-clear-recent { display: block; width: 100%; margin-top: 5px; }
-        .s34-sb .s34-sb-hide {
-            display: block;
-            width: 100%;
-            margin-top: 6px;
-            padding: 2px 0 !important;
-            border: none !important;
-            background: transparent !important;
-            cursor: pointer;
-            font-size: 11px;
-            opacity: .6;
-            color: inherit !important;
-        }
-        .s34-sb .s34-sb-hide:hover { opacity: 1; }
     `;
 
     const SETTINGS_CSS = `
@@ -4653,7 +4969,18 @@
             top: 10px !important;
             align-self: flex-start !important;
             z-index: 50;
+            /* Taller than the window (a long Following list)? Then it scrolls
+               on its own with the mouse wheel - infinite scroll never reaches
+               the page's end, so its bottom (Settings, tips) was out of reach
+               before Beta 3.6. No scrollbar: it looked out of place */
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
         }
+        #post-list > .sidebar::-webkit-scrollbar,
+        .sidebar:has(+ .content .image-list)::-webkit-scrollbar,
+        .sidebar:has(~ .content .image-list)::-webkit-scrollbar { display: none; }
     `;
 
     // Hide images/banners that sit below the tag list in the sidebar
@@ -4694,7 +5021,9 @@
     // detected, the right column is folded away, even if an ad slipped
     // through the blocker (that happened most on the first page load).
     // Without an ad blocker NOTHING is looked at or changed - every ad
-    // stays exactly as the site shows it. Other ad spaces are never touched.
+    // stays exactly as the site shows it. Since Beta 3.6 the same goes for
+    // the ad box above the posts (topAdSlots); every other ad space (the
+    // sidebar, post pages) is never touched.
 
     // A hidden "bait" box with typical ad names: ad blockers hide or remove it
     function adBlockerActive(waitMs = 900) {
@@ -4732,9 +5061,30 @@
         return cols;
     }
 
+    // The ad space above the posts ("Page 1"): a box the site keeps ~135px
+    // high for an ad (span > div[min-height] > ins). With an ad blocker it
+    // stays as an empty gap - folded the same way as the right column
+    // (steamycorner's decision, Beta 3.6). Found by what it is, not by
+    // name: before the posts, not ours, no text, no pictures, links or
+    // fields - only an ad frame (or nothing, when the blocker removed it).
+    function topAdSlots() {
+        const list = document.querySelector('.image-list');
+        const slots = [];
+        if (!list || !list.parentElement) return slots;
+        for (let s = list.parentElement.firstElementChild; s && s !== list; s = s.nextElementSibling) {
+            if (/(^|\s)s34-/.test(s.className || '') || s.matches('script, style, #paginator, .pagination')) continue;
+            if (s.textContent.trim()) continue;
+            if (s.querySelector('img, a[href], input, textarea, select, button, form, span.thumb, video')) continue;
+            const adFrame = s.matches('ins, iframe') || !!s.querySelector('ins, iframe');
+            const reserved = s.getBoundingClientRect().height > 40 || !!s.querySelector('[style*="min-height"]');
+            if (adFrame || reserved) slots.push(s);
+        }
+        return slots;
+    }
+
     async function foldEmptyAdColumn() {
         const root = document.documentElement;
-        const cols = rightAdColumns();
+        const cols = rightAdColumns().concat(topAdSlots());
         if (!cols.length) { root.classList.remove('s34-adcol-early'); return; }
         // Quick check first; blockers that act a bit later get a second look
         let blocked = await adBlockerActive(150);
@@ -4742,9 +5092,9 @@
         try { GM_setValue(ADBLOCK_SEEN_KEY, blocked); } catch (e) {}
         if (blocked) {
             cols.forEach(col => col.classList.add('s34-empty-col'));
-            console.log('[Steamy34] Ad blocker detected – the ad column on the right was folded away.');
+            console.log('[Steamy34] Ad blocker detected – the ad spaces (right column, above the posts) were folded away.');
         }
-        root.classList.remove('s34-adcol-early'); // no ad blocker: the column is back as the site shows it
+        root.classList.remove('s34-adcol-early'); // no ad blocker: everything is back as the site shows it
     }
 
     // Posts page only: sidebar blends into the page background
@@ -4780,7 +5130,7 @@
     //  thumbnails, the theater buttons…) and floating dark bars keep their
     //  dark look in every mode.
     // =====================================================================
-    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-pill|cf-inline|batch)|span\.thumb\.s34-(selected|was)|s34-selecting/;
+    const KEEP_DARK_RE = /s34-(sfw-label|badge|info|dl-mark|seen-mark|fav-btn|new-badge|bl-label|tagbar|chip|hover|loading|load|pv-tbar|cf-pill|cf-inline|batch|fw-by)|span\.thumb\.s34-(selected|was)|s34-selecting/;
 
     function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
@@ -4879,13 +5229,10 @@
             html.s34-theme-white .s34-pv-chips .s34-chip-follow { color: #6b6f7a !important; }
             html.s34-theme-white .s34-chip-follow.s34-following,
             html.s34-theme-white #tag-sidebar li a.r34-follow-btn.s34-following { color: #d97800 !important; }
-            html.s34-theme-white .s34-follow-row.s34-follow-allrow { color: #b35c00 !important; }
-            html.s34-theme-white .s34-sb .s34-sb-follow.s34-following svg { color: #d97800 !important; }
-            html.s34-theme-white .s34-pins-note { color: #7a4300 !important; }
+            html.s34-theme-white .s34-follow-box a.s34-follow-row.s34-follow-allrow:is(:link, :visited) { color: #b35c00 !important; }
             html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { color: #d97800 !important; }
             html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-name { color: #8a4a00 !important; }
             html.s34-theme-white .s34-sb .s34-pin.s34-on { color: #b35c00 !important; }
-            html.s34-theme-white .s34-sb.s34-pins-paused .s34-pin.s34-on { color: #6b6f7a !important; }
             /* Score and the "child posts" notice in the popup */
             html.s34-theme-white .s34-pv-score { color: #8a6100 !important; }
             html.s34-theme-white .s34-pv-notice { color: #7a4300 !important; }
@@ -6027,8 +6374,6 @@
             const u = new URL(url, location.href);
             if (u.hostname.replace(/^www\./, '') !== location.hostname.replace(/^www\./, '')) return '';
             if (u.searchParams.get('page') !== 'post') return '';
-            const feed = feedFromHash(u.hash);
-            if (feed && feed.kind !== 'search') return ''; // an artist feed isn't a search to add to (a followed search is)
             const t = (u.searchParams.get('tags') || '').trim();
             return t === 'all' ? '' : t;
         } catch (e) { return ''; }
@@ -6040,14 +6385,12 @@
         const box = searchBox();
         const fromBox = box && box.value.trim();
         if (fromBox) return fromBox;
-        if (onSearchFeed()) return tagsFromUrl(location.href);
-        if (onFeedPage()) return ''; // an artist feed: only what you type, not the page you came from
         return tagsFromUrl(location.href) || tagsFromUrl(document.referrer) ||
                (GM_getValue(LAST_SEARCH_KEY, '') || '');
     }
 
     function rememberSearch() {
-        if (isPostView || onFeedPage()) return; // the feed isn't a "recent search"
+        if (isPostView) return;
         const t = tagsFromUrl(location.href);
         if (t) {
             GM_setValue(LAST_SEARCH_KEY, t);
@@ -6085,7 +6428,7 @@
         GM_setValue(LAST_SEARCH_KEY, next);
         refreshSearchButtons();
         showToast(next ? `Search: ${next.replace(/_/g, ' ')}` : 'Search is now empty.',
-                  'Search now', () => searchInFeed(next) || runSearch(next), 8000); // an artist page: stays on it
+                  'Search now', () => runSearch(next), 8000);
     }
 
     // +  : add the tag            Shift+click: add it as -tag
@@ -6831,7 +7174,7 @@
     // works exactly as before. What you see is built on top of it:
     //   [3d ×] [-ai_generated ×] [add tags…]          ✕
     //   Score [≥100]  Size [1080p+]  Sort [Newest]  Type [All]
-    //   ▸ Recent searches   🔔 Follow (follows the whole search - 20c-following.js)
+    //   ▸ Recent searches · ★ Tags (small menus since Beta 3.6)
 
     const HISTORY_KEY = 'steamy34_history';
     const SAVED_KEY = 'steamy34_saved'; // old saved searches - moved into Following in Beta 3.1
@@ -6961,7 +7304,6 @@
         try { u = new URL(a.href, location.href); } catch (err) { return; }
         if (u.origin !== location.origin || u.searchParams.get('page') !== 'post' ||
             u.searchParams.get('s') !== 'list' || u.searchParams.get('pid')) return; // page 2, 3… stay as they are
-        if (feedIndexFromHash(u.hash) >= 0) return; // the Following feed has its own filter
         const q = (u.searchParams.get('tags') || '').trim();
         const next = withPins(q === 'all' ? '' : q);
         if (next === q) return;
@@ -6975,7 +7317,7 @@
     // the pinned filters? Add them right away - once, never in a loop.
     (function applyPinsOnArrival() {
         if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list' || params.get('pid')) return;
-        if (feedIndexFromHash(location.hash) >= 0) return; // the Following feed
+        if (feedFromHash(location.hash)) return; // an old Following page: opens the Following window instead
         const q = (params.get('tags') || '').trim();
         const next = withPins(q === 'all' ? '' : q);
         if (next === q) return;
@@ -7012,13 +7354,7 @@
 
         // Pinned filters show up straight away on the posts page (on a single
         // post they're added when the new search starts)
-        // (the Following feed's "( a ~ b ~ … )" search stays out of the box - it starts empty)
-        // (a followed search shows its own words, without pins)
-        // (an artist / "All artists" page: the box shows that page's filters and
-        // a search from it stays on the page - searchInFeed in 20c-following.js)
-        const feedNow = onArtistFeed();
-        let { terms, f } = feedNow ? { terms: [], f: parseQuery(feedQueryNow()).f }
-            : parseQuery(onSearchFeed() ? input.value : isPostView ? input.value : withPins(input.value));
+        let { terms, f } = parseQuery(isPostView ? input.value : withPins(input.value));
 
         const root = document.createElement('div');
         root.className = 's34-sb';
@@ -7033,7 +7369,6 @@
             <div class="s34-sb-tools">
                 <button type="button" class="s34-sb-btn" data-act="menu"></button>
                 <button type="button" class="s34-sb-btn" data-act="tags"></button>
-                <button type="button" class="s34-sb-btn s34-sb-follow" data-act="save"></button>
             </div>
             <div class="s34-sb-menu" hidden></div>
             <div class="s34-ft" hidden>
@@ -7065,35 +7400,6 @@
             const sel = selects[key];
             const o = sel && sel.selectedOptions[0];
             return o ? o.textContent : '';
-        }
-
-        // Following pages (an artist, all artists, a followed search) show
-        // everything - pinned filters are paused there, and we say so
-        const pinsPaused = onFeedPage();
-        if (pinsPaused) {
-            root.classList.add('s34-pins-paused');
-            const hasPins = Object.keys(getPins()).some(k => k !== 'scoreOp' && getPins()[k]);
-            if (feedNow || hasPins) {
-                const note = document.createElement('div');
-                note.className = 's34-pins-note';
-                note.innerHTML = (feedNow ? BELL_SVG : PIN_SVG) + '<span></span>';
-                const feed = feedFromHash(location.hash);
-                const who = feedNow && feed.kind === 'artist' ? prettyTag(feed.tag) + '\'s posts' : 'your followed artists';
-                note.querySelector('span').textContent = !feedNow
-                    ? 'Your pinned filters are paused here – a followed search shows exactly what you followed.'
-                    : `Filters and tags here only search ${who}.` + (hasPins ? ' Your pinned filters are paused.' : '');
-                if (feedNow) {
-                    // The way out: the same search over all of rule34
-                    const out = document.createElement('a');
-                    out.href = '#';
-                    out.className = 's34-pins-out';
-                    out.textContent = 'Search all posts instead';
-                    out.title = 'Run what\'s in the search box over all of rule34, not just this page';
-                    out.addEventListener('click', e => { e.preventDefault(); commitField(true); runSearch(query()); });
-                    note.querySelector('span').append(' ', out);
-                }
-                filtersEl.before(note);
-            }
         }
 
         SEARCH_FILTERS.forEach(def => {
@@ -7138,9 +7444,8 @@
                 f[def.key] = v;
                 if (def.key === 'score') f.scoreOp = '>=';
                 // A pinned filter follows your choice; "Any" unpins it
-                // (not on Following pages, where pins are paused)
                 const pins = getPins();
-                if (pins[def.key] && !pinsPaused) {
+                if (pins[def.key]) {
                     if (v) {
                         pins[def.key] = v;
                         if (def.key === 'score') pins.scoreOp = f.scoreOp;
@@ -7178,8 +7483,7 @@
                 const pin = pinButtons[def.key];
                 pin.classList.toggle('s34-on', pinned);
                 pin.closest('.s34-sb-filter').classList.toggle('s34-pinned', pinned);
-                pin.title = pinned && pinsPaused ? 'Pinned, but paused on this page – your other searches still use it'
-                          : pinned ? `Pinned: kept for every new search – click to unpin`
+                pin.title = pinned ? `Pinned: kept for every new search – click to unpin`
                                    : `Pin: keep this ${def.label.toLowerCase()} for every new search`;
             });
         }
@@ -7282,6 +7586,8 @@
                 }
                 ftChips.appendChild(chip);
             });
+            // open as a menu next to the sidebar: keep it inside the window as it grows
+            if (!ft.hidden && ft.classList.contains('s34-sb-pop') && !ft.classList.contains('s34-sb-sheet')) placePop();
         }
 
         function addFavTags(words) {
@@ -7326,28 +7632,6 @@
             showFilters();
             renderFavTags();
             if (typeof refreshSearchButtons === 'function') refreshSearchButtons();
-            styleFollowSearchBtn();
-        }
-
-        // 🔔 Follow / Following for the search in the box
-        // What the bell follows: the box - on an artist page together with the artist(s)
-        function followQuery() {
-            const q = query();
-            if (!feedNow || !q) return q;
-            const base = feedBaseTerms() || [];
-            const have = new Set(base.map(t => t.toLowerCase()));
-            return base.concat(q.split(' ').filter(w => !have.has(w.toLowerCase()))).join(' ');
-        }
-        function styleFollowSearchBtn() {
-            const b = root.querySelector('.s34-sb-follow');
-            if (!b) return;
-            const q = followQuery();
-            const on = !!q && isQueryFollowed(q);
-            b.classList.toggle('s34-following', on);
-            // Just the bell (the word is there for screen readers)
-            b.innerHTML = (on ? BELL_ON_SVG : BELL_SVG) + `<span class="s34-sr">${on ? 'Following' : 'Follow'}</span>`;
-            b.title = !q ? 'Follow a search: its new posts show up in the sidebar' : on ? 'You follow this search – click to stop' : 'Follow this search – its new posts show up in the sidebar, with NEW on them';
-            b.setAttribute('aria-pressed', on ? 'true' : 'false');
         }
 
         function addTerms(words) {
@@ -7404,7 +7688,6 @@
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
-            if (feedNow && searchInFeed(ta.value)) return; // stays on the artist page
             const form = ta.form;
             if (!form) { runSearch(ta.value); return; }
             if (form.requestSubmit) form.requestSubmit(); else form.submit();
@@ -7462,6 +7745,10 @@
 
         function renderMenu() {
             menu.replaceChildren();
+            const head = document.createElement('div');
+            head.className = 's34-sb-menu-head';
+            head.textContent = 'Recent searches';
+            menu.appendChild(head);
             const recent = getStoredList(HISTORY_KEY);
             if (!recent.length) {
                 const n = document.createElement('div');
@@ -7480,57 +7767,134 @@
                 clear.addEventListener('click', () => { GM_setValue(HISTORY_KEY, []); renderMenu(); });
                 menu.appendChild(clear);
             }
-            const hide = document.createElement('button');
-            hide.type = 'button';
-            hide.className = 's34-sb-hide';
-            hide.textContent = '▴ Hide this list';
-            hide.title = 'Fold the list away - open it again with "Recent"';
-            hide.addEventListener('click', () => showPanel(''));
-            menu.appendChild(hide);
+            if (openPop === 'recent') placePop();
         }
 
-        // 🕘 Recent · ★ Tags: one list opens below the row at a time
-        // (remembered; '' = both folded)
+        // 🕘 Recent · ★ Tags: small menus (Beta 3.6 - before, lists that
+        // opened inside the sidebar and made it scroll). One at a time.
+        //  - computer: right next to the sidebar (or below the button when
+        //    there's no room); a click elsewhere, Esc or scrolling closes it
+        //  - phone: a sheet that slides up from the bottom over the dimmed
+        //    page; a tap on the page, swiping it down or Back closes it
         const CLOCK_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
         const STAR_SVG_S = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>';
         const recentBtn = root.querySelector('[data-act="menu"]');
         const tagsBtn = root.querySelector('[data-act="tags"]');
         recentBtn.innerHTML = CLOCK_SVG + '<span>Recent</span>';
         tagsBtn.innerHTML = STAR_SVG_S + '<span>Tags</span>';
-        function showPanel(which, remember = true) {
-            menu.hidden = which !== 'recent';
-            ft.hidden = which !== 'tags';
-            recentBtn.classList.toggle('s34-sb-open', which === 'recent');
-            tagsBtn.classList.toggle('s34-sb-open', which === 'tags');
-            recentBtn.title = which === 'recent' ? 'Hide your recent searches' : 'Your recent searches';
-            tagsBtn.title = which === 'tags' ? 'Hide your favourite tags' : 'Your favourite tags – one click puts one in the search';
-            if (which === 'recent') renderMenu();
-            if (remember) GM_setValue('steamy34_sb_panel', which);
+        const POPS = { recent: { el: menu, btn: recentBtn }, tags: { el: ft, btn: tagsBtn } };
+        let openPop = '';
+        let sheetBackdrop = null, sheetHistory = false;
+        const asSheet = () => isPhoneLayout();
+
+        function placePop() {
+            const p = POPS[openPop];
+            if (!p) return;
+            const el = p.el;
+            el.classList.add('s34-sb-pop');
+            el.classList.toggle('s34-sb-sheet', asSheet());
+            if (asSheet()) { el.style.cssText = ''; return; } // (the sheet is placed by its CSS)
+            const b = p.btn.getBoundingClientRect();
+            const side = (root.closest('.sidebar, #sidebar') || root).getBoundingClientRect();
+            const w = Math.min(320, innerWidth - 16);
+            el.style.width = w + 'px';
+            let left = side.right + 8, top = b.top - 4;
+            if (left + w > innerWidth - 8) { left = Math.max(8, Math.min(b.left, innerWidth - w - 8)); top = b.bottom + 6; }
+            el.style.left = left + 'px';
+            el.style.top = Math.max(8, Math.min(top, innerHeight - el.offsetHeight - 8)) + 'px';
         }
-        const panelNow = () => (!menu.hidden ? 'recent' : !ft.hidden ? 'tags' : '');
-        recentBtn.addEventListener('click', () => showPanel(panelNow() === 'recent' ? '' : 'recent'));
-        tagsBtn.addEventListener('click', () => showPanel(panelNow() === 'tags' ? '' : 'tags'));
-        const followBtn = root.querySelector('[data-act="save"]');
-        followBtn._s34Refresh = styleFollowSearchBtn;
-        followBtn.addEventListener('click', () => {
-            commitField(true);
-            sync();
-            const q = followQuery();
-            if (!q) { showToast('Type a search first – then the bell follows it.'); return; }
-            // Count new posts from now on (from the results you're looking at)
-            toggleFollowSearch(q, seenIdForQuery(q));
-            styleFollowSearchBtn();
-        });
-        // Recent is open by default - folded on phones, where it would push the
-        // posts a whole screen down. Once you open / fold one yourself, that's
-        // kept (before Beta 3.3 only Recent was remembered: steamy34_sbmenu_open)
-        let panelSaved = GM_getValue('steamy34_sb_panel', null);
-        if (panelSaved === null) {
-            const old = GM_getValue('steamy34_sbmenu_open', null);
-            panelSaved = old === null ? (isPhoneLayout() ? '' : 'recent') : old !== false ? 'recent' : '';
+        function onPopKey(e) {
+            if (e.key !== 'Escape' || !openPop) return;
+            const a = document.activeElement;
+            if (a && a.dataset && a.dataset.acOpen === '1') return; // Esc closes the suggestions first
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            showPanel('');
         }
-        showPanel(['recent', 'tags'].includes(panelSaved) ? panelSaved : '', false);
-        styleFollowSearchBtn();
+        function offPop(e) {
+            const p = POPS[openPop];
+            if (e.target === sheetBackdrop) return; // (its own click closes - so the tap never reaches the page below)
+            if (p && !p.el.contains(e.target) && !p.btn.contains(e.target) && !(e.target.closest && e.target.closest('.s34-ac-list'))) showPanel('');
+        }
+        // (computer: the page or sidebar scrolled away under the menu)
+        function offPopScroll(e) {
+            const p = POPS[openPop];
+            if (p && !asSheet() && !p.el.contains(e.target)) showPanel('');
+        }
+        function onSheetBack() { if (openPop && asSheet()) { sheetHistory = false; showPanel(''); } }
+
+        // Phones: drag the sheet down to close it (when its list is at the top)
+        function setupSheetSwipe(el) {
+            let start = null;
+            el.addEventListener('touchstart', e => {
+                start = null;
+                if (!el.classList.contains('s34-sb-sheet') || e.touches.length !== 1 || el.scrollTop > 0) return;
+                if (e.target.closest('input, textarea')) return;
+                start = { y: e.touches[0].clientY, t: Date.now() };
+            }, { passive: true });
+            el.addEventListener('touchmove', e => {
+                if (!start) return;
+                const dy = e.touches[0].clientY - start.y;
+                el.style.transform = dy > 0 ? `translateY(${dy}px)` : '';
+            }, { passive: true });
+            const end = e => {
+                if (!start) return;
+                const dy = ((e.changedTouches && e.changedTouches[0]) || {}).clientY - start.y;
+                const fast = dy > 40 && Date.now() - start.t < 300;
+                start = null;
+                if (dy > 90 || fast) showPanel('');
+                else { el.style.transition = 'transform .18s ease'; el.style.transform = ''; setTimeout(() => { el.style.transition = ''; }, 200); }
+            };
+            el.addEventListener('touchend', end, { passive: true });
+            el.addEventListener('touchcancel', end, { passive: true });
+        }
+        setupSheetSwipe(menu);
+        setupSheetSwipe(ft);
+
+        function showPanel(which) {
+            const was = openPop;
+            openPop = which;
+            Object.entries(POPS).forEach(([k, p]) => {
+                const on = k === which;
+                p.el.hidden = !on;
+                p.btn.classList.toggle('s34-sb-open', on);
+                p.btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+                if (!on) { p.el.classList.remove('s34-sb-pop', 's34-sb-sheet'); p.el.style.cssText = ''; }
+            });
+            recentBtn.title = which === 'recent' ? 'Close your recent searches' : 'Your recent searches';
+            tagsBtn.title = which === 'tags' ? 'Close your favourite tags' : 'Your favourite tags – one click puts one in the search';
+            document.removeEventListener('keydown', onPopKey, true);
+            document.removeEventListener('pointerdown', offPop, true);
+            window.removeEventListener('scroll', offPopScroll, true);
+            if (sheetBackdrop) { sheetBackdrop.remove(); sheetBackdrop = null; }
+            document.documentElement.classList.remove('s34-sheet-open');
+            // Phones: the sheet took a Back step - give it back when closed another way
+            if (!which && was && sheetHistory) {
+                sheetHistory = false;
+                try { if (history.state && history.state.s34sheet) history.back(); } catch (e) {}
+            }
+            if (!which) return;
+            if (which === 'recent') renderMenu(); else renderFavTags();
+            placePop();
+            document.addEventListener('keydown', onPopKey, true);
+            document.addEventListener('pointerdown', offPop, true);
+            if (asSheet()) {
+                sheetBackdrop = document.createElement('div');
+                sheetBackdrop.className = 's34-sheet-backdrop';
+                sheetBackdrop.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); showPanel(''); });
+                document.body.appendChild(sheetBackdrop);
+                document.documentElement.classList.add('s34-sheet-open');
+                if (!sheetHistory) {
+                    try { history.pushState({ s34sheet: true }, ''); sheetHistory = true; } catch (e) {}
+                }
+            } else {
+                window.addEventListener('scroll', offPopScroll, true);
+            }
+        }
+        window.addEventListener('popstate', () => { if (sheetHistory && !(history.state && history.state.s34sheet)) onSheetBack(); });
+        recentBtn.addEventListener('click', () => showPanel(openPop === 'recent' ? '' : 'recent'));
+        tagsBtn.addEventListener('click', () => showPanel(openPop === 'tags' ? '' : 'tags'));
+        // (Recent and Tags only open when you click them - small menus since Beta 3.6)
 
         // ---- outside changes (the + / − buttons on posts) ----
         ta.addEventListener('input', () => {
@@ -7564,7 +7928,6 @@
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
-            if (feedNow) { e.preventDefault(); searchInFeed(ta.value); } // stays on the artist page
         });
         sync();
     }
@@ -8313,6 +8676,11 @@
         return div;
     }
 
+    // The popup asks for the next page when you browse to the end of what's
+    // loaded (Beta 3.5.1): 'more' | 'loading' | 'done', null = no infinite
+    // scroll on this page. Ask with the 's34-load-more' event.
+    let infiniteState = null;
+
     function setupInfiniteScroll() {
         const list = document.querySelector('.image-list');
         const paginator = document.querySelector('#paginator');
@@ -8493,6 +8861,10 @@
         new IntersectionObserver(entries => {
             if (entries.some(e => e.isIntersecting)) loadNext();
         }, { rootMargin: `0px 0px ${CONFIG.infiniteScrollMargin}px 0px` }).observe(status);
+
+        // The popup reached the end of the loaded posts
+        infiniteState = () => (done ? 'done' : loading ? 'loading' : 'more');
+        window.addEventListener('s34-load-more', () => { if (!loading && !done) loadNext(); });
 
         // Posts were hidden (e.g. "Hide viewed" switched on) while the end of
         // the list was already on screen: the observer doesn't fire again in
@@ -9131,18 +9503,18 @@
         }, 1500);
     }
     // =====================================================================
-    //  FOLLOWING: artists and searches
-    //  The bell next to an artist (popup, post pages) follows them; the bell
-    //  under the search box follows a whole search (this replaced the old
-    //  "saved searches" in Beta 3.1). The sidebar lists everything you
-    //  follow, each with its own "N new" - click one for its posts, with NEW
-    //  on the ones since your last visit. "All artists" mixes every artist.
-    //  Counting is cheap for artists: one either/or search "( a ~ b ~ … )"
-    //  per 20 artists; each new post is matched to its artists by its tags.
-    //  Searches are checked one by one.
-    //  Feed pages are marked in the part of the address the site never sees:
-    //  #s34-following (all artists), #s34-following-2 (group 2),
-    //  #s34-following=artist_name (one artist), #s34-search=query (a search).
+    //  FOLLOWING: artists (only artists since Beta 3.6)
+    //  The bell next to an artist (popup, post pages) follows them. The
+    //  sidebar lists everyone you follow, each with its own "N new" - click
+    //  one and their newest posts open in the Following window
+    //  (26b-following-popup.js), with NEW on the ones since your last visit.
+    //  Always newest first: the per-artist and shared filters of Beta 3.4 are gone.
+    //  Counting is cheap: one either/or search "( a ~ b ~ … )" per 20
+    //  artists; each new post is matched to its artists by its tags.
+    //  Followed searches (Beta 3.1 - 3.5) are gone too - the ones you had
+    //  move into your Recent searches once (moveFollowedSearchesToRecent).
+    //  The old feed pages (#s34-following, #s34-following=artist - before
+    //  3.6) open the Following window instead.
     //  Everything is stored on this device (steamy34_following).
     // =====================================================================
     const FOLLOW_KEY = 'steamy34_following';
@@ -9154,7 +9526,10 @@
     const BELL_SVG = '<svg class="s34-bell" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 0 0-12 0c0 6.5-3 8.5-3 8.5h18s-3-2-3-8.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>';
     const BELL_ON_SVG = BELL_SVG.replace('<path d="M18', '<path fill="currentColor" d="M18');
     const BELL_TEXT = `<span class="s34-bell-i">${BELL_SVG}</span>`; // inside a sentence
-    const SEARCH_ICON = '<svg class="s34-bell" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>';
+    // The Following window (26b-following-popup.js): what it shows, as a key
+    let fwState = null;
+    const FW_ALL = 'all';
+    const fwKeyArtist = tag => 'a:' + String(tag).toLowerCase();
 
     function getFollowing() {
         let v = {};
@@ -9162,81 +9537,42 @@
         let artists = Array.isArray(v.artists) ? v.artists : null;
         // Beta 2.9 stored { tags: [{ tag, type }] } - keep the artists
         if (!artists && Array.isArray(v.tags)) artists = v.tags.filter(t => t && t.tag && (!t.type || t.type === 'artist')).map(t => ({ tag: t.tag, added: t.added || Date.now() }));
+        // pic: the newest post's thumbnail (the circle in the Following window).
+        // The filters of Beta 3.4 (a.filter, v.filter) and the followed
+        // searches (v.searches) are left out - the next save drops them.
+        const noFilter = a => { const x = Object.assign({ seen: 0, latest: 0, count: 0, more: false, pic: '' }, a); delete x.filter; return x; };
         return {
-            // filter: '' = the shared filter, 'all' = everything, '50' = only score ≥ 50 (per artist, Beta 3.4)
-            artists: (artists || []).filter(a => a && a.tag).map(a => Object.assign({ seen: 0, latest: 0, count: 0, more: false, filter: '' }, a)),
-            searches: (Array.isArray(v.searches) ? v.searches : []).filter(s => s && s.query)
-                .map(s => Object.assign({ name: s.query, added: 0, seen: 0, latest: 0, count: 0, more: false }, s)),
-            checkedAt: v.checkedAt || 0,
-            filter: Object.assign({ score: '', type: '', rating: '' }, v.filter || {})
+            artists: (artists || []).filter(a => a && a.tag).map(noFilter),
+            checkedAt: v.checkedAt || 0
         };
     }
     function saveFollowing(d) { GM_setValue(FOLLOW_KEY, d); }
 
-    // Saved searches from before Beta 3.1 (steamy34_saved) move in here once,
-    // with their "newest post seen" and "N new" kept
-    function migrateSavedSearches() {
-        let old;
-        try { old = GM_getValue(SAVED_KEY, null); } catch (e) { return; }
-        if (!Array.isArray(old)) return;
-        const d = getFollowing();
-        old.forEach(s => {
-            if (!s || !s.query || findSearch(s.query, d)) return;
-            d.searches.push({ query: s.query, name: s.name || s.query, added: Date.now(),
-                seen: s.seenId || 0, latest: s.seenId || 0, count: s.newCount || 0, more: !!s.newMore });
-        });
-        saveFollowing(d);
-        try { GM_deleteValue(SAVED_KEY); } catch (e) {} // only after the copy is saved
+    // Followed searches (Beta 3.1 - 3.5) and the saved searches before them
+    // (steamy34_saved): moved once into your Recent searches, so none is lost
+    function moveFollowedSearchesToRecent() {
+        let v = null, old = null;
+        try { v = GM_getValue(FOLLOW_KEY, null); } catch (e) { return; }
+        try { old = GM_getValue(SAVED_KEY, null); } catch (e) {}
+        const queries = [].concat(v && Array.isArray(v.searches) ? v.searches : [], Array.isArray(old) ? old : [])
+            .map(s => s && typeof s.query === 'string' ? s.query.trim() : '').filter(Boolean);
+        if (!queries.length && !(v && 'searches' in v) && old === null) return;
+        queries.reverse().forEach(addToHistory); // (the first one ends up on top)
+        if (v && 'searches' in v) saveFollowing(getFollowing());
+        try { GM_deleteValue(SAVED_KEY); } catch (e) {}
+        if (queries.length) console.log('[Steamy34] Following is for artists only now - ' + queries.length + ' followed search(es) moved to Recent.');
     }
 
-    // ---- Searches ----
-    function findSearch(q, d) {
-        const key = normalizeQuery(q || '');
-        return key ? (d || getFollowing()).searches.find(s => normalizeQuery(s.query) === key) || null : null;
-    }
     // "panam_palmer score:>=50 height:>=1080 width:>=1080" -> "panam palmer
-    // score ≥ 50 1080p+" (a name you gave it stays as it is)
+    // score ≥ 50 1080p+" (Recent searches, Continue on the start page)
     const searchLabel = s => (s.name && s.name !== s.query ? s.name : s.query
         .replace(/\bheight:>=(\d+)\s+width:>=\1\b|\bwidth:>=(\d+)\s+height:>=\2\b/g, (m, a, b) => (a || b) + 'p+')
         .replace(/\b(width|height):>=(\d+)/g, '$1 ≥ $2')
         .replace(/\bscore:>=(\d+)/g, 'score ≥ $1').replace(/\bscore:>(\d+)/g, 'score > $1').replace(/\brating:(\w+)/g, '$1'))
         .replace(/_/g, ' ');
-    function searchFeedUrl(q) {
-        return 'index.php?page=post&s=list&tags=' + encodeURIComponent(q) + '#s34-search=' + encodeURIComponent(q);
-    }
-    // A search with one word that is a followed artist counts as that artist
-    function soleArtistOf(q, d) {
-        const t = parseQuery(q || '').terms.map(x => x.toLowerCase());
-        return t.length === 1 && normalizeQuery(q) === normalizeQuery(t[0]) && isFollowed(t[0], d) ? t[0] : '';
-    }
-    function isQueryFollowed(q, d) { return !!findSearch(q, d) || !!soleArtistOf(q, d); }
-
-    // Follow / unfollow a search (seen: the newest post already on screen)
-    function toggleFollowSearch(q, seen) {
-        q = String(q || '').trim().replace(/\s+/g, ' ');
-        if (!q) return false;
-        const artist = soleArtistOf(q);
-        if (artist) return toggleFollow(artist);
-        const d = getFollowing();
-        const s = findSearch(q, d);
-        if (s) {
-            const i = d.searches.indexOf(s);
-            d.searches.splice(i, 1);
-            saveFollowing(d);
-            showToast('Stopped following "' + searchLabel(s) + '".', 'Undo', () => {
-                const again = getFollowing();
-                if (!findSearch(q, again)) { again.searches.splice(Math.min(i, again.searches.length), 0, s); saveFollowing(again); }
-                refreshFollowUi();
-            });
-            refreshFollowUi();
-            return false;
-        }
-        d.searches.push({ query: q, name: q, added: Date.now(), seen: seen || 0, latest: seen || 0, count: 0, more: false });
-        if (!seen) d.checkedAt = 0; // the next check sets where "new" begins
-        saveFollowing(d);
-        showToast('Following "' + q.replace(/_/g, ' ') + '" – new posts show up in the sidebar.');
-        refreshFollowUi();
-        return true;
+    // The normal search for an artist ("Open as a search")
+    function plainSearchUrl(q) {
+        return 'index.php?page=post&s=list&tags=' + encodeURIComponent(q);
     }
 
     function findArtist(tag, d) {
@@ -9245,61 +9581,22 @@
     }
     const isFollowed = (tag, d) => !!findArtist(tag, d);
 
-    // Artists in groups of 20 for the either/or searches. Artists with their
-    // own filter are grouped separately (one search can only have one
-    // filter); each group carries its filter words as .words
+    // Artists in groups of 20 for the either/or searches
     function followGroups(d) {
         d = d || getFollowing();
-        const byFilter = new Map();
-        d.artists.forEach(a => {
-            const words = artistFilterWords(a, d);
-            const key = words.join(' ');
-            if (!byFilter.has(key)) byFilter.set(key, { words, tags: [] });
-            byFilter.get(key).tags.push(a.tag);
-        });
         const groups = [];
-        byFilter.forEach(({ words, tags }) => {
-            for (let i = 0; i < tags.length; i += FEED_GROUP_SIZE) {
-                const g = tags.slice(i, i + FEED_GROUP_SIZE);
-                g.words = words;
-                groups.push(g);
-            }
-        });
+        for (let i = 0; i < d.artists.length; i += FEED_GROUP_SIZE) groups.push(d.artists.slice(i, i + FEED_GROUP_SIZE).map(a => a.tag));
         return groups;
     }
-
-    function filterWords(d) {
-        const f = (d || getFollowing()).filter, out = [];
-        if (f.score) out.push('score:>=' + f.score);
-        if (f.type && TYPE_FILTER_TERMS[f.type]) out.push(...TYPE_FILTER_TERMS[f.type]);
-        if (f.rating) out.push(f.rating);
-        return out;
-    }
-    // One artist's filter: the shared one, everything, or its own minimum score
-    function artistFilterWords(a, d) {
-        if (!a || !a.filter) return filterWords(d);
-        if (a.filter === 'all') return [];
-        return /^\d+$/.test(a.filter) ? ['score:>=' + a.filter] : filterWords(d);
-    }
-    function groupQuery(tags, d) {
+    function groupQuery(tags) {
         if (!tags || !tags.length) return '';
-        return [tags.length === 1 ? tags[0] : '( ' + tags.join(' ~ ') + ' )'].concat(tags.words || filterWords(d)).join(' ');
+        return tags.length === 1 ? tags[0] : '( ' + tags.join(' ~ ') + ' )';
     }
 
-    // Feed addresses: one artist, or all of them (group i)
-    function artistFeedUrl(tag, d) {
-        d = d || getFollowing();
-        return 'index.php?page=post&s=list&tags=' + encodeURIComponent([tag].concat(artistFilterWords(findArtist(tag, d), d)).join(' ')) +
-               '#s34-following=' + encodeURIComponent(tag);
-    }
-    function allFeedUrl(i = 0, d) {
-        d = d || getFollowing();
-        return 'index.php?page=post&s=list&tags=' + encodeURIComponent(groupQuery(followGroups(d)[i], d)) +
-               '#s34-following' + (i ? '-' + i : '');
-    }
-
-    // Which feed an address is (null = none). A function, so the search
-    // code can use it while the page is still loading.
+    // The feed pages before Beta 3.6 (bookmarks, old links): which one an
+    // address is (null = none). An artist / all artists opens the Following
+    // window now; a followed search's page is simply that search.
+    // A function, so the search code can use it while the page is still loading.
     function feedFromHash(hash) {
         let m = /^#s34-following=(.+)$/.exec(hash || '');
         if (m) { try { return { kind: 'artist', tag: decodeURIComponent(m[1]).toLowerCase() }; } catch (e) { return null; } }
@@ -9308,47 +9605,11 @@
         m = /^#s34-following(?:-(\d+))?$/.exec(hash || '');
         return m ? { kind: 'all', group: parseInt(m[1], 10) || 0 } : null;
     }
-    function feedIndexFromHash(hash) { return feedFromHash(hash) ? 0 : -1; } // >= 0: some feed
-    function onFeedPage() { return !isPostView && !!feedFromHash(location.hash); }
-    // A followed search's page: a normal search otherwise (its words show in the box)
-    function onSearchFeed() { const f = !isPostView && feedFromHash(location.hash); return !!f && f.kind === 'search'; }
 
-    // ---- Searching on an artist / "All artists" page stays on that page ----
-    // The search box there only holds the filters and extra tags; the
-    // artist(s) stay in the address, so a filter narrows the page instead
-    // of starting a new search over everything.
-    function onArtistFeed() { return onFeedPage() && !onSearchFeed(); }
-    function feedQueryNow() { return (new URLSearchParams(location.search).get('tags') || '').trim(); }
-    // What the page shows without any narrowing (null: not an artist page)
-    function feedDefaultQuery(d) {
-        const feed = onArtistFeed() ? feedFromHash(location.hash) : null;
-        if (!feed) return null;
+    // "11+ new" over all followed artists
+    function followTotals(d) {
         d = d || getFollowing();
-        if (feed.kind === 'artist') return [feed.tag].concat(artistFilterWords(findArtist(feed.tag, d), d)).join(' ');
-        return groupQuery(followGroups(d)[feed.group] || [], d);
-    }
-    function feedNarrowed(d) {
-        const def = feedDefaultQuery(d);
-        return def !== null && normalizeQuery(def) !== normalizeQuery(feedQueryNow());
-    }
-    // The page's own words (the artist or artists) - what the box leaves out
-    function feedBaseTerms() { return onArtistFeed() ? parseQuery(feedQueryNow()).terms : null; }
-    // Run q (tags + filters from the box) inside this page. false: not an artist page.
-    function searchInFeed(q) {
-        const base = feedBaseTerms();
-        if (!base) return false;
-        const have = new Set(base.map(t => t.toLowerCase()));
-        const extra = String(q || '').split(/\s+/).filter(w => w && !have.has(w.toLowerCase()));
-        const next = base.concat(extra).join(' ');
-        if (normalizeQuery(next) === normalizeQuery(feedQueryNow())) { showToast('This page already shows that.'); return true; }
-        location.href = location.pathname + '?page=post&s=list&tags=' + encodeURIComponent(next) + location.hash;
-        return true;
-    }
-
-    // includeSearches: everything (Manage window) - otherwise artists only ("All artists")
-    function followTotals(d, includeSearches) {
-        d = d || getFollowing();
-        const list = includeSearches ? d.artists.concat(d.searches) : d.artists;
+        const list = d.artists;
         const n = list.reduce((s, a) => s + (a.count || 0), 0);
         return { n, text: n ? n + (list.some(a => a.more) ? '+' : '') + ' new' : '' };
     }
@@ -9435,7 +9696,7 @@
             d.artists.push({ tag, added: Date.now(), seen: 0, latest: 0, count: 0, more: false });
             d.checkedAt = 0;
             saveFollowing(d);
-            showToast('Following ' + prettyTag(tag) + ' – their new posts show up in the sidebar.', 'Open', () => { location.href = artistFeedUrl(tag); });
+            showToast('Following ' + prettyTag(tag) + ' – their new posts show up in the sidebar.', 'Show posts', () => openFollowPopup(fwKeyArtist(tag)));
         }
         refreshFollowUi();
         return was < 0;
@@ -9471,8 +9732,7 @@
         renderFollowBox(d);
         const win = document.querySelector('.s34-follow-win');
         if (win && win._s34Render) win._s34Render();
-        const sb = document.querySelector('.s34-sb-follow'); // bell under the search box
-        if (sb && sb._s34Refresh) sb._s34Refresh();
+        fwRefresh(); // the Following window, if open
     }
 
     // Single post page: the bell in the artist rows
@@ -9498,17 +9758,18 @@
         if (!anchor) return;
         const box = document.createElement('div');
         box.className = 's34-follow-box';
+        // A row opens the Following window there (Ctrl / middle click: the
+        // normal search in a new tab - the rows are real links to it)
         box.addEventListener('click', e => {
-            const s = e.target.closest('[data-fs]');
-            if (s) { e.preventDefault(); location.href = searchFeedUrl(s.dataset.fs); return; }
+            if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
             const t = e.target.closest('[data-fb]');
             if (!t) return;
             e.preventDefault();
             const what = t.dataset.fb;
             if (what === 'manage') openFollowingWindow();
             else if (what === 'more') { followBoxAll = !followBoxAll; renderFollowBox(); }
-            else if (what === 'all') location.href = allFeedUrl(0);
-            else location.href = artistFeedUrl(what);
+            else if (what === 'all') openFollowPopup(FW_ALL);
+            else openFollowPopup(fwKeyArtist(what));
         });
         anchor.before(box);
         renderFollowBox();
@@ -9564,35 +9825,28 @@
         updateTabBadge(d);
         const box = document.querySelector('.s34-follow-box');
         if (!box) return;
-        const feed = onFeedPage() ? feedFromHash(location.hash) : null;
+        const open = fwState ? fwState.key : ''; // what the Following window shows
         const head = `<div class="s34-follow-head">${BELL_SVG}<b>Following</b><a href="#" data-fb="manage">Manage</a></div>`;
-        if (!d.artists.length && !d.searches.length) {
-            box.innerHTML = head + `<div class="s34-follow-none">Follow an artist with the ${BELL_TEXT} next to their name in a post – or a whole search with the ${BELL_TEXT} under the search box. Their new posts show up here.</div>`;
+        if (!d.artists.length) {
+            box.innerHTML = head + `<div class="s34-follow-none">Follow an artist with the ${BELL_TEXT} next to their name in a post. Their new posts show up here.</div>`;
             return;
         }
-        // Everything with something new first, then the rest in the order you
-        // followed it (artists, then searches)
-        const items = d.artists.map(a => ({ a, artist: true })).concat(d.searches.map(s => ({ a: s, artist: false })));
+        // Artists with something new first, then the rest in the order you followed them
+        const items = d.artists.map(a => ({ a }));
         const order = items.map((x, i) => [x, i]).sort((x, y) => (y[0].a.count || 0) - (x[0].a.count || 0) || x[1] - y[1]).map(x => x[0]);
         const shown = followBoxAll ? order : order.slice(0, FOLLOW_BOX_ROWS);
         const tot = followTotals(d);
         const badgeHtml = badge => badge ? `<small class="s34-has-new">${badge}</small>` : '';
-        const row = (key, label, badge, cls, on) =>
-            `<a href="#" class="s34-follow-row ${cls}${on ? ' s34-on' : ''}" data-fb="${escapeHtml(key)}"><span>${label}</span>${badgeHtml(badge)}</a>`;
-        const searchRow = (s, on) =>
-            `<a href="#" class="s34-follow-row s34-follow-srow${on ? ' s34-on' : ''}" data-fs="${escapeHtml(s.query)}" title="Search: ${escapeHtml(s.query)}">${SEARCH_ICON}<span>${escapeHtml(searchLabel(s))}</span>${badgeHtml(newText(s))}</a>`;
-        const onSearch = s => feed && feed.kind === 'search' && normalizeQuery(feed.query) === normalizeQuery(s.query);
+        const row = (key, label, badge, cls, href) =>
+            `<a href="${escapeHtml(href)}" class="s34-follow-row ${cls}${open === (key === 'all' ? FW_ALL : fwKeyArtist(key)) ? ' s34-on' : ''}" data-fb="${escapeHtml(key)}"><span>${label}</span>${badgeHtml(badge)}</a>`;
         box.innerHTML = head +
-            (d.artists.length > 1 ? row('all', 'All artists', tot.text, 's34-follow-allrow', feed && feed.kind === 'all') : '') +
-            shown.map(x => x.artist
-                ? row(x.a.tag, escapeHtml(prettyTag(x.a.tag)), newText(x.a), '', feed && feed.kind === 'artist' && feed.tag === x.a.tag)
-                : searchRow(x.a, onSearch(x.a))).join('') +
+            (d.artists.length > 1 ? row('all', 'All artists', tot.text, 's34-follow-allrow', plainSearchUrl(groupQuery(followGroups(d)[0]))) : '') +
+            shown.map(x => row(x.a.tag, escapeHtml(prettyTag(x.a.tag)), newText(x.a), '', plainSearchUrl(x.a.tag))).join('') +
             (order.length > FOLLOW_BOX_ROWS ? `<a href="#" class="s34-follow-more" data-fb="more">${followBoxAll ? 'Show less' : 'Show all ' + order.length}</a>` : '');
     }
 
-    // ---- Feed pages: NEW marks + "seen" ----
+    // ---- A normal search for a followed artist: NEW marks + "seen" ----
     let feedSeenBefore = null;   // { artist: seen } before this visit (NEW on later pages too)
-    let feedSearchSeen = null;   // a followed search: the newest post seen before this visit
 
     function thumbArtists(thumb, tags) {
         const words = new Set((thumbTags(thumb.querySelector('img') || thumb) || '').trim().split(' '));
@@ -9601,13 +9855,12 @@
 
     function isFeedNew(thumb) {
         const id = parseInt(thumbPostId(thumb), 10);
-        if (feedSearchSeen !== null) return !!feedSearchSeen && id > feedSearchSeen;
         if (!feedSeenBefore) return false;
         return thumbArtists(thumb, Object.keys(feedSeenBefore)).some(t => feedSeenBefore[t] && id > feedSeenBefore[t]);
     }
 
     function markFeedNew(thumbs) {
-        if (!feedSeenBefore && feedSearchSeen === null) return;
+        if (!feedSeenBefore) return;
         (thumbs || allThumbs()).forEach(t => {
             if (isFeedNew(t) && !t.querySelector('.s34-new-badge')) {
                 const b = document.createElement('span');
@@ -9618,57 +9871,13 @@
         });
     }
 
-    // A feed page - or a normal search for a followed search / exactly one
-    // followed artist, which counts as a visit too
+    // A normal search for exactly one followed artist counts as a visit: NEW on what came out since last time, then the
+    // newest post there is "seen" (the Following window does the same)
     function currentFeed() {
-        if (isPostView) return null;
-        const f = feedFromHash(location.hash);
-        if (f) return f;
-        if (!onFirstResultsPage()) return null;
+        if (isPostView || !onFirstResultsPage()) return null;
         const q = tagsFromUrl(location.href);
-        if (findSearch(q)) return { kind: 'search', query: q, plain: true };
         const terms = parseQuery(q).terms.map(t => t.toLowerCase());
-        return terms.length === 1 && isFollowed(terms[0]) ? { kind: 'artist', tag: terms[0], plain: true } : null;
-    }
-
-    // A followed search's page: NEW on what came out since last time,
-    // then remember the newest post
-    function setupSearchFeed(feed, d, thumbs) {
-        const s = findSearch(feed.query, d);
-        if (!s) return;
-        feedSearchSeen = s.seen || 0;
-        const newCount = thumbs.filter(isFeedNew).length;
-        markFeedNew(thumbs);
-        if (onFirstResultsPage()) {
-            const max = pageMaxPostId();
-            if (max) { s.seen = Math.max(s.seen || 0, max); s.latest = Math.max(s.latest || 0, max); }
-            s.count = 0; s.more = false;
-            saveFollowing(d);
-        }
-        renderFollowBox(d);
-        if (newCount) showToast(`${newCount} new post${newCount === 1 ? '' : 's'} since your last visit (marked NEW).`);
-        if (feed.plain) return; // a normal search: no extra bar
-        document.documentElement.classList.add('s34-feed');
-        const list = document.querySelector('.image-list');
-        const where = (list && list.parentElement) || document.querySelector('.content, #content');
-        if (!where) return;
-        const bar = document.createElement('div');
-        bar.className = 's34-feed-bar';
-        where.prepend(bar);
-        bar.innerHTML = `<div class="s34-feed-head">${SEARCH_ICON}<b class="s34-feed-q"></b><span class="s34-feed-sub"></span></div>
-            <button type="button" class="s34-feed-btn" data-f="unfollow">${BELL_ON_SVG} Following</button>
-            <button type="button" class="s34-feed-btn" data-f="manage">Manage</button>`;
-        bar.querySelector('b').textContent = searchLabel(s);
-        bar.querySelector('.s34-feed-sub').textContent = '· ' + (newCount ? `${newCount} new since your last visit` : 'nothing new since your last visit');
-        bar.addEventListener('click', e => {
-            const b = e.target.closest('[data-f]');
-            if (!b) return;
-            if (b.dataset.f === 'manage') openFollowingWindow();
-            else {
-                const on = toggleFollowSearch(s.query);
-                b.innerHTML = on ? BELL_ON_SVG + ' Following' : BELL_SVG + ' Follow';
-            }
-        });
+        return terms.length === 1 && isFollowed(terms[0]) ? { kind: 'artist', tag: terms[0] } : null;
     }
 
     function setupFeedPage() {
@@ -9676,119 +9885,43 @@
         if (!feed) return;
         const d = getFollowing();
         const thumbs = allThumbs();
-        if (feed.kind === 'search') { setupSearchFeed(feed, d, thumbs); return; }
-        let tags = [];
-        if (feed.kind === 'artist') {
-            if (!isFollowed(feed.tag, d)) return;
-            tags = [feed.tag];
-        } else {
-            tags = followGroups(d)[feed.group] || [];
-        }
-        feedSeenBefore = {};
-        tags.forEach(t => { feedSeenBefore[t] = (findArtist(t, d) || {}).seen || 0; });
+        const max = pageMaxPostId();
+        const it = findArtist(feed.tag, d);
+        if (!it) return;
+        feedSeenBefore = { [feed.tag]: it.seen || 0 };
         const newCount = thumbs.filter(isFeedNew).length;
         markFeedNew(thumbs);
-        // Narrowed with a filter from the search box: only part of the new
-        // posts is on the page, so the "new" counts stay as they are
-        const narrowed = !feed.plain && feedNarrowed(d);
-
-        // Everyone on this page is now "seen" up to their newest post here
-        if (!narrowed) tags.forEach(t => {
-            const a = findArtist(t, d);
-            if (!a) return;
-            const ids = thumbs.filter(th => thumbArtists(th, [t]).length || feed.kind === 'artist')
-                .map(th => parseInt(thumbPostId(th), 10) || 0);
-            const max = ids.length ? Math.max(...ids) : 0;
-            if (max) { a.seen = Math.max(a.seen || 0, max); a.latest = Math.max(a.latest || 0, max); }
-            if (max || feed.kind === 'artist') { a.count = 0; a.more = false; }
-        });
+        if (max) { it.seen = Math.max(it.seen || 0, max); it.latest = Math.max(it.latest || 0, max); }
+        it.count = 0; it.more = false;
         saveFollowing(d);
         renderFollowBox(d);
-        if (feed.plain) {
-            if (newCount) showToast(`${newCount} new post${newCount === 1 ? '' : 's'} from ${prettyTag(feed.tag)} since your last visit (marked NEW).`);
-            return; // a normal search: no extra bar
-        }
-
-        document.documentElement.classList.add('s34-feed');
-        document.title = '🔔 ' +(feed.kind === 'artist' ? prettyTag(feed.tag) : 'Followed artists') + ' – ' + document.title;
-        const list = document.querySelector('.image-list');
-        const where = (list && list.parentElement) || document.querySelector('.content, #content');
-        if (!where) return;
-        const bar = document.createElement('div');
-        bar.className = 's34-feed-bar';
-        where.prepend(bar); // very top of the posts column (above "Page 1" and the ad space)
-
-        const sub = newCount ? `${newCount} new since your last visit` : 'nothing new since your last visit';
-        if (feed.kind === 'artist') {
-            bar.innerHTML = `<div class="s34-feed-head">${BELL_SVG}<b class="s34-feed-artist"></b><span class="s34-feed-sub"></span></div>
-                <button type="button" class="s34-feed-btn" data-f="unfollow">${BELL_ON_SVG} Following</button>
-                <button type="button" class="s34-feed-btn" data-f="manage">Manage</button>`;
-            bar.querySelector('b').textContent = prettyTag(feed.tag);
-        } else {
-            const groups = followGroups(d);
-            let from = 0; // groups can be shorter than 20 (artists with their own filter are separate)
-            const pills = groups.length > 1 ? `<div class="s34-feed-groups">${groups.map((g, i) => {
-                const a = from + 1;
-                from += g.length;
-                return `<a href="${allFeedUrl(i, d)}" class="${i === feed.group ? 's34-on' : ''}" title="${escapeHtml(g.join(', '))}">${a}–${from}</a>`;
-            }).join('')}</div>` : '';
-            bar.innerHTML = `<div class="s34-feed-head">${BELL_SVG}<b>All followed artists</b><span class="s34-feed-sub"></span></div>
-                ${pills}<div class="s34-feed-tags"></div>
-                <button type="button" class="s34-feed-btn" data-f="manage">Manage</button>`;
-            const box = bar.querySelector('.s34-feed-tags');
-            tags.forEach(t => {
-                const a = document.createElement('a');
-                a.className = 's34-feed-tag s34-feed-artist';
-                a.href = artistFeedUrl(t, d);
-                a.textContent = prettyTag(t);
-                box.appendChild(a);
-            });
-        }
-        bar.querySelector('.s34-feed-sub').textContent = '· ' + (narrowed ? 'filtered' : sub);
-        if (narrowed) {
-            // "Filtered" + a way back to everything this page normally shows
-            const reset = document.createElement('button');
-            reset.type = 'button';
-            reset.className = 's34-feed-btn s34-feed-reset';
-            reset.dataset.f = 'reset';
-            reset.textContent = '✕ Remove filters';
-            reset.title = 'Back to this page without the filters you picked in the search box';
-            bar.querySelector('[data-f="manage"]').before(reset);
-        }
-        bar.addEventListener('click', e => {
-            const b = e.target.closest('[data-f]');
-            if (!b) return;
-            if (b.dataset.f === 'reset') location.href = feed.kind === 'artist' ? artistFeedUrl(feed.tag, d) : allFeedUrl(feed.group, d);
-            else if (b.dataset.f === 'manage') openFollowingWindow();
-            else if (b.dataset.f === 'unfollow') {
-                const on = toggleFollow(feed.tag);
-                b.innerHTML = on ? BELL_ON_SVG + ' Following' : BELL_SVG + ' Follow';
-            }
-        });
-        if (newCount) showToast(`${newCount} new post${newCount === 1 ? '' : 's'} since your last visit (marked NEW).`);
-        setTimeout(() => showHint('feed', `Posts since your last visit are marked <b>NEW</b>. Your followed artists are in the sidebar, each with its own count – follow more with the ${BELL_TEXT} next to an artist in any post.`), 1500);
+        if (newCount) showToast(`${newCount} new post${newCount === 1 ? '' : 's'} from ${prettyTag(feed.tag)} since your last visit (marked NEW).`);
     }
 
     // ---- Background: count new posts per artist ----
+    // A post's thumbnail address, for the circles in the Following window
+    function thumbPicOf(thumb) {
+        const img = thumb && thumb.querySelector('img');
+        const src = img && (img.getAttribute('src') || img.dataset.s34Src || '');
+        try { return src ? new URL(src, location.href).href : ''; } catch (e) { return ''; }
+    }
     let followCheckRunning = false;
     async function checkFollowing(force) {
         if (!CONFIG.checkFollowing || followCheckRunning) return;
         let d = getFollowing();
         const groups = followGroups(d);
-        const searches = d.searches.map(s => s.query);
-        if ((!groups.length && !searches.length) || (!force && Date.now() - d.checkedAt < FOLLOW_CHECK_EVERY)) return;
+        if (!groups.length || (!force && Date.now() - d.checkedAt < FOLLOW_CHECK_EVERY)) return;
         followCheckRunning = true;
         try {
-            let stopped = false;
             for (let i = 0; i < groups.length; i++) {
-                if (cloudflarePaused()) { stopped = true; break; }
+                if (cloudflarePaused()) break;
                 let html, status;
                 try {
                     // (in the shared line; on its own it waits until you're not clicking around)
-                    const r = await loadPage('index.php?page=post&s=list&tags=' + encodeURIComponent(groupQuery(groups[i], d)), force ? 'followNow' : 'follow');
+                    const r = await loadPage(plainSearchUrl(groupQuery(groups[i])), force ? 'followNow' : 'follow');
                     status = r.status;
                     html = r.html;
-                } catch (e) { if (e.cloudflare || e.paused) { stopped = true; break; } continue; }
+                } catch (e) { if (e.cloudflare || e.paused) break; continue; }
                 if (status < 200 || status >= 300) continue;
                 const doc = new DOMParser().parseFromString(html, 'text/html');
                 const posts = Array.from(doc.querySelectorAll('span.thumb')).map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, thumb: t }));
@@ -9797,45 +9930,24 @@
                 groups[i].forEach(tag => {
                     const a = findArtist(tag, d);
                     if (!a) return;
-                    const theirs = posts.filter(p => thumbArtists(p.thumb, [tag]).length).map(p => p.id);
-                    const max = theirs.length ? Math.max(...theirs) : 0;
+                    const theirs = posts.filter(p => thumbArtists(p.thumb, [tag]).length);
+                    const ids = theirs.map(p => p.id);
+                    const max = ids.length ? Math.max(...ids) : 0;
                     if (!a.seen) {
                         // First look: "new" starts after what's there now
                         a.seen = max || pageMax;
                         a.count = 0;
                     } else {
-                        a.count = theirs.filter(id => id > a.seen).length;
+                        a.count = ids.filter(id => id > a.seen).length;
                     }
-                    a.more = a.count > 0 && a.count === theirs.length && posts.length >= 40;
+                    a.more = a.count > 0 && a.count === ids.length && posts.length >= 40;
                     a.latest = Math.max(a.latest || 0, max);
+                    if (theirs.length) a.pic = thumbPicOf(theirs[0].thumb) || a.pic; // newest first
                 });
                 saveFollowing(d);
                 renderFollowBox(d);
-                if (i < groups.length - 1 || searches.length) await pause(1500);
-            }
-            // Followed searches: one request each
-            for (let i = 0; i < searches.length && !stopped; i++) {
-                if (cloudflarePaused()) break;
-                let html, status;
-                try {
-                    const r = await loadPage('index.php?page=post&s=list&tags=' + encodeURIComponent(searches[i]), force ? 'followNow' : 'follow');
-                    status = r.status;
-                    html = r.html;
-                } catch (e) { if (e.cloudflare || e.paused) break; continue; }
-                if (status < 200 || status >= 300) continue;
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const ids = Array.from(doc.querySelectorAll('span.thumb')).map(t => parseInt(thumbPostId(t), 10) || 0);
-                const pageMax = ids.reduce((m, x) => Math.max(m, x), 0);
-                d = getFollowing();
-                const s = findSearch(searches[i], d);
-                if (!s) continue;
-                if (!s.seen) { s.seen = pageMax; s.count = 0; }  // first look: "new" starts after what's there now
-                else s.count = ids.filter(id => id > s.seen).length;
-                s.more = s.count > 0 && s.count === ids.length && ids.length >= 40;
-                s.latest = Math.max(s.latest || 0, pageMax);
-                saveFollowing(d);
-                renderFollowBox(d);
-                if (i < searches.length - 1) await pause(1500);
+                fwRefresh();
+                if (i < groups.length - 1) await pause(1500);
             }
             d = getFollowing();
             d.checkedAt = Date.now();
@@ -9847,34 +9959,26 @@
 
     function markAllFollowingSeen() {
         const d = getFollowing();
-        d.artists.concat(d.searches).forEach(a => { a.seen = Math.max(a.seen || 0, a.latest || 0); a.count = 0; a.more = false; });
+        d.artists.forEach(a => { a.seen = Math.max(a.seen || 0, a.latest || 0); a.count = 0; a.more = false; });
         saveFollowing(d);
         refreshFollowUi();
     }
 
-    // ---- Manage window ----
+    // ---- Manage window: follow by name, unfollow, check, clear counts ----
+    // (the filters of Beta 3.4 are gone: followed artists are always newest first)
     function openFollowingWindow() {
         if (document.querySelector('.s34-follow-win')) return;
         const w = openWindow({ cls: 's34-follow-win', icon: BELL_SVG, title: 'Following', width: 540 });
-        const FILTERS = [
-            ['score', 'Score', [['', 'Any'], ['10', '≥ 10'], ['50', '≥ 50'], ['100', '≥ 100'], ['500', '≥ 500']]],
-            ['type', 'Type', [['', 'All'], ['image', 'Pictures'], ['animated', 'GIFs'], ['video', 'Videos']]],
-            ['rating', 'Rating', [['', 'Any'], ['rating:safe', 'Safe'], ['rating:questionable', 'Questionable'], ['rating:explicit', 'Explicit'], ['-rating:explicit', 'Not explicit']]]
-        ];
         w.body.innerHTML = `
             <div class="s34-follow-addrow">
                 <input type="text" class="s34-follow-input" placeholder="Follow an artist by name, e.g. someartist" autocomplete="off" spellcheck="false">
                 <button type="button" class="s34-follow-addbtn">${BELL_SVG} Follow</button>
             </div>
             <div class="s34-follow-list"></div>
-            <div class="s34-follow-filter">
-                <div class="s34-follow-label">Shared artist filter <span>– for every followed artist set to "Shared filter" (each artist above can also have its own); followed searches and normal searches stay as they are</span></div>
-                <div class="s34-follow-filters">${FILTERS.map(([k, label, opts]) => `<label><span>${label}</span><select data-k="${k}">${opts.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>`).join('')}</div>
-            </div>
             <div class="s34-follow-foot">
                 <button type="button" class="s34-follow-act" data-a="seen" title="Removes the &quot;N new&quot; counts in the sidebar without opening every artist">Clear new counts</button>
                 <button type="button" class="s34-follow-act" data-a="check">Check now</button>
-                <button type="button" class="s34-follow-act s34-follow-primary" data-a="open">${BELL_SVG} All artists</button>
+                <button type="button" class="s34-follow-act s34-follow-primary" data-a="open">${BELL_SVG} Show posts</button>
             </div>`;
 
         const listEl = w.body.querySelector('.s34-follow-list');
@@ -9882,26 +9986,32 @@
         function render() {
             const d = getFollowing();
             const tot = followTotals(d, true);
-            const nA = d.artists.length, nS = d.searches.length;
+            const nA = d.artists.length;
             const parts = [];
             if (nA) parts.push(`${nA} artist${nA === 1 ? '' : 's'}`);
-            if (nS) parts.push(`${nS} search${nS === 1 ? '' : 'es'}`);
             w.setSub(parts.length ? parts.join(' · ') + (tot.n ? ` · ${tot.text}` : '') +
                 (d.checkedAt ? ` · checked ${timeAgo(d.checkedAt)}` : '') : 'Nothing followed yet');
             listEl.replaceChildren();
-            if (!nA && !nS) {
+            if (!nA) {
                 const empty = document.createElement('div');
                 empty.className = 's34-follow-empty';
-                empty.innerHTML = `Follow an artist with the ${BELL_TEXT} next to their name in a post (popup or post page) – or type their name above. To follow a whole search (e.g. a character with a score filter), search for it and click the ${BELL_TEXT} under the search box. Everything you follow shows up in the sidebar, with a count of its new posts.`;
+                empty.innerHTML = `Follow an artist with the ${BELL_TEXT} next to their name in a post (popup or post page) – or type their name above. Everyone you follow shows up in the sidebar, with a count of their new posts.`;
                 listEl.appendChild(empty);
             }
-            const chip = (cls, label, href, title, item, onRemove) => {
+            // A chip: the name opens its posts in the Following window
+            const chip = (cls, label, key, href, title, item, onRemove) => {
                 const c = document.createElement('span');
                 c.className = 's34-follow-chip ' + cls;
                 const link = document.createElement('a');
                 link.href = href;
                 link.textContent = label;
                 link.title = title;
+                link.addEventListener('click', e => {
+                    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return; // new tab: the normal search
+                    e.preventDefault();
+                    w.close();
+                    openFollowPopup(key);
+                });
                 c.appendChild(link);
                 if (item.count) {
                     const n = document.createElement('small');
@@ -9917,46 +10027,16 @@
                 c.appendChild(x);
                 return c;
             };
-            const group = (title, chips) => {
+            const group = chips => {
                 if (!chips.length) return;
-                if (nA && nS) {
-                    const h = document.createElement('div');
-                    h.className = 's34-follow-group';
-                    h.textContent = title;
-                    listEl.appendChild(h);
-                }
                 const wrap = document.createElement('div');
                 wrap.className = 's34-follow-chips';
                 chips.forEach(c => wrap.appendChild(c));
                 listEl.appendChild(wrap);
             };
-            group('Artists', d.artists.map(a => {
-                const c = chip('s34-feed-artist', prettyTag(a.tag), artistFeedUrl(a.tag, d), 'Show ' + prettyTag(a.tag), a, () => toggleFollow(a.tag));
-                // This artist's own filter (or the shared one)
-                const sel = document.createElement('select');
-                sel.className = 's34-follow-afilter';
-                sel.title = 'Filter for ' + prettyTag(a.tag);
-                [['', 'Shared filter'], ['all', 'Everything'], ['10', 'Score ≥ 10'], ['50', 'Score ≥ 50'], ['100', 'Score ≥ 100'], ['500', 'Score ≥ 500']]
-                    .forEach(([v, t]) => sel.add(new Option(t, v)));
-                sel.value = a.filter || '';
-                sel.addEventListener('change', () => {
-                    const fresh = getFollowing();
-                    const art = findArtist(a.tag, fresh);
-                    if (!art) return;
-                    art.filter = sel.value;
-                    fresh.checkedAt = 0; // counts follow the new filter at the next check
-                    saveFollowing(fresh);
-                    showToast(prettyTag(a.tag) + ': ' + sel.selectedOptions[0].textContent.toLowerCase() + '.');
-                    refreshFollowUi();
-                });
-                c.insertBefore(sel, c.querySelector('button'));
-                return c;
-            }));
-            group('Searches', d.searches.map(s => chip('s34-follow-schip', searchLabel(s), searchFeedUrl(s.query), 'Search: ' + s.query, s, () => toggleFollowSearch(s.query))));
-            w.body.querySelectorAll('.s34-follow-filters select').forEach(s => { s.value = d.filter[s.dataset.k] || ''; });
-            w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA && !nS; });
-            w.body.querySelector('.s34-follow-filter').hidden = !nA; // the filter is for artists
-            w.body.querySelector('[data-a="open"]').hidden = nA < 2;
+            group(d.artists.map(a => chip('s34-feed-artist', prettyTag(a.tag), fwKeyArtist(a.tag), plainSearchUrl(a.tag), 'Show ' + prettyTag(a.tag) + '\'s newest posts', a, () => toggleFollow(a.tag))));
+            w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA; });
+            w.body.querySelector('[data-a="open"]').hidden = !nA;
             w.body.querySelector('[data-a="seen"]').hidden = !tot.n; // only when there is something new
         }
         w.overlay._s34Render = render;
@@ -9970,17 +10050,10 @@
         }
         w.body.querySelector('.s34-follow-addbtn').addEventListener('click', addTyped);
         input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } });
-        w.body.querySelectorAll('.s34-follow-filters select').forEach(s => s.addEventListener('change', () => {
-            const d = getFollowing();
-            d.filter[s.dataset.k] = s.value;
-            d.checkedAt = 0; // counts follow the new filter at the next check
-            saveFollowing(d);
-            showToast('Filter saved – it applies to your followed artists.');
-        }));
         w.body.querySelector('.s34-follow-foot').addEventListener('click', async e => {
             const b = e.target.closest('[data-a]');
             if (!b || b.disabled) return;
-            if (b.dataset.a === 'open') { w.close(); location.href = allFeedUrl(0); }
+            if (b.dataset.a === 'open') { w.close(); openFollowPopup(); }
             else if (b.dataset.a === 'seen') { markAllFollowingSeen(); showToast('New counts cleared – only posts from now on count as new.'); }
             else if (b.dataset.a === 'check') {
                 b.disabled = true;
@@ -9995,7 +10068,7 @@
         });
         render();
         const d0 = getFollowing();
-        if (!d0.artists.length && !d0.searches.length) input.focus({ preventScroll: true });
+        if (!d0.artists.length) input.focus({ preventScroll: true });
     }
     // =====================================================================
     //  CENSORED MODE (was "screenshot mode" until Beta 3.4)
@@ -10044,7 +10117,7 @@
             const t = e.target;
             if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
             if (document.querySelector('.s34-overlay:not(.s34-pv-overlay)')) return; // settings etc. open
-            if ([CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey].includes('KeyX')) return; // your own key wins
+            if ([CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey, CONFIG.followingKey].includes('KeyX')) return; // your own key wins
             e.preventDefault();
             setScreenshotMode(!sfwOn());
         }, true);
@@ -10119,7 +10192,7 @@
         let manager = '?';
         try { if (typeof GM_info !== 'undefined') manager = (GM_info.scriptHandler || 'userscript manager') + ' ' + (GM_info.version || ''); } catch (e) {}
         lines.push('Steamy34 ' + CURRENT_VERSION + ' · ' + browserName() + ' · ' + systemName() + ' · ' + manager.trim());
-        const page = isPostView ? 'single post' : onFeedPage() ? 'Following page' : (params.get('page') === 'post' ? 'posts page' : (params.get('page') || 'start page'));
+        const page = isPostView ? 'single post' : fwState ? 'Following window' : (params.get('page') === 'post' ? 'posts page' : (params.get('page') || 'start page'));
         lines.push('Page: ' + page + ' · ' + (isPhoneLayout() ? 'phone layout' : 'computer layout') + ' · window ' + innerWidth + '×' + innerHeight +
                    (NO_HOVER ? ' · touch' : '') + (sfwOn() ? ' · censored mode on' : ''));
         // Settings that differ from the defaults (no folder names or texts)
@@ -10129,7 +10202,7 @@
         let f = { artists: [], searches: [] };
         try { f = getFollowing(); } catch (e) {}
         const count = o => { try { return Object.keys(o || {}).length; } catch (e) { return '?'; } };
-        lines.push('Data: following ' + f.artists.length + ' artists / ' + f.searches.length + ' searches · viewed ' + count(loadViewed()) +
+        lines.push('Data: following ' + f.artists.length + ' artists · viewed ' + count(loadViewed()) +
                    ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length);
         const site = siteShapeProblems();
         lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));
@@ -10386,7 +10459,7 @@
         });
     }
 
-    // ---- Helpers for followed searches (20c-following.js) ----
+    // ---- Helpers for searches (Recent, Continue, Following visits) ----
     function normalizeQuery(q) {
         return String(q || '').toLowerCase().split(/\s+/).filter(Boolean).sort().join(' ');
     }
@@ -10404,11 +10477,6 @@
         return !isPostView && !(parseInt(params.get('pid') || '0', 10) > 0);
     }
 
-    // Saving a search while looking at its results: start counting from here
-    function seenIdForQuery(q) {
-        if (!onFirstResultsPage()) return 0;
-        return normalizeQuery(tagsFromUrl(location.href)) === normalizeQuery(q) ? pageMaxPostId() : 0;
-    }
 
 
 
@@ -11015,28 +11083,22 @@
             // Restore the real "blacklisted on" dates (writeBlocklist just stamped them "now")
             GM_setValue(BL_TIMES_KEY, Object.assign(getBlTimes(), obj(d.blacklistDates)));
 
-            // Following: add the artists and searches you don't follow yet (filter
-            // only if you have none). Older backups: "saved" searches -> followed searches
+            // Following: add the artists you don't follow yet. Searches from older
+            // backups (followed searches, "saved" searches) go into Recent - since
+            // Beta 3.6 only artists are followed
             const inArtists = d.following && (Array.isArray(d.following.artists) ? d.following.artists
                 : Array.isArray(d.following.tags) ? d.following.tags.filter(t => t && (!t.type || t.type === 'artist')) : null);
-            const inSearches = arr(d.following && d.following.searches)
-                .concat(arr(d.saved).map(s => s && { query: s.query, name: s.name, seen: s.seenId || 0 }));
-            if (inArtists || inSearches.length) {
+            if (inArtists) {
                 const fol = getFollowing();
-                (inArtists || []).forEach(t => {
+                inArtists.forEach(t => {
                     if (t && typeof t.tag === 'string' && t.tag && !isFollowed(t.tag, fol)) {
-                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false, filter: typeof t.filter === 'string' ? t.filter : '' });
+                        fol.artists.push({ tag: t.tag.toLowerCase(), added: t.added || Date.now(), seen: 0, latest: 0, count: 0, more: false });
                     }
                 });
-                inSearches.forEach(s => {
-                    if (s && typeof s.query === 'string' && s.query && !findSearch(s.query, fol)) {
-                        fol.searches.push({ query: s.query, name: s.name || s.query, added: s.added || Date.now(), seen: s.seen || 0, latest: s.seen || 0, count: 0, more: false });
-                    }
-                });
-                if (d.following && !fol.filter.score && !fol.filter.type && !fol.filter.rating && d.following.filter) fol.filter = Object.assign(fol.filter, obj(d.following.filter));
                 saveFollowing(fol);
             }
-
+            arr(d.following && d.following.searches).concat(arr(d.saved))
+                .map(s => s && typeof s.query === 'string' ? s.query : '').filter(Boolean).reverse().forEach(addToHistory);
             reloadWithMessage('Backup imported – your settings, searches, collections and marks are back.');
         });
         input.click();
@@ -11046,7 +11108,7 @@
     // [key, label, what it is, empty value]
     const STORED_DATA = [
         ['steamy34_settings', 'Settings', 'Your choices in this menu and the sidebar switches', {}],
-        ['steamy34_following', 'Following', 'Artists and searches you follow, the artist filter, and the newest post you\'ve seen from each', {}],
+        ['steamy34_following', 'Following', 'Artists you follow, and the newest post you\'ve seen from each', {}],
         ['steamy34_history', 'Recent searches', 'Your last searches', []],
         ['steamy34_resume', 'Where you left off', 'The page you were on per search, for "Continue at page N" (kept 24 hours)', {}],
         ['steamy34_favtags', 'Favourite tags', 'Tags in the ★ Favourite tags area', []],
@@ -11070,7 +11132,7 @@
         ['steamy34_blsort', null, null, null]
     ];
     // Everything that's shown together as "Small preferences"
-    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
+    const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_fw_big', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
         'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen'];
 
     function storedCount(v) {
@@ -11257,6 +11319,10 @@
                 // the site's own scripts - useless (and unclickable) here
                 if (el.id === 'resized_notice' || el.closest('#resized_notice') ||
                     /has been resized/i.test(el.textContent)) return false;
+                // "< previous · Tag search: … · next >" is the site's own
+                // browsing bar (same class), not a notice about the post
+                if (el.id === 'navlinksContainer' || el.closest('#navlinksContainer') ||
+                    el.querySelector('#prev_search_link, #next_search_link')) return false;
                 return el.textContent.trim().length > 0;
             })
             .map(cleanNotice)
@@ -11456,14 +11522,21 @@
                     .join('\n').replace(date, '').trim();
             }
             return {
+                id: b.id || '',
                 user: userA ? userA.textContent.trim() : 'Anonymous',
                 userUrl: userA ? absUrl(userA.getAttribute('href')) : '',
                 date, score, body
             };
         }).filter(c => c.body);
-        console.log('[Steamy34] Comments:', comments.length,
+        // rule34 shows 10 comments a page: "17 comments" at the top, "Next »"
+        // (with a cursor) at the bottom - for the popup's "More comments"
+        const total = root ? parseInt((root.textContent.slice(0, 300).match(/^\s*(\d+)\s+comments?\b/i) || [])[1], 10) || 0 : 0;
+        const nextA = Array.from(doc.querySelectorAll('#post-comments #paginator a, #comment-list #paginator a, #paginator a[href*="cursor="]'))
+            .find(a => /cursor=/.test(a.getAttribute('href') || '') || /next/i.test(a.textContent));
+        const next = nextA ? absUrl(nextA.getAttribute('href')) : '';
+        console.log('[Steamy34] Comments:', comments.length + (total ? ' of ' + total : ''),
             root ? '(from #' + (root.id || root.className) + ')' : '(no comment list on the page)');
-        return { comments, found: !!root || comments.length > 0 };
+        return { comments, found: !!root || comments.length > 0, total, next };
     }
 
     // Plain text with clickable web links
@@ -11518,7 +11591,7 @@
         sec.appendChild(head);
 
         const list = result ? result.comments : [];
-        count.textContent = result ? String(list.length) : '…';
+        count.textContent = result ? String(Math.max(list.length, result.total || 0)) : '…';
         count.hidden = !result;
 
         if (!result) {
@@ -11540,44 +11613,78 @@
 
         const wrap = document.createElement('div');
         wrap.className = 's34-cm-list';
-        list.forEach(c => {
-            const art = document.createElement('article');
-            art.className = 's34-cm';
-            const av = document.createElement('div');
-            av.className = 's34-cm-avatar';
-            av.textContent = (c.user || '?').charAt(0).toUpperCase();
-            av.style.setProperty('background-color', avatarColor(c.user || '?'), 'important');
-            const main = document.createElement('div');
-            main.className = 's34-cm-main';
-            const meta = document.createElement('div');
-            meta.className = 's34-cm-meta';
-            const user = document.createElement(c.userUrl ? 'a' : 'span');
-            user.className = 's34-cm-user';
-            user.textContent = c.user;
-            if (c.userUrl) { user.href = c.userUrl; user.target = '_blank'; user.rel = 'noopener'; }
-            meta.appendChild(user);
-            if (c.date) {
-                const d = document.createElement('span');
-                d.className = 's34-cm-date';
-                const ms = Date.parse(c.date.replace(' ', 'T'));
-                d.textContent = isNaN(ms) ? c.date : timeAgo(ms);
-                d.title = c.date;
-                meta.appendChild(d);
-            }
-            if (c.score != null && c.score !== '0') {
-                const s = document.createElement('span');
-                s.className = 's34-cm-score';
-                s.textContent = '▲ ' + c.score;
-                meta.appendChild(s);
-            }
-            const text = document.createElement('div');
-            text.className = 's34-cm-text';
-            linkifyInto(text, c.body);
-            main.append(meta, text);
-            art.append(av, main);
-            wrap.appendChild(art);
-        });
+        list.forEach(c => wrap.appendChild(commentElement(c)));
         sec.appendChild(wrap);
+        addMoreCommentsButton(state, sec, wrap, result);
+    }
+
+    // "More comments (7 more)": the next 10 from the site, through the shared
+    // page line (Beta 3.5.1 - before, the popup showed only the first 10)
+    function addMoreCommentsButton(state, sec, wrap, result) {
+        if (!result.next) return;
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 's34-cm-more';
+        const left = (result.total || 0) - wrap.children.length;
+        const label = left > 0 ? `More comments (${left} more)` : 'More comments';
+        more.textContent = label;
+        more.addEventListener('click', async () => {
+            more.disabled = true;
+            more.textContent = 'Loading…';
+            try {
+                const page = await loadPage(result.next, 'popup');
+                if (!popupState || popupState.id !== state.id) return;
+                const r = readComments(new DOMParser().parseFromString(page.html, 'text/html'));
+                const have = new Set(Array.from(wrap.children).map(el => el.dataset.cid).filter(Boolean));
+                r.comments.filter(c => !c.id || !have.has(c.id)).forEach(c => wrap.appendChild(commentElement(c)));
+                more.remove();
+                addMoreCommentsButton(state, sec, wrap, { next: r.next, total: result.total });
+            } catch (e) {
+                more.disabled = false;
+                more.textContent = e && e.cloudflare ? 'Solve the quick check, then try again' : 'Couldn\'t load – try again';
+            }
+        });
+        sec.appendChild(more);
+    }
+
+    // One comment: round initial, name, "3 days ago", ▲ score, the text
+    function commentElement(c) {
+        const art = document.createElement('article');
+        art.className = 's34-cm';
+        if (c.id) art.dataset.cid = c.id;
+        const av = document.createElement('div');
+        av.className = 's34-cm-avatar';
+        av.textContent = (c.user || '?').charAt(0).toUpperCase();
+        av.style.setProperty('background-color', avatarColor(c.user || '?'), 'important');
+        const main = document.createElement('div');
+        main.className = 's34-cm-main';
+        const meta = document.createElement('div');
+        meta.className = 's34-cm-meta';
+        const user = document.createElement(c.userUrl ? 'a' : 'span');
+        user.className = 's34-cm-user';
+        user.textContent = c.user;
+        if (c.userUrl) { user.href = c.userUrl; user.target = '_blank'; user.rel = 'noopener'; }
+        meta.appendChild(user);
+        if (c.date) {
+            const d = document.createElement('span');
+            d.className = 's34-cm-date';
+            const ms = Date.parse(c.date.replace(' ', 'T'));
+            d.textContent = isNaN(ms) ? c.date : timeAgo(ms);
+            d.title = c.date;
+            meta.appendChild(d);
+        }
+        if (c.score != null && c.score !== '0') {
+            const s = document.createElement('span');
+            s.className = 's34-cm-score';
+            s.textContent = '▲ ' + c.score;
+            meta.appendChild(s);
+        }
+        const text = document.createElement('div');
+        text.className = 's34-cm-text';
+        linkifyInto(text, c.body);
+        main.append(meta, text);
+        art.append(av, main);
+        return art;
     }
 
     // ---- Popup: auto next post (slideshow) ----
@@ -11645,7 +11752,9 @@
             let i = list.indexOf(popupState.thumb);
             if (!list[i + 1]) {
                 // End of what's loaded: let infinite scroll fetch the next page
-                window.scrollTo(0, document.documentElement.scrollHeight);
+                // (from the Following window: its grid loads more)
+                if (popupState.list) popupState.list.more();
+                else window.scrollTo(0, document.documentElement.scrollHeight);
                 await pause(2500);
                 if (!popupState || !autoNext.on) return;
                 list = visibleThumbs();
@@ -11867,7 +11976,7 @@
             ['Favourites', Object.keys(favs).length],
             ['In collections', colls.reduce((s, c) => s + c.posts.length, 0)],
             ['Blacklisted tags', readBlocklist().length],
-            ['Following', (f => f.artists.length + f.searches.length)(getFollowing())]
+            ['Following', getFollowing().artists.length]
         ];
         w.setSub(since ? 'Since ' + new Date(since).toLocaleDateString() + ' · only on this computer' : 'Only on this computer');
 
@@ -12379,7 +12488,7 @@
     // Shown once after installing (or updating to a version with new tips);
     // reopen it any time with the "?" in the popup or in the settings.
     const TIPS_KEY = 'steamy34_tips_seen';
-    const TIPS_VERSION = 8; // raise this when the tips get new entries -> shown once more
+    const TIPS_VERSION = 9; // raise this when the tips get new entries -> shown once more
 
     const MOUSE_MIDDLE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6" /><rect x="10.6" y="5.5" width="2.8" height="4.5" rx="1.4" fill="currentColor" stroke="none"/></svg>';
 
@@ -12405,8 +12514,7 @@
             [`${k('×')} on a tag bubble`, 'Remove it from the search'],
             [`${k('Pin')} next to a filter`, 'Keep that filter (Score, Size, Sort, Type, Rating) for every new search'],
             [`${k('★ Tags')}`, 'Your favourite tags – one tap puts one in the search'],
-            [`${k('Recent')}`, 'Run your earlier searches again'],
-            [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Follow')} under the search box`, `${nu}Follow the whole search – it shows up in the sidebar with a count of its new posts`]
+            [`${k('Recent')}`, 'Run your earlier searches again']
         ]];
         const sidebarGroup = ['Sidebar', SLIDERS, [
             [`${k('White')} ${k('Dark')} ${k('OLED')}`, 'Colour mode – in Settings → Look (OLED is true black)'],
@@ -12414,7 +12522,7 @@
             [`${k('Size')} slider`, 'Make the thumbnails bigger or smaller'],
             [`${k('⬇ Batch download')}`, 'Tick posts (or "Select all new"), then download them – a panel shows progress with Pause / Cancel – or add them to a collection'],
             [`${k('Collections')} · ${k('Stats')}`, 'Your own folders · your top artists, characters & series'],
-            [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – the bell next to an artist in a post (or under the search box) follows it`],
+            [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – click one for their newest posts in the Following window. The bell next to an artist in a post follows them`],
             [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted'],
             [`${k('⚙ Settings')}`, 'Every option, plus backup and what is stored on your device'],
             [`${k('Choose folder…')}`, `${nu}Settings → Downloads: save straight into any folder, e.g. Eagle's watch folder (computer)`]
@@ -12440,6 +12548,7 @@
                     [`${k('Ctrl')} + ${k('Click')} a thumbnail`, 'Open the full post page instead (new tab)']
                 ]],
                 ['Browsing', icon('posts'), [
+                    [`${k(keyLabel(CONFIG.followingKey))}`, `${nu}The Following window: your artists' newest posts in a grid – ← / → switch artists, Esc closes`],
                     [`${k('Hover')} a thumbnail`, 'Videos play, images load in full quality, score & size show up'],
                     [`${k('+')} / ${k('⊘')} on a tag`, 'Add the tag to your search / blacklist it'],
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
@@ -12463,6 +12572,7 @@
                 ['Browsing', icon('posts'), [
                     [`${k(MENU_SVG.replace('width="20" height="20"', 'width="13" height="13"') + ' Menu')} top right`, `${nu}Steamy34's tools (switches, Settings, Blacklist, tips) and all of rule34's pages`],
                     [`${k('+')} / ${k('⊘')} on a tag`, `${nu}Add the tag to your search / blacklist it – always shown on phones`],
+                    [`Following in the ${k('Menu')}`, `${nu}Your artists' newest posts in a full-screen grid – tap a circle to switch, Back closes`],
                     [`${k('♥')} on a thumbnail`, 'Add the post to your favourites (needs a rule34 login)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
                     [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
@@ -12577,6 +12687,22 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.6', date: '2026-11-21', notify: true, items: [
+            'New Following window: everything you follow in one window on top of the page you\'re on. Your artists sit in a row of circles at the top (a coloured ring = new posts), their newest posts in a grid below, with NEW on the ones since your last visit.',
+            'Click a post and it opens in the popup as usual – ← / → go through that artist\'s posts and load more at the end. Close it and you\'re back in the grid; close the window and you\'re back on your page.',
+            'Open it with the sidebar\'s Following box or the G key (changeable in Settings → Following). ← / → switch between artists, Esc closes. "Bigger" in its bottom right corner makes it nearly as big as the screen. On phones it fills the screen and Back closes it.',
+            'New start page: rule34\'s start page becomes a small home. Your search, "Continue" where you left off, your recent searches and favourite tags on the left (the post count as plain text), the newest posts from who you follow on the right. Settings → Look & feel brings back the site\'s own.',
+            'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
+            'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',
+            'Sidebar: Recent and Tags open as small menus right next to the sidebar, instead of long lists inside it – on phones as a sheet that slides up from the bottom (swipe it down, tap the page or press Back to close). And when the sidebar is taller than the window, it scrolls on its own with the mouse wheel – Settings and the tips below it are always in reach.',
+            'With an ad blocker on, the empty ad space above "Page 1" folds away too, like the right column. Without an ad blocker every ad stays exactly as rule34 shows it.'
+        ] },
+        { v: 'Beta 3.5.1', date: '2026-11-21', items: [
+            'The popup no longer stops at the last loaded post: → loads the next page and goes on (it already starts loading 3 posts before the end).',
+            'Popup comments: the count shows all of them (rule34 sends 10 at a time), and "More comments" loads the rest right in the popup.',
+            'Popup: the site\'s own "< previous · Tag search · next >" bar no longer shows up as if it were a note about the post.',
+            'Sidebar: "Shortcuts & tips" and "What\'s new" no longer stick out of the site\'s narrow sidebar.'
+        ] },
         { v: 'Beta 3.5', date: '2026-11-21', notify: true, items: [
             'Far fewer Cloudflare checks: everything Steamy34 loads from rule34 now waits in one line and is spaced out – what you asked for (the popup, scrolling) goes first, the extras after it. After a check, it all runs slower for a while.',
             'Fewer page loads: the popup loads only the next post in advance (its picture straight from the image server), the size on hover waits a full second, and the Following check waits until you stop clicking around.',
@@ -12963,12 +13089,22 @@
                     ['⊘', 'Exclude', (phone ? 'Tap' : 'Click') + ' a bubble to exclude it, again to bring it back.'],
                     ['🎚️', 'Filters', 'Score, size, sort, type and rating – pin one to keep it for every search.'],
                     ['★', 'Favourite tags', 'Your go-to tags, one ' + (phone ? 'tap' : 'click') + ' away.'],
-                    ['🕘', 'Recent searches', 'Run your earlier searches again with one ' + (phone ? 'tap' : 'click') + '.'],
-                    [BELL_SVG, 'Follow', (phone ? 'Tap' : 'Click') + ' the bell next to an artist in a post – or under the search box to follow a whole search. The sidebar lists them, each with a count of its new posts.']
+                    ['🕘', 'Recent searches', (phone ? 'Tap' : 'Click') + ' Recent for a small list of your earlier searches – one ' + (phone ? 'tap' : 'click') + ' runs one again.']
                 ]
             },
             {
-                art: ic('downloads'), step: '3 · Downloads',
+                art: ic('following'), step: '3 · Following',
+                title: 'Your artists, newest first',
+                text: (phone ? 'Tap' : 'Click') + ' the bell next to an artist in a post to follow them. Their newest posts wait for you in the Following window.',
+                cards: [
+                    ['◎', 'A circle each', 'Everyone you follow sits in a row at the top – a coloured ring means new posts.'],
+                    ['NEW', 'Since your last visit', 'Their newest posts in a grid, each in its own shape – NEW on the ones you haven\'t seen.'],
+                    ['↔', 'Browse right there', (phone ? 'Tap' : 'Click') + ' a post and it opens in the popup – ' + (phone ? 'swipe' : prevNext) + ' through that artist, more load at the end.'],
+                    [BELL_SVG, 'Open it', phone ? 'Following in the ☰ Menu – Back closes it.' : `${k(keyLabel(CONFIG.followingKey))} or a name in the sidebar's Following box – "Bigger" makes it nearly full screen.`]
+                ]
+            },
+            {
+                art: ic('downloads'), step: '4 · Downloads',
                 title: 'One key, a perfectly named file',
                 text: phone ? 'Tap Download for the original file in full resolution.' : `Press ${k(dl)} on any post for the original file in full resolution.`,
                 cards: [
@@ -12979,7 +13115,7 @@
                 ]
             },
             {
-                art: FOLDER_SVG, step: '4 · Organise',
+                art: FOLDER_SVG, step: '5 · Organise',
                 title: 'Keep track of everything',
                 text: 'Your own little archive on top of rule34 – kept only on your device.',
                 cards: [
@@ -12990,7 +13126,7 @@
                 ]
             },
             {
-                art: ic('look'), step: '5 · Thumbnails',
+                art: ic('look'), step: '6 · Thumbnails',
                 title: 'Thumbnails your way',
                 text: 'Tags, VID / GIF labels, ♥ and the viewed / downloaded marks can sit on the picture, ' + (phone ? 'stay out of the way' : 'show up only while you hover') + ' – or move to a strip below, so nothing covers the picture.',
                 picks: [
@@ -13007,7 +13143,7 @@
                 note: 'Change both any time in Settings → Look.'
             },
             {
-                art: SPARKLE_SVG, step: '6 · Make it yours',
+                art: SPARKLE_SVG, step: '7 · Make it yours',
                 title: 'Pick your look',
                 text: 'Choose a colour mode – you can switch any time' + (phone ? ' in the ☰ Menu.' : ' in the sidebar.'),
                 picks: [
@@ -13034,9 +13170,9 @@
         const w = openWindow({ cls: 's34-wel-overlay', icon: SPARKLE_SVG, title: 'Welcome to Steamy34', width: 680 });
         w.setSub(CURRENT_VERSION);
         let idx = Math.min(Math.max(parseInt(startAt, 10) || 0, 0), slides.length - 1);
-        // Short tour first (welcome, popup, search, downloads); the rest
+        // Short tour first (welcome, popup, search, following, downloads); the rest
         // (organise, thumbnails, colours) only after "Show me more"
-        const SHORT = 4;
+        const SHORT = 5;
         let full = idx >= SHORT;
         const shown = () => (full ? slides.length : SHORT);
 
@@ -13589,6 +13725,762 @@
     }
 
     // =====================================================================
+    //  FOLLOWING WINDOW (Beta 3.6)
+    //  Everything you follow in one window on top of the page you're on -
+    //  the page underneath, its search, pins and filters stay as they are.
+    //   - a row of circles: All and your artists. A
+    //     coloured ring = new posts. The order is set when the window opens
+    //     (new ones first), so nothing jumps around while you browse.
+    //   - a small header: picture, name, new / total, Following, "Open as a search"
+    //   - a grid of the newest posts, each in its own shape (rows of one
+    //     height, like the posts page), NEW on the ones since
+    //     your last visit. Always newest first: no score, size or sort here
+    //     (the normal search does that - "Open as a search" goes there).
+    //  A tile opens the normal popup viewer on top; its ← / → move through
+    //  this grid and load more at the end. Closing it brings you back here.
+    //  G (changeable) opens / closes the window, ← / → switch circles, Esc
+    //  closes. Phones: full screen, the Back button closes.
+    //  Pages load through the shared line (15-hover-cloudflare.js): a circle's
+    //  first page as 'popup', more while you scroll as 'scroll'. "All" merges
+    //  the either/or searches (up to 20 artists each), newest first.
+    //  fwState, FW_ALL and the keys ('all', 'a:artist') are in 20c.
+    // =====================================================================
+    const FW_PAGE = 42;          // posts added per step (one site page)
+    const FW_NEAR_END = 900;     // px before the end of the grid at which more loads
+
+    const FW_BIG_KEY = 'steamy34_fw_big'; // the window at nearly full size (remembered)
+    const EXPAND_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>';
+    const SHRINK_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11h-6V5"/><path d="M13 11l7-7"/><path d="M5 13h6v6"/><path d="M11 13l-7 7"/></svg>';
+
+    const fwEl = sel => fwState && fwState.overlay.querySelector(sel);
+
+    // Bigger: nearly the whole window - a margin of the dimmed page stays
+    // around it, so it still reads as a window on top of your page
+    function fwSetBig(big, overlay) {
+        overlay.classList.toggle('s34-fw-large', big);
+        const b = overlay.querySelector('.s34-fw-size');
+        if (!b) return;
+        b.innerHTML = (big ? SHRINK_SVG + '<span>Smaller</span>' : EXPAND_SVG + '<span>Bigger</span>');
+        b.title = big ? 'Back to the normal size' : 'Make the window nearly as big as the screen';
+        b.setAttribute('aria-pressed', big ? 'true' : 'false');
+    }
+    const fwView = () => fwState && fwState.views.get(fwState.key);
+
+    // Old feed pages (before 3.6, e.g. a bookmark of #s34-following=artist):
+    // the address loses its # right away, and the window opens there (an old
+    // followed search's page is just that search now)
+    let fwFromAddress = null;
+    (function () {
+        if (isPostView) return;
+        const f = feedFromHash(location.hash);
+        if (!f) return;
+        fwFromAddress = f.kind === 'all' ? FW_ALL : f.kind === 'artist' ? fwKeyArtist(f.tag) : null;
+        try { history.replaceState(history.state, '', location.pathname + location.search); } catch (e) {}
+    })();
+    function openFollowFromAddress() {
+        if (!fwFromAddress) return false;
+        openFollowPopup(fwFromAddress);
+        fwFromAddress = null;
+        return true;
+    }
+
+    // What the circles show
+    function fwItems(d) {
+        d = d || getFollowing();
+        const items = [];
+        if (d.artists.length > 1) {
+            const t = followTotals(d);
+            items.push({ key: FW_ALL, kind: 'all', label: 'All', count: t.n, more: /\+/.test(t.text) });
+        }
+        d.artists.forEach(a => items.push({ key: fwKeyArtist(a.tag), kind: 'artist', tag: a.tag, label: prettyTag(a.tag), count: a.count || 0, more: !!a.more, pic: a.pic || '' }));
+        return items;
+    }
+
+    // "Seen" as it was when the window opened (per artist): the
+    // posts after it are NEW for as long as the window is open, even after
+    // you looked at them once
+    function fwSeen(k) {
+        const st = fwState;
+        if (!(k in st.seen)) {
+            const d = getFollowing();
+            const it = findArtist(k.slice(2), d);
+            st.seen[k] = it ? it.seen || 0 : 0;
+        }
+        return st.seen[k];
+    }
+
+    // A circle's picture: the newest post's thumbnail, else a letter / icon
+    const fwHue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+    function fwAvatarHtml(item, pic) {
+        if (item.kind === 'all') return `<span class="s34-fw-pic s34-fw-av s34-fw-allpic">${BELL_ON_SVG}</span>`;
+        const src = pic || item.pic;
+        const inner = src ? `<img class="s34-fw-av" alt="" src="${escapeHtml(src)}">`
+            : `<span class="s34-fw-letter">${escapeHtml((item.label || '?').trim().charAt(0).toUpperCase())}</span>`;
+        return `<span class="s34-fw-pic s34-fw-av" style="--h:${fwHue(item.label)}">${inner}</span>`;
+    }
+
+    // ---- Open / close ----
+    // key: what to show ('all', 'a:artist'); none = All (or the first circle)
+    function openFollowPopup(key) {
+        if (popupState) closePopup(); // the post viewer steps aside
+        const d = getFollowing();
+        if (!fwState) fwBuild();
+        const items = fwItems(d);
+        if (!key || (!items.some(i => i.key === key) && !fwState.views.has(key))) key = items.length ? items[0].key : '';
+        fwShow(key);
+    }
+
+    function fwBuild() {
+        const d = getFollowing();
+        const overlay = document.createElement('div');
+        overlay.className = 's34-fw-overlay';
+        overlay.innerHTML = `
+            <div class="s34-fw" role="dialog" aria-modal="true" aria-label="Following">
+                <div class="s34-fw-top">
+                    <span class="s34-fw-title">${BELL_SVG}<b>Following</b></span>
+                    <span class="s34-fw-checked"></span>
+                    <button type="button" class="s34-fw-btn" data-fw="manage" title="Follow by name, unfollow, check now">Manage</button>
+                    <button type="button" class="s34-fw-btn s34-fw-x" data-fw="close" aria-label="Close" title="Close (Esc)">✕</button>
+                </div>
+                <div class="s34-fw-circles" role="tablist" aria-label="What you follow"></div>
+                <div class="s34-fw-scroll">
+                    <div class="s34-fw-head"></div>
+                    <div class="s34-fw-grid"></div>
+                    <div class="s34-fw-status"></div>
+                </div>
+                <div class="s34-fw-foot"></div>
+            </div>`;
+        // New posts first, then the rest as you followed them
+        const items = fwItems(d);
+        const rank = i => (i.kind === 'all' ? 0 : i.kind === 'artist' ? (i.count ? 1 : 2) : (i.count ? 3 : 4));
+        const order = items.map((it, n) => [it, n]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(x => x[0].key);
+        fwState = { overlay, key: '', order, seen: {}, views: new Map(), items: new Map(), pushedHistory: false };
+        const keys = CONFIG.browseKeys === 'wasd' ? '<kbd>A</kbd> <kbd>D</kbd>' : '<kbd>←</kbd> <kbd>→</kbd>';
+        overlay.querySelector('.s34-fw-foot').innerHTML =
+            `<span><kbd>${escapeHtml(keyLabel(CONFIG.followingKey))}</kbd> open / close</span><span>${keys} previous / next</span><span><kbd>Esc</kbd> close</span><span>Scroll down for older posts</span>` +
+            `<button type="button" class="s34-fw-btn s34-fw-size" data-fw="size"></button>`;
+        fwSetBig(GM_getValue(FW_BIG_KEY, false) === true, overlay);
+
+        overlay.addEventListener('mousedown', e => { if (e.target === overlay) closeFollowPopup(); });
+        overlay.addEventListener('click', e => {
+            const b = e.target.closest('[data-fw]');
+            if (b) {
+                const what = b.dataset.fw;
+                if (what === 'close') closeFollowPopup();
+                else if (what === 'manage') openFollowingWindow();
+                else if (what === 'size') {
+                    const big = !overlay.classList.contains('s34-fw-large');
+                    fwSetBig(big, overlay);
+                    try { GM_setValue(FW_BIG_KEY, big); } catch (err) {}
+                    setTimeout(fwMaybeMore, 50); // more room - maybe more posts fit
+                }
+                else if (what === 'retry') { const v = fwView(); if (v) fwLoadMore(v); }
+                else if (what === 'follow') {
+                    const k = fwState.key;
+                    if (k.startsWith('a:')) toggleFollow(k.slice(2));
+                }
+                return;
+            }
+            const c = e.target.closest('.s34-fw-c');
+            if (c) { fwShow(c.dataset.key); return; }
+            // A tile: the normal popup viewer (Ctrl / middle click: the post page in a new tab)
+            const a = e.target.closest('.s34-fw-grid span.thumb a[href]');
+            if (!a || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+            e.preventDefault();
+            const view = fwView();
+            if (view) openPopup(a.closest('span.thumb'), fwListFor(view));
+        });
+        overlay.querySelector('.s34-fw-scroll').addEventListener('scroll', fwMaybeMore, { passive: true });
+
+        document.body.appendChild(overlay);
+        document.documentElement.classList.add('s34-fw-open');
+        // Phones: the Back button closes the window instead of leaving the page
+        if (isPhoneLayout()) {
+            try { history.pushState({ s34fw: true }, ''); fwState.pushedHistory = true; } catch (e) {}
+        }
+    }
+
+    function closeFollowPopup(byBack) {
+        const st = fwState;
+        if (!st) return;
+        if (popupState) closePopup();
+        const v = fwView();
+        if (v) v.scrollTop = fwEl('.s34-fw-scroll').scrollTop;
+        fwState = null;
+        st.overlay.remove();
+        document.documentElement.classList.remove('s34-fw-open');
+        if (st.pushedHistory && byBack !== true) {
+            try { if (history.state && history.state.s34fw) history.back(); } catch (e) {}
+        }
+        renderFollowBox();
+    }
+
+    // Phones: Back closes the window (Back from a post opened in it only closes the post)
+    window.addEventListener('popstate', () => {
+        if (!fwState || !fwState.pushedHistory) return;
+        if (history.state && history.state.s34fw) return; // back from the post viewer: still in the window
+        closeFollowPopup(true);
+    });
+
+    // ---- Keys: G opens / closes, ← / → switch circles, Esc closes ----
+    document.addEventListener('keydown', e => {
+        const t = e.target;
+        if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+        if (popupState) return; // the post viewer has the keys (Esc closes it first)
+        if (document.querySelector('.s34-overlay, .s34-cmenu, .s34-menu-overlay')) return; // a window or menu on top
+        const toggleKey = e.code === CONFIG.followingKey && !e.shiftKey && !e.repeat;
+        if (!fwState) {
+            if (toggleKey) { e.preventDefault(); openFollowPopup(); }
+            return;
+        }
+        if (e.key === 'Escape' || toggleKey) { e.preventDefault(); closeFollowPopup(); return; }
+        const dir = browseDirection(e);
+        if (dir) { e.preventDefault(); fwStep(dir); }
+    }, true);
+
+    function fwStep(dir) {
+        const keys = fwOrderedItems().map(i => i.key);
+        const i = keys.indexOf(fwState.key);
+        const next = keys[i + dir];
+        if (next) fwShow(next);
+    }
+
+    // ---- Showing one circle ----
+    function fwShow(key) {
+        const st = fwState;
+        if (!st) return;
+        const before = fwView();
+        if (before) before.scrollTop = fwEl('.s34-fw-scroll').scrollTop;
+        st.key = key;
+        let view = st.views.get(key);
+        if (!view) {
+            view = fwNewView(key);
+            st.views.set(key, view);
+        }
+        // "seen before" for everyone this view shows - before anything loads
+        if (key === FW_ALL) view.sources.forEach(s => s.tags.forEach(t => fwSeen(fwKeyArtist(t))));
+        else if (key) fwSeen(key);
+        fwRenderCircles();
+        fwRenderHead(view);
+        fwEl('.s34-fw-grid').replaceChildren(...view.tiles);
+        fwEl('.s34-fw-scroll').scrollTop = view.scrollTop || 0;
+        fwRenderStatus(view);
+        renderFollowBox(); // the sidebar row of what's shown
+        const on = fwEl('.s34-fw-c.s34-on');
+        if (on) { try { on.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} }
+        if (!key) return;
+        if (!view.tiles.length && view.state === 'more') fwLoadMore(view);
+        else setTimeout(fwMaybeMore, 50);
+    }
+
+    // A view: one circle's grid, kept while the window is open (switching back is instant)
+    function fwNewView(key) {
+        const d = getFollowing();
+        let sources = [];
+        if (key === FW_ALL) sources = followGroups(d).map(g => ({ query: groupQuery(g), tags: g }));
+        else if (key.startsWith('a:')) sources = [{ query: key.slice(2), tags: [key.slice(2)] }];
+        sources.forEach(s => Object.assign(s, { next: null, started: false, done: false, buf: [] }));
+        const item = fwItems(d).find(i => i.key === key) || {};
+        return {
+            key, sources, tiles: [], ids: new Set(), state: key ? 'more' : 'done', busy: false,
+            total: null, pic: '', scrollTop: 0, newN: 0, countAtOpen: item.count || 0, moreAtOpen: !!item.more
+        };
+    }
+
+    // The circles, in the order the window opened with (new follows at the end)
+    function fwOrderedItems() {
+        const st = fwState;
+        const items = fwItems();
+        items.forEach(i => { st.items.set(i.key, i); if (!st.order.includes(i.key)) st.order.push(i.key); });
+        // what's shown stays in the row, even right after you unfollowed it
+        if (st.key && !items.some(i => i.key === st.key) && st.items.has(st.key)) items.push(Object.assign({}, st.items.get(st.key), { count: 0, gone: true }));
+        const pos = k => st.order.indexOf(k);
+        return items.sort((a, b) => pos(a.key) - pos(b.key));
+    }
+
+    function fwRenderCircles() {
+        const st = fwState;
+        const box = fwEl('.s34-fw-circles');
+        const items = fwOrderedItems();
+        box.hidden = !items.length;
+        box.innerHTML = items.map(it => {
+            const v = st.views.get(it.key);
+            const on = it.key === st.key;
+            const title = it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : '');
+            return `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}${on ? ' s34-on' : ''}${it.gone ? ' s34-gone' : ''}" data-key="${escapeHtml(it.key)}" role="tab" aria-selected="${on}" title="${escapeHtml(title)}">
+                <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it, v && v.pic)}</span>
+                <span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`;
+        }).join('');
+        const d = getFollowing();
+        fwEl('.s34-fw-checked').textContent = d.checkedAt ? 'checked ' + timeAgo(d.checkedAt) : '';
+    }
+
+    function fwRenderHead(view) {
+        const head = fwEl('.s34-fw-head');
+        const d = getFollowing();
+        const k = view.key;
+        if (!k) {
+            head.innerHTML = `<div class="s34-fw-empty">Nothing followed yet. Follow an artist with the ${BELL_TEXT} next to their name in a post. Their newest posts show up here, with NEW on the ones since your last visit.</div>`;
+            return;
+        }
+        const isAll = k === FW_ALL;
+        const word = k.slice(2);
+        const item = fwState.items.get(k) || { kind: isAll ? 'all' : 'artist', label: isAll ? 'All' : prettyTag(word) };
+        const on = isFollowed(word, d);
+        const name = isAll ? 'All followed artists' : prettyTag(word);
+        const n = Math.max(view.newN, view.countAtOpen);
+        const nums = [`<span><b>${n}${view.moreAtOpen && n === view.countAtOpen && n ? '+' : ''}</b> new since your last visit</span>`];
+        if (view.total) nums.push(`<span><b>${view.total.toLocaleString('en-US')}</b> posts</span>`);
+        if (isAll) nums.push(`<span><b>${d.artists.length}</b> artists</span>`);
+        head.innerHTML = `
+            <span class="s34-fw-big s34-fw-av">${fwAvatarHtml(item, view.pic)}</span>
+            <div class="s34-fw-info">
+                <div class="s34-fw-row"><b class="s34-fw-nm"></b>
+                    ${isAll ? '' : `<button type="button" class="s34-fw-btn s34-fw-follow${on ? ' s34-following' : ''}" data-fw="follow" aria-pressed="${on}">${on ? BELL_ON_SVG + ' Following' : BELL_SVG + ' Follow'}</button>
+                    <a class="s34-fw-btn s34-fw-search" href="${escapeHtml(plainSearchUrl(word))}" title="The normal search – with every filter and sort">Open as a search ↗</a>`}
+                </div>
+                <div class="s34-fw-nums">${nums.join('')}</div>
+            </div>`;
+        head.querySelector('.s34-fw-nm').textContent = name;
+    }
+
+    function fwRenderStatus(view) {
+        if (!fwState || fwState.key !== view.key) return;
+        const el = fwEl('.s34-fw-status');
+        el.replaceChildren();
+        if (!view.key) return;
+        if (view.busy) el.innerHTML = '<span class="s34-spin"></span> Loading posts…';
+        else if (view.state === 'cloudflare') el.appendChild(cloudflareInline('The posts wait for a quick Cloudflare check.'));
+        else if (view.state === 'error') el.innerHTML = 'The posts couldn\'t be loaded. <button type="button" class="s34-fw-btn" data-fw="retry">Try again</button>';
+        else if (view.state === 'done') el.textContent = view.tiles.length ? 'That\'s all of them.' : 'No posts to show here.';
+    }
+
+    // The list the popup viewer browses when a tile is opened (see PAGE_LIST in 26-popup.js)
+    function fwListFor(view) {
+        return {
+            thumbs: () => view.tiles.filter(t => t.isConnected),
+            state: () => (view.busy ? 'loading' : view.state === 'done' ? 'done' : 'more'),
+            more: () => fwLoadMore(view)
+        };
+    }
+
+    // Near the end of the grid: the next page
+    function fwMaybeMore() {
+        const view = fwView();
+        const sc = fwEl('.s34-fw-scroll');
+        if (!view || !sc || view.busy || view.state !== 'more' || !view.key) return;
+        if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - FW_NEAR_END) fwLoadMore(view);
+    }
+
+    // ---- Loading: up to FW_PAGE more posts, newest first ----
+    // (several sources - "All" with more than 20 artists - are merged: a post
+    // is only placed once every source has shown what comes before it)
+    async function fwLoadMore(view) {
+        if (!fwState || view.busy || view.state === 'done' || !view.key) return;
+        view.busy = true;
+        if (view.state !== 'more') view.state = 'more';
+        fwRenderStatus(view);
+        const added = [];
+        try {
+            while (added.length < FW_PAGE) {
+                const live = view.sources.filter(s => s.buf.length || !s.done);
+                if (!live.length) break;
+                const empty = live.find(s => !s.buf.length);
+                if (empty) { await fwFetch(view, empty); continue; }
+                let best = live[0];
+                live.forEach(s => { if (s.buf[0].id > best.buf[0].id) best = s; });
+                const p = best.buf.shift();
+                if (view.ids.has(p.id)) continue; // (in two groups, or moved to the next page meanwhile)
+                view.ids.add(p.id);
+                added.push(p.thumb);
+            }
+            if (!view.sources.some(s => s.buf.length || !s.done)) view.state = 'done';
+        } catch (e) {
+            view.state = e.cloudflare || e.paused ? 'cloudflare' : e.cancelled ? 'more' : 'error';
+        } finally {
+            view.busy = false;
+        }
+        if (!fwState || fwState.views.get(view.key) !== view) return; // closed meanwhile
+        fwAddTiles(view, added);
+        fwRenderStatus(view);
+        if (view.state === 'cloudflare') {
+            window.addEventListener('s34-cf-passed', () => {
+                if (fwState && fwState.views.get(view.key) === view && view.state === 'cloudflare') { view.state = 'more'; fwLoadMore(view); }
+            }, { once: true });
+        }
+        if (fwState.key === view.key) { fwRenderHead(view); fwRenderCircles(); setTimeout(fwMaybeMore, 50); }
+    }
+
+    async function fwFetch(view, src) {
+        const first = !src.started;
+        const url = src.next || plainSearchUrl(src.query);
+        const r = await loadPage(url, first ? 'popup' : 'scroll', { wanted: () => !!fwState && fwState.views.get(view.key) === view, ms: 20000 });
+        if (!r.ok) throw Object.assign(new Error('status ' + r.status), { status: r.status });
+        const doc = new DOMParser().parseFromString(r.html, 'text/html');
+        const thumbs = Array.from(doc.querySelectorAll('span.thumb')).filter(t => t.querySelector('a[href]') && t.querySelector('img'));
+        src.started = true;
+        src.next = thumbs.length ? getNextPageUrl(doc) : null;
+        if (!src.next || src.next === new URL(url, location.href).href) { src.next = null; src.done = true; }
+        if (first) fwLearn(view, src, doc, thumbs);
+        // The site hides blacklisted posts only on pages it shows itself
+        hideBlocklisted(thumbs);
+        // (not lazy: a tile only gets its shape once its picture is there -
+        // lazy pictures would make the rows jump while you scroll)
+        thumbs.forEach(t => { t.querySelector('img').decoding = 'async'; });
+        src.buf.push(...thumbs.filter(t => !t.classList.contains('s34-bl-hidden'))
+            .map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, thumb: document.adoptNode(t) })));
+        src.buf.sort((a, b) => b.id - a.id);
+    }
+
+    // A source's first page: the total, the picture, and everyone on it is
+    // now "seen" (like opening their page used to be - the NEW marks stay)
+    function fwLearn(view, src, doc, thumbs) {
+        const d = getFollowing();
+        const ids = thumbs.map(t => parseInt(thumbPostId(t), 10) || 0);
+        const seenUpTo = (it, mine) => {
+            const max = mine.reduce((m, t) => Math.max(m, parseInt(thumbPostId(t), 10) || 0), 0);
+            if (max) { it.seen = Math.max(it.seen || 0, max); it.latest = Math.max(it.latest || 0, max); }
+            it.count = 0; it.more = false;
+            if (mine.length) it.pic = thumbPicOf(mine[0]) || it.pic;
+        };
+        src.tags.forEach(tag => {
+            const a = findArtist(tag, d);
+            if (!a) return;
+            const mine = view.key === FW_ALL ? thumbs.filter(t => thumbArtists(t, [tag]).length) : thumbs;
+            if (mine.length || view.key !== FW_ALL) seenUpTo(a, mine);
+        });
+        if (view.key !== FW_ALL) view.total = fwTagCount(doc, src.tags[0]);
+        if (ids.length) {
+            saveFollowing(d);
+            renderFollowBox(d);
+        }
+    }
+
+    // "1,234 posts": the artist's count from the page's tag list
+    function fwTagCount(doc, tag) {
+        const li = Array.from(doc.querySelectorAll('#tag-sidebar li')).find(row =>
+            Array.from(row.querySelectorAll('a[href*="tags="]')).some(a => {
+                try { return (new URL(a.getAttribute('href'), location.href).searchParams.get('tags') || '').trim().toLowerCase() === tag; } catch (e) { return false; }
+            }));
+        const c = li && (li.querySelector('.tag-count') || Array.from(li.querySelectorAll('span')).find(s => /^\s*[\d,]+\s*$/.test(s.textContent)));
+        const n = c ? parseInt(c.textContent.replace(/\D/g, ''), 10) : 0;
+        return n > 0 ? n : null;
+    }
+
+    function fwIsNew(view, t) {
+        const id = parseInt(thumbPostId(t), 10) || 0;
+        const tags = view.key === FW_ALL ? thumbArtists(t, view.sources.reduce((all, s) => all.concat(s.tags), [])) : [view.key.slice(2)];
+        return tags.some(tag => { const s = fwSeen(fwKeyArtist(tag)); return !!s && id > s; });
+    }
+
+    function fwAddTiles(view, tiles) {
+        if (!tiles.length) return;
+        tiles.forEach(t => {
+            t.classList.add('s34-fw-tile');
+            t.removeAttribute('style');
+            t.querySelector('img').removeAttribute('style');
+        });
+        setThumbRatios(tiles); // each tile in its picture's shape (--r)
+        removeTagTooltips(tiles);
+        if (CONFIG.thumbBadges) addThumbBadges(tiles);
+        tiles.forEach(t => {
+            if (!fwIsNew(view, t)) return;
+            view.newN++;
+            const b = document.createElement('span');
+            b.className = 's34-new-badge';
+            b.textContent = 'NEW';
+            t.appendChild(b);
+        });
+        showDownloadedState(tiles); // ⬇ / 👁 in the corner
+        // All: whose post it is, at the bottom of the tile
+        if (view.key === FW_ALL) {
+            const tags = view.sources.reduce((all, s) => all.concat(s.tags), []);
+            tiles.forEach(t => {
+                const who = thumbArtists(t, tags);
+                if (!who.length) return;
+                const by = document.createElement('span');
+                by.className = 's34-fw-by';
+                by.textContent = who.map(prettyTag).join(', ');
+                t.appendChild(by);
+            });
+        }
+        view.tiles.push(...tiles);
+        if (!view.pic) view.pic = thumbPicOf(tiles[0]);
+        if (fwState && fwState.key === view.key) fwEl('.s34-fw-grid').append(...tiles);
+    }
+
+    // After a follow / unfollow / check: circles and header up to date
+    function fwRefresh() {
+        if (!fwState) return;
+        fwRenderCircles();
+        const v = fwView();
+        if (v) fwRenderHead(v);
+    }
+    // =====================================================================
+    //  HOME: rule34's start page as a small home (Beta 3.6, "Home" mockup)
+    //  The site's own pieces stay - its logo, the Posts · Comments · Forum ·
+    //  My Account links, the search form (with Steamy34's search box in it),
+    //  "Serving N posts" and Terms / Contact / DMCA - they're only moved
+    //  into a two-column layout:
+    //   left:  Search · Continue where you left off · Recent and favourite
+    //          tags · the post count as text (the counter pictures are hidden)
+    //   right: New from who you follow - the circles and their newest posts
+    //  Phones: one column - search, following, continue, recent.
+    //  The newest posts are one page load (each group of 20 artists), kept
+    //  for 10 minutes in this tab (sessionStorage), so going back and forth
+    //  doesn't load them again. Looking at them here doesn't count as a
+    //  visit - the "N new" counts stay until you open the Following window.
+    //  Setting homePage (Look & feel); off = the site's own start page.
+    // =====================================================================
+    const HOME_CACHE_KEY = 's34_home_posts';
+    const HOME_CACHE_MS = 10 * 60 * 1000;
+    const HOME_POSTS = 12;
+
+    const isStartPage = () => !!document.getElementById('static-index') && !document.querySelector('.image-list, #post-view');
+
+    function setupHome() {
+        if (!CONFIG.homePage || !isStartPage() || document.querySelector('.s34-home')) return;
+        const page = document.getElementById('static-index');
+        const logo = page.querySelector('.index-header');
+        const links = page.querySelector('#links');
+        const form = page.querySelector('form[action*="page=search"]');
+        if (!form) return; // the site changed - leave its page alone
+        const count = Array.from(page.querySelectorAll('p')).find(p => /serving\s+[\d,.]+\s+posts/i.test(p.textContent));
+        const foot = page.querySelector('small');
+
+        const home = document.createElement('div');
+        home.className = 's34-home';
+        home.innerHTML = `
+            <div class="s34-home-head"></div>
+            <div class="s34-home-main">
+                <div class="s34-home-left">
+                    <section class="s34-home-card s34-home-search"><div class="s34-home-label">Search</div></section>
+                    <section class="s34-home-card s34-home-resume" hidden></section>
+                    <section class="s34-home-card s34-home-recent" hidden></section>
+                    <div class="s34-home-meta"></div>
+                </div>
+                <section class="s34-home-card s34-home-follow"></section>
+            </div>`;
+        const head = home.querySelector('.s34-home-head');
+        if (logo) { logo.classList.add('s34-home-logo'); head.appendChild(logo); }
+        if (links) head.appendChild(links);
+        home.querySelector('.s34-home-search').appendChild(form.closest('.space') || form);
+        const meta = home.querySelector('.s34-home-meta');
+        if (count) { count.classList.add('s34-home-count'); meta.appendChild(count); }
+        if (foot) meta.appendChild(foot);
+        page.prepend(home);
+        document.documentElement.classList.add('s34-home-on');
+        // What's left of the old page (the tagline, the counter pictures) steps aside
+        Array.from(page.children).forEach(el => { if (el !== home) el.classList.add('s34-home-old'); });
+
+        renderHomeResume(home.querySelector('.s34-home-resume'));
+        renderHomeRecent(home.querySelector('.s34-home-recent'));
+        renderHomeFollow(home.querySelector('.s34-home-follow'));
+    }
+
+    // ---- Continue where you left off (the newest spot from 20f-resume.js) ----
+    function renderHomeResume(card) {
+        if (!CONFIG.resumeOffer) return;
+        const all = readResume();
+        const best = Object.keys(all).map(k => Object.assign({ key: k }, all[k]))
+            .filter(x => x.pid > 0 && Date.now() - (x.at || 0) < RESUME_MAX_AGE)
+            .sort((a, b) => b.at - a.at)[0];
+        if (!best) return;
+        const tags = best.key === '(all posts)' ? 'all' : best.key;
+        const page = Math.floor(best.pid / pageStep) + 1;
+        card.hidden = false;
+        card.innerHTML = `<div class="s34-home-resume-text"><b></b><small></small></div><a class="s34-home-btn">Go on →</a>`;
+        card.querySelector('b').textContent = 'Continue: ' + (tags === 'all' ? 'all posts' : searchLabel({ query: tags }));
+        card.querySelector('small').textContent = `Page ${page} · ${timeAgo(best.at)}`;
+        const a = card.querySelector('a');
+        a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(tags) + '&pid=' + best.pid;
+        a.title = 'Back to page ' + page + ' of this search, at the post you were looking at';
+        a.addEventListener('click', () => { try { sessionStorage.setItem(RESUME_TARGET_KEY, best.post || ''); } catch (e) {} });
+    }
+
+    // ---- Recent searches and favourite tags, right there ----
+    function renderHomeRecent(card) {
+        const recent = getStoredList(HISTORY_KEY).filter(q => typeof q === 'string' && q).slice(0, 8);
+        const fav = getStoredList(FAVTAGS_KEY).filter(t => typeof t === 'string' && t);
+        card.hidden = !recent.length && !fav.length;
+        if (card.hidden) return;
+        card.replaceChildren();
+        if (recent.length) {
+            const h = document.createElement('div');
+            h.className = 's34-home-label';
+            h.textContent = 'Recent';
+            const box = document.createElement('div');
+            box.className = 's34-home-chips';
+            recent.forEach(q => {
+                const a = document.createElement('a');
+                a.className = 's34-home-recent-item';
+                a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(q);
+                a.textContent = searchLabel({ query: q });
+                a.title = 'Search: ' + q.replace(/_/g, ' ');
+                box.appendChild(a);
+            });
+            card.append(h, box);
+        }
+        if (fav.length) {
+            const h = document.createElement('div');
+            h.className = 's34-home-label';
+            h.textContent = 'Favourite tags';
+            const box = document.createElement('div');
+            box.className = 's34-home-chips s34-home-fav';
+            card.append(h, box);
+            // one click puts the tag in the search box above (again: takes it out)
+            const draw = () => {
+                const words = (searchBox() ? searchBox().value : '').toLowerCase().split(/\s+/);
+                box.replaceChildren();
+                fav.forEach(tag => {
+                    const on = words.includes(tag.toLowerCase());
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 's34-home-fav-chip' + (on ? ' s34-on' : '');
+                    b.textContent = (on ? '✓ ' : '') + tag.replace(/_/g, ' ');
+                    b.title = on ? 'In the search – click to take it out' : 'Add to the search';
+                    b.addEventListener('click', () => {
+                        const sb = searchBox();
+                        if (!sb) return;
+                        const cur = sb.value.trim().split(/\s+/).filter(Boolean);
+                        const next = on ? cur.filter(w => w.toLowerCase() !== tag.toLowerCase()) : cur.concat(tag);
+                        setSearchBox(next.join(' '));
+                        draw();
+                    });
+                    box.appendChild(b);
+                });
+            };
+            draw();
+            const sb = searchBox();
+            if (sb) sb.addEventListener('input', draw);
+            // (bubbles removed in the box itself change the box without an input event)
+            const sc = document.querySelector('.s34-home-search');
+            if (sc) ['click', 'keyup'].forEach(ev => sc.addEventListener(ev, () => setTimeout(draw, 0)));
+        }
+    }
+
+    // ---- New from who you follow ----
+    function renderHomeFollow(card) {
+        const d = getFollowing();
+        const tot = followTotals(d, true);
+        card.innerHTML = `
+            <div class="s34-home-follow-head">
+                <div class="s34-home-label">New from who you follow</div>
+                ${tot.n ? `<span class="s34-home-new">${escapeHtml(tot.text)}</span>` : ''}
+                <button type="button" class="s34-home-btn" data-h="all" title="Open the Following window (${escapeHtml(keyLabel(CONFIG.followingKey))})">All <kbd>${escapeHtml(keyLabel(CONFIG.followingKey))}</kbd></button>
+            </div>
+            <div class="s34-fw-circles s34-home-circles"></div>
+            <div class="s34-fw-grid s34-home-grid"></div>
+            <div class="s34-home-status"></div>`;
+        const items = fwItems(d);
+        if (!items.length) {
+            card.querySelector('.s34-home-follow-head button').hidden = true;
+            card.querySelector('.s34-home-circles').remove();
+            card.querySelector('.s34-home-status').innerHTML = `Follow an artist with the ${BELL_TEXT} next to their name in a post. Their newest posts show up here.`;
+            return;
+        }
+        // Circles: new ones first (like the Following window)
+        const rank = i => (i.kind === 'all' ? 0 : i.kind === 'artist' ? (i.count ? 1 : 2) : (i.count ? 3 : 4));
+        const sorted = items.map((it, n) => [it, n]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(x => x[0]);
+        card.querySelector('.s34-home-circles').innerHTML = sorted.map(it =>
+            `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}" data-key="${escapeHtml(it.key)}" title="${escapeHtml(it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : ''))}">
+                <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it)}</span><span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`).join('');
+        card.addEventListener('click', e => {
+            const c = e.target.closest('.s34-fw-c');
+            if (c) { openFollowPopup(c.dataset.key); return; }
+            if (e.target.closest('[data-h="all"]')) { openFollowPopup(); return; }
+            const a = e.target.closest('.s34-home-grid span.thumb a[href]');
+            if (!a || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+            e.preventDefault();
+            const tiles = () => Array.from(card.querySelectorAll('.s34-home-grid span.thumb')).filter(t => t.isConnected);
+            openPopup(a.closest('span.thumb'), { thumbs: tiles, state: () => 'done', more: () => {} });
+        });
+        loadHomePosts(card, d);
+    }
+
+    async function loadHomePosts(card, d) {
+        const grid = card.querySelector('.s34-home-grid');
+        const status = card.querySelector('.s34-home-status');
+        const groups = followGroups(d).slice(0, 3); // (more than 60 artists: the first 60 here, all in the window)
+        const sig = groups.map(g => g.join(' ')).join('|');
+        let posts = null;
+        try {
+            const c = JSON.parse(sessionStorage.getItem(HOME_CACHE_KEY) || 'null');
+            if (c && c.sig === sig && Date.now() - c.at < HOME_CACHE_MS) posts = c.posts;
+        } catch (e) {}
+        if (!posts) {
+            status.innerHTML = '<span class="s34-spin"></span> Loading their newest posts…';
+            posts = [];
+            try {
+                for (const g of groups) {
+                    const r = await loadPage(plainSearchUrl(groupQuery(g)), 'popup', { ms: 20000 });
+                    if (!r.ok) throw new Error('status ' + r.status);
+                    const doc = new DOMParser().parseFromString(r.html, 'text/html');
+                    const thumbs = Array.from(doc.querySelectorAll('span.thumb')).filter(t => t.querySelector('a[href]') && t.querySelector('img'));
+                    hideBlocklisted(thumbs);
+                    thumbs.filter(t => !t.classList.contains('s34-bl-hidden')).forEach(t => {
+                        const a = t.querySelector('a[href]'), img = t.querySelector('img');
+                        posts.push({
+                            id: parseInt(thumbPostId(t), 10) || 0,
+                            href: new URL(a.getAttribute('href'), location.href).href,
+                            src: thumbPicOf(t),
+                            tags: img.getAttribute('title') || img.getAttribute('alt') || '',
+                            video: isVideoThumb(img)
+                        });
+                    });
+                }
+                const seen = new Set();
+                posts = posts.sort((a, b) => b.id - a.id).filter(p => !seen.has(p.id) && seen.add(p.id)).slice(0, HOME_POSTS);
+                try { sessionStorage.setItem(HOME_CACHE_KEY, JSON.stringify({ sig, at: Date.now(), posts })); } catch (e) {}
+            } catch (e) {
+                status.replaceChildren();
+                if (e.cloudflare || e.paused) {
+                    status.appendChild(cloudflareInline('Their newest posts wait for a quick Cloudflare check.'));
+                    window.addEventListener('s34-cf-passed', () => { if (card.isConnected) loadHomePosts(card, getFollowing()); }, { once: true });
+                } else {
+                    status.textContent = 'Their newest posts couldn\'t be loaded right now – "All" opens the Following window.';
+                }
+                return;
+            }
+        }
+        status.textContent = posts.length ? '' : 'Nothing from them yet.';
+        // NEW: after what you last saw of that artist (counts stay as they are)
+        const seenOf = {};
+        d.artists.forEach(a => { seenOf[a.tag] = a.seen || 0; });
+        const tags = d.artists.map(a => a.tag);
+        const tiles = posts.map(p => {
+            const t = document.createElement('span');
+            t.className = 'thumb s34-fw-tile';
+            t.id = 's' + p.id;
+            t.innerHTML = `<a href="${escapeHtml(p.href)}"><img alt="" decoding="async" class="preview${p.video ? ' webm-thumb' : ''}"></a>`;
+            const img = t.querySelector('img');
+            img.src = p.src;
+            img.setAttribute('title', p.tags);
+            return t;
+        });
+        grid.replaceChildren(...tiles);
+        setThumbRatios(tiles);
+        removeTagTooltips(tiles);
+        if (CONFIG.thumbBadges) addThumbBadges(tiles);
+        tiles.forEach((t, i) => {
+            const who = thumbArtists(t, tags);
+            if (who.some(tag => seenOf[tag] && posts[i].id > seenOf[tag])) {
+                const b = document.createElement('span');
+                b.className = 's34-new-badge';
+                b.textContent = 'NEW';
+                t.appendChild(b);
+            }
+            if (who.length) {
+                const by = document.createElement('span');
+                by.className = 's34-fw-by';
+                by.textContent = who.map(prettyTag).join(', ');
+                t.appendChild(by);
+            }
+        });
+        showDownloadedState(tiles);
+    }
+    // =====================================================================
     //  11. POPUP VIEWER (posts page)
     //  Clicking a thumbnail opens the post on top of the list: large media
     //  on the right, a compact sidebar with Download, info and tags on the
@@ -13629,10 +14521,17 @@
         return groups;
     }
 
-    function visibleThumbs() {
-        return Array.from(document.querySelectorAll('.image-list span.thumb'))
-            .filter(t => t.isConnected && !t.classList.contains('s34-bl-hidden') && t.offsetParent !== null);
-    }
+    // The posts ← / → move through: the page's thumbnails - or, opened from
+    // the Following window, that window's grid (popupState.list, Beta 3.6).
+    // A list: { thumbs(), state() 'more' | 'loading' | 'done' | null, more() }
+    const PAGE_LIST = {
+        thumbs: () => Array.from(document.querySelectorAll('.image-list span.thumb'))
+            .filter(t => t.isConnected && !t.classList.contains('s34-bl-hidden') && t.offsetParent !== null),
+        state: () => (infiniteState ? infiniteState() : null),
+        more: () => window.dispatchEvent(new CustomEvent('s34-load-more'))
+    };
+    const popupList = () => (popupState && popupState.list) || PAGE_LIST;
+    function visibleThumbs() { return popupList().thumbs(); }
 
     function buildPopup() {
         const overlay = document.createElement('div');
@@ -13783,7 +14682,8 @@
         }
     }
 
-    function openPopup(thumb) {
+    // list: where ← / → go (see PAGE_LIST) - kept while browsing
+    function openPopup(thumb, list) {
         const img = thumb.querySelector('img');
         const link = thumb.querySelector('a[href]');
         if (!img || !link) return;
@@ -13801,9 +14701,9 @@
         // Where the page was when the popup first opened (restored on close)
         const browsing = !!popupState;
         const start = browsing
-            ? { startThumb: popupState.startThumb, startScroll: popupState.startScroll,
+            ? { startThumb: popupState.startThumb, startScroll: popupState.startScroll, list: popupState.list,
                 pushedHistory: popupState.pushedHistory, prevScrollRestoration: popupState.prevScrollRestoration }
-            : { startThumb: thumb, startScroll: window.scrollY };
+            : { startThumb: thumb, startScroll: window.scrollY, list: list || null };
         if (!browsing) hintAfterPopupOpen(); // the first time only: how to get around
         popupState = Object.assign({
             id: myId, thumb, overlay,
@@ -13995,8 +14895,51 @@
         const list = visibleThumbs();
         const i = list.indexOf(popupState.thumb);
         const target = list[i + dir];
-        if (target) openPopup(target);
-        else if (dir > 0) showToast('No more posts loaded yet – scroll down to load more.');
+        if (target) {
+            openPopup(target);
+            // 3 posts before the end: the next page starts loading already
+            if (dir > 0 && list.length - (i + 2) <= 3) askForMorePosts();
+        } else if (dir > 0) {
+            stepWhenMoreArrive(popupState.thumb, list.length);
+        }
+    }
+
+    // Browsing on past the last loaded post: load the next page and go on
+    // (Beta 3.5.1 - before, the popup stopped with "scroll down to load more")
+    function askForMorePosts() {
+        const list = popupList(), st = list.state();
+        if (!st || st === 'done') return false;
+        list.more();
+        return true;
+    }
+    let waitingForMore = false;
+    async function stepWhenMoreArrive(fromThumb, hadCount) {
+        if (waitingForMore) return;
+        const list = popupList();
+        if (!list.state()) { showToast('That was the last post on this page.'); return; }
+        waitingForMore = true;
+        // the list behind the popup goes to this post, so the new page lands
+        // near the window (and isn't tidied away as "far off" right away)
+        try { fromThumb.scrollIntoView({ block: 'center' }); } catch (e) {}
+        try {
+            for (let attempt = 0; attempt < 3; attempt++) {
+                if (list.state() === 'done') { showToast('That was the last post.'); return; }
+                if (cloudflarePaused()) { showToast('More posts wait for the quick Cloudflare check.', 'Solve check', openCloudflarePanel, 10000); return; }
+                if (attempt === 0) showToast('Loading more posts…');
+                askForMorePosts();
+                // wait for the page to arrive (up to ~15 s)
+                for (let t = 0; t < 60; t++) {
+                    await new Promise(r => setTimeout(r, 250));
+                    if (!popupState || popupState.thumb !== fromThumb) return; // closed or moved meanwhile
+                    if (list.state() !== 'loading' && visibleThumbs().length > hadCount) break;
+                }
+                if (visibleThumbs().length > hadCount) { popupStep(1); return; }
+                // (a page where every post was hidden - try the next one)
+            }
+            showToast('No more posts to show right now.');
+        } finally {
+            waitingForMore = false;
+        }
     }
 
     async function popupFavourite() {
@@ -14220,7 +15163,7 @@
                 if (e.target === overlay || e.target.closest('.s34-menu-x')) { close(); return; }
                 // A tool that opens a window (or select mode): the menu steps
                 // aside so the window is on top. Switches & sliders keep it open.
-                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
+                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
             });
             document.addEventListener('keydown', onKey, true);
             document.body.appendChild(overlay);
@@ -14263,16 +15206,19 @@
         showFlashMessage();    // e.g. "Backup imported" after the reload
         if (!isPostView && CONFIG.infiniteScroll) setupInfiniteScroll();
         removeTagTooltips();
-        migrateSavedSearches(); // old saved searches -> Following (once, Beta 3.1)
+        moveFollowedSearchesToRecent(); // followed / saved searches -> Recent (once, Beta 3.6: Following is for artists)
         if (CONFIG.searchChips) setupChipSearch();
         else if (CONFIG.searchMultiline) setupMultilineSearch();
         setupQuickPanel();     // hide viewed / downloaded, size slider, select mode
         addBlacklistButton();  // opens the blacklist window
         addHub();              // Collections · Stats
         addFollowBox();        // "Following": artists + searches with "N new" each (above Collections · Stats)
-        setupFeedPage();       // an artist's / a search's posts, all artists: bar on top, NEW marks
+        // an old Following page address opens the Following window; a normal
+        // search for a followed artist / search counts as a visit (NEW marks)
+        if (!openFollowFromAddress()) setupFeedPage();
         if (isPostView) addFollowButtonsToRows(); // bell next to artists
-        if (!onFeedPage()) setTimeout(() => checkFollowing(), 6000); // quiet "N new" count
+        setupHome();           // rule34's start page as a small home (search, continue, recent, following)
+        setTimeout(() => checkFollowing(), 6000); // quiet "N new" count
         trimDlHistory();
         addPostCollectButton(); // single posts: "Save to collection"
         addTipsLink();         // "? Shortcuts & tips" under the settings button

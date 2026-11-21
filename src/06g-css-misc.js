@@ -137,11 +137,13 @@
             font: 700 11px system-ui, sans-serif;
         }
 
-        /* Right ad column, ad blocker on - posts use the space */
+        /* Ad spaces with an ad blocker on (right column, the box above the
+           posts) - posts use the space */
         .s34-empty-col { display: none !important; }
         /* Until the check (ad blocker seen last time): out of the layout */
         html.s34-adcol-early .content ~ span:has(.postListSidebarRight),
-        html.s34-adcol-early .content ~ .postListSidebarRight {
+        html.s34-adcol-early .content ~ .postListSidebarRight,
+        html.s34-adcol-early :is(span, div):has(~ .image-list):has(ins):not([class*="s34-"]) {
             position: absolute !important;
             visibility: hidden !important;
             pointer-events: none !important;

@@ -148,8 +148,6 @@
             const u = new URL(url, location.href);
             if (u.hostname.replace(/^www\./, '') !== location.hostname.replace(/^www\./, '')) return '';
             if (u.searchParams.get('page') !== 'post') return '';
-            const feed = feedFromHash(u.hash);
-            if (feed && feed.kind !== 'search') return ''; // an artist feed isn't a search to add to (a followed search is)
             const t = (u.searchParams.get('tags') || '').trim();
             return t === 'all' ? '' : t;
         } catch (e) { return ''; }
@@ -161,14 +159,12 @@
         const box = searchBox();
         const fromBox = box && box.value.trim();
         if (fromBox) return fromBox;
-        if (onSearchFeed()) return tagsFromUrl(location.href);
-        if (onFeedPage()) return ''; // an artist feed: only what you type, not the page you came from
         return tagsFromUrl(location.href) || tagsFromUrl(document.referrer) ||
                (GM_getValue(LAST_SEARCH_KEY, '') || '');
     }
 
     function rememberSearch() {
-        if (isPostView || onFeedPage()) return; // the feed isn't a "recent search"
+        if (isPostView) return;
         const t = tagsFromUrl(location.href);
         if (t) {
             GM_setValue(LAST_SEARCH_KEY, t);
@@ -206,7 +202,7 @@
         GM_setValue(LAST_SEARCH_KEY, next);
         refreshSearchButtons();
         showToast(next ? `Search: ${next.replace(/_/g, ' ')}` : 'Search is now empty.',
-                  'Search now', () => searchInFeed(next) || runSearch(next), 8000); // an artist page: stays on it
+                  'Search now', () => runSearch(next), 8000);
     }
 
     // +  : add the tag            Shift+click: add it as -tag

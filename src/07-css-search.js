@@ -128,30 +128,6 @@
         .s34-sb .s34-pin.s34-on::before { content: 'pinned'; font: 500 10px/1 system-ui, -apple-system, Segoe UI, sans-serif; color: inherit; white-space: nowrap; }
         .s34-sb .s34-sb-filter.s34-pinned select,
         .s34-sb .s34-sb-filter.s34-pinned select.s34-sb-set { border-color: #c98a2e !important; color: #ffcf8a !important; }
-        /* Following pages: pins are paused - quiet, with a short note why */
-        .s34-sb.s34-pins-paused .s34-sb-filter.s34-pinned .s34-sb-filter-top > span { color: #9a9aa6 !important; opacity: .9; }
-        .s34-sb.s34-pins-paused .s34-pin.s34-on::before { content: 'paused'; }
-        .s34-sb.s34-pins-paused .s34-sb-filter.s34-pinned select { border-color: #3a3a44 !important; color: inherit !important; }
-        .s34-sb.s34-pins-paused .s34-pin.s34-on { opacity: .7; color: #9a9aa6 !important; }
-        .s34-pins-note {
-            display: flex;
-            gap: 7px;
-            align-items: flex-start;
-            margin: 2px 0 8px;
-            padding: 7px 9px;
-            border-radius: 7px;
-            border: 1px solid rgba(255,179,71,0.3) !important;
-            background-color: rgba(255,179,71,0.08) !important;
-            color: #ffd9ad !important;
-            font-size: 11.5px;
-            line-height: 1.4;
-        }
-        .s34-pins-note svg { flex: none; margin-top: 2px; color: #ffb347 !important; }
-        .s34-pins-note svg * { color: inherit !important; }
-        .s34-pins-note span { color: inherit !important; }
-        .s34-pins-note > svg { width: 12px; height: 12px; }
-        .s34-pins-note a.s34-pins-out { color: inherit !important; text-decoration: underline !important; font-weight: 600; white-space: nowrap; }
-        .s34-pins-note a.s34-pins-out:hover { color: #ffb347 !important; }
         .s34-sb .s34-sb-filter select {
             width: 100%;
             min-width: 0;
@@ -268,7 +244,7 @@
         /* 🕘 Recent · ★ Tags · 🔔 (follow this search) - one list opens below */
         .s34-sb-tools {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 30px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 6px;
         }
         .s34-sb .s34-sb-tools .s34-sb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px !important; }
@@ -280,7 +256,7 @@
         /* Narrow sidebar (the real site's is ~165px): words only, no icons */
         .s34-sb-tools { container-type: inline-size; }
         @container (max-width: 215px) {
-            .s34-sb .s34-sb-tools .s34-sb-btn:not(.s34-sb-follow) svg { display: none; }
+            .s34-sb .s34-sb-tools .s34-sb-btn svg { display: none; }
             .s34-sb .s34-sb-tools .s34-sb-btn { padding: 0 4px !important; }
         }
         .s34-sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -300,9 +276,6 @@
             background-color: #18181c !important;
             border: 1px solid #3a3a44 !important;
         }
-        .s34-sb .s34-sb-follow svg { width: 14px; height: 14px; flex: none; opacity: 1 !important; color: #b9b9c3 !important; }
-        .s34-sb .s34-sb-follow.s34-following { border-color: rgba(255,179,71,0.55) !important; }
-        .s34-sb .s34-sb-follow.s34-following svg { color: #ffb347 !important; }
         /* The site's "search options" gear (phone layout): hidden - it
            covered the Steamy34 search box and only unfolded a heading */
         #displayOptsLink { display: none !important; }
@@ -319,6 +292,79 @@
             border: 1px solid #33333a !important;
         }
         .s34-sb-menu[hidden] { display: none !important; }
+        /* Recent · Tags as small menus next to the sidebar (Beta 3.6), like
+           "Follow which artist?" */
+        .s34-sb .s34-sb-pop {
+            position: fixed;
+            z-index: 100004;
+            margin: 0;
+            max-height: min(60vh, 520px);
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 8px;
+            border-radius: 10px;
+            background-color: #1c1c20 !important;
+            border: 1px solid #3a3a44 !important;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.55);
+        }
+        /* the add field right under the title (its suggestions then drop over the tags) */
+        .s34-sb-pop .s34-ft-add { order: 1; }
+        .s34-sb-pop .s34-ft-chips { order: 2; }
+        /* Phones: a sheet from the bottom over the dimmed page - bigger to tap,
+           swipe it down (or tap the page, or Back) to close */
+        .s34-sb .s34-sb-pop.s34-sb-sheet {
+            top: auto;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: auto;
+            max-height: 72vh;
+            padding: 24px 14px calc(16px + env(safe-area-inset-bottom, 0px));
+            border-radius: 16px 16px 0 0;
+            border-bottom: 0 !important;
+            overscroll-behavior: contain;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+            animation: s34-sheet-up .22s ease-out;
+        }
+        .s34-sb-pop.s34-sb-sheet::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            width: 40px;
+            height: 4px;
+            margin-left: -20px;
+            border-radius: 2px;
+            background-color: #4a4a56 !important;
+        }
+        @keyframes s34-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+        .s34-sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 100003;
+            background-color: rgba(0,0,0,0.5) !important;
+            animation: s34-sheet-fade .2s ease-out;
+        }
+        @keyframes s34-sheet-fade { from { opacity: 0; } }
+        html.s34-sheet-open { overflow: hidden !important; }
+        .s34-sb-sheet .s34-sb-item-main { padding: 9px 8px; font-size: 14px; }
+        .s34-sb .s34-sb-sheet .s34-sb-item-del { padding: 0 12px !important; font-size: 15px; }
+        .s34-sb-sheet .s34-sb-menu-head, .s34-sb-sheet .s34-ft-head > span { font-size: 11px; }
+        .s34-sb .s34-sb-sheet .s34-sb-clear-recent { height: 36px; font-size: 13px; }
+        .s34-sb-sheet .s34-ft-chips { gap: 7px; }
+        .s34-sb-sheet .s34-ft-chip { font-size: 13.5px; line-height: 32px; }
+        .s34-sb-sheet .s34-ft-name { padding: 0 13px; }
+        .s34-sb .s34-sb-sheet .s34-ft-edit { font-size: 13px; padding: 4px 8px !important; }
+        .s34-sb .s34-sb-sheet .s34-ft-input { height: 38px; font-size: 15px; }
+        @media (prefers-reduced-motion: reduce) { .s34-sb-pop.s34-sb-sheet, .s34-sheet-backdrop { animation: none; } }
+        .s34-sb-menu-head {
+            padding: 2px 5px 6px;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            opacity: .6;
+        }
         .s34-sb-menu h5 {
             margin: 4px 2px 3px !important;
             font-size: 10px !important;
@@ -342,18 +388,5 @@
         .s34-sb .s34-sb-item-del:hover { opacity: 1; color: #ff6b6b !important; }
         .s34-sb-empty { padding: 2px 5px 4px; opacity: .5; font-style: italic; }
         .s34-sb .s34-sb-clear-recent { display: block; width: 100%; margin-top: 5px; }
-        .s34-sb .s34-sb-hide {
-            display: block;
-            width: 100%;
-            margin-top: 6px;
-            padding: 2px 0 !important;
-            border: none !important;
-            background: transparent !important;
-            cursor: pointer;
-            font-size: 11px;
-            opacity: .6;
-            color: inherit !important;
-        }
-        .s34-sb .s34-sb-hide:hover { opacity: 1; }
     `;
 

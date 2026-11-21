@@ -155,7 +155,7 @@
         });
     }
 
-    // ---- Helpers for followed searches (20c-following.js) ----
+    // ---- Helpers for searches (Recent, Continue, Following visits) ----
     function normalizeQuery(q) {
         return String(q || '').toLowerCase().split(/\s+/).filter(Boolean).sort().join(' ');
     }
@@ -173,11 +173,6 @@
         return !isPostView && !(parseInt(params.get('pid') || '0', 10) > 0);
     }
 
-    // Saving a search while looking at its results: start counting from here
-    function seenIdForQuery(q) {
-        if (!onFirstResultsPage()) return 0;
-        return normalizeQuery(tagsFromUrl(location.href)) === normalizeQuery(q) ? pageMaxPostId() : 0;
-    }
 
 
 

@@ -201,6 +201,20 @@
         .s34-cm-text { white-space: pre-wrap; overflow-wrap: anywhere; color: #d4d4dc !important; }
         .s34-cm-text a { color: #8ab4f8 !important; }
         .s34-cm-empty { padding: 26px 4px; opacity: .6; font-style: italic; display: flex; align-items: center; gap: 8px; }
+        .s34-cm-more {
+            display: block;
+            width: 100%;
+            margin: 8px 0 4px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            background-color: rgba(255,255,255,0.05) !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+        }
+        .s34-cm-more:hover { border-color: #ff5f8f !important; }
+        .s34-cm-more:disabled { opacity: .6; cursor: progress; }
 
         /* Popup: zoom */
         .s34-pv-overlay { grid-template-rows: minmax(0, 1fr); }

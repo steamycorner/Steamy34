@@ -89,7 +89,7 @@
     // works exactly as before. What you see is built on top of it:
     //   [3d ×] [-ai_generated ×] [add tags…]          ✕
     //   Score [≥100]  Size [1080p+]  Sort [Newest]  Type [All]
-    //   ▸ Recent searches   🔔 Follow (follows the whole search - 20c-following.js)
+    //   ▸ Recent searches · ★ Tags (small menus since Beta 3.6)
 
     const HISTORY_KEY = 'steamy34_history';
     const SAVED_KEY = 'steamy34_saved'; // old saved searches - moved into Following in Beta 3.1
@@ -219,7 +219,6 @@
         try { u = new URL(a.href, location.href); } catch (err) { return; }
         if (u.origin !== location.origin || u.searchParams.get('page') !== 'post' ||
             u.searchParams.get('s') !== 'list' || u.searchParams.get('pid')) return; // page 2, 3… stay as they are
-        if (feedIndexFromHash(u.hash) >= 0) return; // the Following feed has its own filter
         const q = (u.searchParams.get('tags') || '').trim();
         const next = withPins(q === 'all' ? '' : q);
         if (next === q) return;
@@ -233,7 +232,7 @@
     // the pinned filters? Add them right away - once, never in a loop.
     (function applyPinsOnArrival() {
         if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list' || params.get('pid')) return;
-        if (feedIndexFromHash(location.hash) >= 0) return; // the Following feed
+        if (feedFromHash(location.hash)) return; // an old Following page: opens the Following window instead
         const q = (params.get('tags') || '').trim();
         const next = withPins(q === 'all' ? '' : q);
         if (next === q) return;
@@ -270,13 +269,7 @@
 
         // Pinned filters show up straight away on the posts page (on a single
         // post they're added when the new search starts)
-        // (the Following feed's "( a ~ b ~ … )" search stays out of the box - it starts empty)
-        // (a followed search shows its own words, without pins)
-        // (an artist / "All artists" page: the box shows that page's filters and
-        // a search from it stays on the page - searchInFeed in 20c-following.js)
-        const feedNow = onArtistFeed();
-        let { terms, f } = feedNow ? { terms: [], f: parseQuery(feedQueryNow()).f }
-            : parseQuery(onSearchFeed() ? input.value : isPostView ? input.value : withPins(input.value));
+        let { terms, f } = parseQuery(isPostView ? input.value : withPins(input.value));
 
         const root = document.createElement('div');
         root.className = 's34-sb';
@@ -291,7 +284,6 @@
             <div class="s34-sb-tools">
                 <button type="button" class="s34-sb-btn" data-act="menu"></button>
                 <button type="button" class="s34-sb-btn" data-act="tags"></button>
-                <button type="button" class="s34-sb-btn s34-sb-follow" data-act="save"></button>
             </div>
             <div class="s34-sb-menu" hidden></div>
             <div class="s34-ft" hidden>
@@ -323,35 +315,6 @@
             const sel = selects[key];
             const o = sel && sel.selectedOptions[0];
             return o ? o.textContent : '';
-        }
-
-        // Following pages (an artist, all artists, a followed search) show
-        // everything - pinned filters are paused there, and we say so
-        const pinsPaused = onFeedPage();
-        if (pinsPaused) {
-            root.classList.add('s34-pins-paused');
-            const hasPins = Object.keys(getPins()).some(k => k !== 'scoreOp' && getPins()[k]);
-            if (feedNow || hasPins) {
-                const note = document.createElement('div');
-                note.className = 's34-pins-note';
-                note.innerHTML = (feedNow ? BELL_SVG : PIN_SVG) + '<span></span>';
-                const feed = feedFromHash(location.hash);
-                const who = feedNow && feed.kind === 'artist' ? prettyTag(feed.tag) + '\'s posts' : 'your followed artists';
-                note.querySelector('span').textContent = !feedNow
-                    ? 'Your pinned filters are paused here – a followed search shows exactly what you followed.'
-                    : `Filters and tags here only search ${who}.` + (hasPins ? ' Your pinned filters are paused.' : '');
-                if (feedNow) {
-                    // The way out: the same search over all of rule34
-                    const out = document.createElement('a');
-                    out.href = '#';
-                    out.className = 's34-pins-out';
-                    out.textContent = 'Search all posts instead';
-                    out.title = 'Run what\'s in the search box over all of rule34, not just this page';
-                    out.addEventListener('click', e => { e.preventDefault(); commitField(true); runSearch(query()); });
-                    note.querySelector('span').append(' ', out);
-                }
-                filtersEl.before(note);
-            }
         }
 
         SEARCH_FILTERS.forEach(def => {
@@ -396,9 +359,8 @@
                 f[def.key] = v;
                 if (def.key === 'score') f.scoreOp = '>=';
                 // A pinned filter follows your choice; "Any" unpins it
-                // (not on Following pages, where pins are paused)
                 const pins = getPins();
-                if (pins[def.key] && !pinsPaused) {
+                if (pins[def.key]) {
                     if (v) {
                         pins[def.key] = v;
                         if (def.key === 'score') pins.scoreOp = f.scoreOp;
@@ -436,8 +398,7 @@
                 const pin = pinButtons[def.key];
                 pin.classList.toggle('s34-on', pinned);
                 pin.closest('.s34-sb-filter').classList.toggle('s34-pinned', pinned);
-                pin.title = pinned && pinsPaused ? 'Pinned, but paused on this page – your other searches still use it'
-                          : pinned ? `Pinned: kept for every new search – click to unpin`
+                pin.title = pinned ? `Pinned: kept for every new search – click to unpin`
                                    : `Pin: keep this ${def.label.toLowerCase()} for every new search`;
             });
         }
@@ -540,6 +501,8 @@
                 }
                 ftChips.appendChild(chip);
             });
+            // open as a menu next to the sidebar: keep it inside the window as it grows
+            if (!ft.hidden && ft.classList.contains('s34-sb-pop') && !ft.classList.contains('s34-sb-sheet')) placePop();
         }
 
         function addFavTags(words) {
@@ -584,28 +547,6 @@
             showFilters();
             renderFavTags();
             if (typeof refreshSearchButtons === 'function') refreshSearchButtons();
-            styleFollowSearchBtn();
-        }
-
-        // 🔔 Follow / Following for the search in the box
-        // What the bell follows: the box - on an artist page together with the artist(s)
-        function followQuery() {
-            const q = query();
-            if (!feedNow || !q) return q;
-            const base = feedBaseTerms() || [];
-            const have = new Set(base.map(t => t.toLowerCase()));
-            return base.concat(q.split(' ').filter(w => !have.has(w.toLowerCase()))).join(' ');
-        }
-        function styleFollowSearchBtn() {
-            const b = root.querySelector('.s34-sb-follow');
-            if (!b) return;
-            const q = followQuery();
-            const on = !!q && isQueryFollowed(q);
-            b.classList.toggle('s34-following', on);
-            // Just the bell (the word is there for screen readers)
-            b.innerHTML = (on ? BELL_ON_SVG : BELL_SVG) + `<span class="s34-sr">${on ? 'Following' : 'Follow'}</span>`;
-            b.title = !q ? 'Follow a search: its new posts show up in the sidebar' : on ? 'You follow this search – click to stop' : 'Follow this search – its new posts show up in the sidebar, with NEW on them';
-            b.setAttribute('aria-pressed', on ? 'true' : 'false');
         }
 
         function addTerms(words) {
@@ -662,7 +603,6 @@
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
-            if (feedNow && searchInFeed(ta.value)) return; // stays on the artist page
             const form = ta.form;
             if (!form) { runSearch(ta.value); return; }
             if (form.requestSubmit) form.requestSubmit(); else form.submit();
@@ -720,6 +660,10 @@
 
         function renderMenu() {
             menu.replaceChildren();
+            const head = document.createElement('div');
+            head.className = 's34-sb-menu-head';
+            head.textContent = 'Recent searches';
+            menu.appendChild(head);
             const recent = getStoredList(HISTORY_KEY);
             if (!recent.length) {
                 const n = document.createElement('div');
@@ -738,57 +682,134 @@
                 clear.addEventListener('click', () => { GM_setValue(HISTORY_KEY, []); renderMenu(); });
                 menu.appendChild(clear);
             }
-            const hide = document.createElement('button');
-            hide.type = 'button';
-            hide.className = 's34-sb-hide';
-            hide.textContent = '▴ Hide this list';
-            hide.title = 'Fold the list away - open it again with "Recent"';
-            hide.addEventListener('click', () => showPanel(''));
-            menu.appendChild(hide);
+            if (openPop === 'recent') placePop();
         }
 
-        // 🕘 Recent · ★ Tags: one list opens below the row at a time
-        // (remembered; '' = both folded)
+        // 🕘 Recent · ★ Tags: small menus (Beta 3.6 - before, lists that
+        // opened inside the sidebar and made it scroll). One at a time.
+        //  - computer: right next to the sidebar (or below the button when
+        //    there's no room); a click elsewhere, Esc or scrolling closes it
+        //  - phone: a sheet that slides up from the bottom over the dimmed
+        //    page; a tap on the page, swiping it down or Back closes it
         const CLOCK_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
         const STAR_SVG_S = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>';
         const recentBtn = root.querySelector('[data-act="menu"]');
         const tagsBtn = root.querySelector('[data-act="tags"]');
         recentBtn.innerHTML = CLOCK_SVG + '<span>Recent</span>';
         tagsBtn.innerHTML = STAR_SVG_S + '<span>Tags</span>';
-        function showPanel(which, remember = true) {
-            menu.hidden = which !== 'recent';
-            ft.hidden = which !== 'tags';
-            recentBtn.classList.toggle('s34-sb-open', which === 'recent');
-            tagsBtn.classList.toggle('s34-sb-open', which === 'tags');
-            recentBtn.title = which === 'recent' ? 'Hide your recent searches' : 'Your recent searches';
-            tagsBtn.title = which === 'tags' ? 'Hide your favourite tags' : 'Your favourite tags – one click puts one in the search';
-            if (which === 'recent') renderMenu();
-            if (remember) GM_setValue('steamy34_sb_panel', which);
+        const POPS = { recent: { el: menu, btn: recentBtn }, tags: { el: ft, btn: tagsBtn } };
+        let openPop = '';
+        let sheetBackdrop = null, sheetHistory = false;
+        const asSheet = () => isPhoneLayout();
+
+        function placePop() {
+            const p = POPS[openPop];
+            if (!p) return;
+            const el = p.el;
+            el.classList.add('s34-sb-pop');
+            el.classList.toggle('s34-sb-sheet', asSheet());
+            if (asSheet()) { el.style.cssText = ''; return; } // (the sheet is placed by its CSS)
+            const b = p.btn.getBoundingClientRect();
+            const side = (root.closest('.sidebar, #sidebar') || root).getBoundingClientRect();
+            const w = Math.min(320, innerWidth - 16);
+            el.style.width = w + 'px';
+            let left = side.right + 8, top = b.top - 4;
+            if (left + w > innerWidth - 8) { left = Math.max(8, Math.min(b.left, innerWidth - w - 8)); top = b.bottom + 6; }
+            el.style.left = left + 'px';
+            el.style.top = Math.max(8, Math.min(top, innerHeight - el.offsetHeight - 8)) + 'px';
         }
-        const panelNow = () => (!menu.hidden ? 'recent' : !ft.hidden ? 'tags' : '');
-        recentBtn.addEventListener('click', () => showPanel(panelNow() === 'recent' ? '' : 'recent'));
-        tagsBtn.addEventListener('click', () => showPanel(panelNow() === 'tags' ? '' : 'tags'));
-        const followBtn = root.querySelector('[data-act="save"]');
-        followBtn._s34Refresh = styleFollowSearchBtn;
-        followBtn.addEventListener('click', () => {
-            commitField(true);
-            sync();
-            const q = followQuery();
-            if (!q) { showToast('Type a search first – then the bell follows it.'); return; }
-            // Count new posts from now on (from the results you're looking at)
-            toggleFollowSearch(q, seenIdForQuery(q));
-            styleFollowSearchBtn();
-        });
-        // Recent is open by default - folded on phones, where it would push the
-        // posts a whole screen down. Once you open / fold one yourself, that's
-        // kept (before Beta 3.3 only Recent was remembered: steamy34_sbmenu_open)
-        let panelSaved = GM_getValue('steamy34_sb_panel', null);
-        if (panelSaved === null) {
-            const old = GM_getValue('steamy34_sbmenu_open', null);
-            panelSaved = old === null ? (isPhoneLayout() ? '' : 'recent') : old !== false ? 'recent' : '';
+        function onPopKey(e) {
+            if (e.key !== 'Escape' || !openPop) return;
+            const a = document.activeElement;
+            if (a && a.dataset && a.dataset.acOpen === '1') return; // Esc closes the suggestions first
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            showPanel('');
         }
-        showPanel(['recent', 'tags'].includes(panelSaved) ? panelSaved : '', false);
-        styleFollowSearchBtn();
+        function offPop(e) {
+            const p = POPS[openPop];
+            if (e.target === sheetBackdrop) return; // (its own click closes - so the tap never reaches the page below)
+            if (p && !p.el.contains(e.target) && !p.btn.contains(e.target) && !(e.target.closest && e.target.closest('.s34-ac-list'))) showPanel('');
+        }
+        // (computer: the page or sidebar scrolled away under the menu)
+        function offPopScroll(e) {
+            const p = POPS[openPop];
+            if (p && !asSheet() && !p.el.contains(e.target)) showPanel('');
+        }
+        function onSheetBack() { if (openPop && asSheet()) { sheetHistory = false; showPanel(''); } }
+
+        // Phones: drag the sheet down to close it (when its list is at the top)
+        function setupSheetSwipe(el) {
+            let start = null;
+            el.addEventListener('touchstart', e => {
+                start = null;
+                if (!el.classList.contains('s34-sb-sheet') || e.touches.length !== 1 || el.scrollTop > 0) return;
+                if (e.target.closest('input, textarea')) return;
+                start = { y: e.touches[0].clientY, t: Date.now() };
+            }, { passive: true });
+            el.addEventListener('touchmove', e => {
+                if (!start) return;
+                const dy = e.touches[0].clientY - start.y;
+                el.style.transform = dy > 0 ? `translateY(${dy}px)` : '';
+            }, { passive: true });
+            const end = e => {
+                if (!start) return;
+                const dy = ((e.changedTouches && e.changedTouches[0]) || {}).clientY - start.y;
+                const fast = dy > 40 && Date.now() - start.t < 300;
+                start = null;
+                if (dy > 90 || fast) showPanel('');
+                else { el.style.transition = 'transform .18s ease'; el.style.transform = ''; setTimeout(() => { el.style.transition = ''; }, 200); }
+            };
+            el.addEventListener('touchend', end, { passive: true });
+            el.addEventListener('touchcancel', end, { passive: true });
+        }
+        setupSheetSwipe(menu);
+        setupSheetSwipe(ft);
+
+        function showPanel(which) {
+            const was = openPop;
+            openPop = which;
+            Object.entries(POPS).forEach(([k, p]) => {
+                const on = k === which;
+                p.el.hidden = !on;
+                p.btn.classList.toggle('s34-sb-open', on);
+                p.btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+                if (!on) { p.el.classList.remove('s34-sb-pop', 's34-sb-sheet'); p.el.style.cssText = ''; }
+            });
+            recentBtn.title = which === 'recent' ? 'Close your recent searches' : 'Your recent searches';
+            tagsBtn.title = which === 'tags' ? 'Close your favourite tags' : 'Your favourite tags – one click puts one in the search';
+            document.removeEventListener('keydown', onPopKey, true);
+            document.removeEventListener('pointerdown', offPop, true);
+            window.removeEventListener('scroll', offPopScroll, true);
+            if (sheetBackdrop) { sheetBackdrop.remove(); sheetBackdrop = null; }
+            document.documentElement.classList.remove('s34-sheet-open');
+            // Phones: the sheet took a Back step - give it back when closed another way
+            if (!which && was && sheetHistory) {
+                sheetHistory = false;
+                try { if (history.state && history.state.s34sheet) history.back(); } catch (e) {}
+            }
+            if (!which) return;
+            if (which === 'recent') renderMenu(); else renderFavTags();
+            placePop();
+            document.addEventListener('keydown', onPopKey, true);
+            document.addEventListener('pointerdown', offPop, true);
+            if (asSheet()) {
+                sheetBackdrop = document.createElement('div');
+                sheetBackdrop.className = 's34-sheet-backdrop';
+                sheetBackdrop.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); showPanel(''); });
+                document.body.appendChild(sheetBackdrop);
+                document.documentElement.classList.add('s34-sheet-open');
+                if (!sheetHistory) {
+                    try { history.pushState({ s34sheet: true }, ''); sheetHistory = true; } catch (e) {}
+                }
+            } else {
+                window.addEventListener('scroll', offPopScroll, true);
+            }
+        }
+        window.addEventListener('popstate', () => { if (sheetHistory && !(history.state && history.state.s34sheet)) onSheetBack(); });
+        recentBtn.addEventListener('click', () => showPanel(openPop === 'recent' ? '' : 'recent'));
+        tagsBtn.addEventListener('click', () => showPanel(openPop === 'tags' ? '' : 'tags'));
+        // (Recent and Tags only open when you click them - small menus since Beta 3.6)
 
         // ---- outside changes (the + / − buttons on posts) ----
         ta.addEventListener('input', () => {
@@ -822,7 +843,6 @@
             commitField(true);
             ta.value = query();
             mirror.value = ta.value;
-            if (feedNow) { e.preventDefault(); searchInFeed(ta.value); } // stays on the artist page
         });
         sync();
     }

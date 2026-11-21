@@ -1,6 +1,6 @@
 # Testing Steamy34 – thanks for helping!
 
-Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewer, an easier tag search, downloads named after the tags, following artists and searches, and a phone layout. It's a fan-made hobby project and still in beta – things may break, and that's exactly what I'd like to find out.
+Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewer, an easier tag search, downloads named after the tags, following artists, and a phone layout. It's a fan-made hobby project and still in beta – things may break, and that's exactly what I'd like to find out.
 
 ## Install (2 minutes)
 
@@ -18,7 +18,7 @@ Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewe
 
 - Open posts (popup), browse with ← / →, download with **B**
 - The search box: tags as bubbles, filters, pinning a filter
-- The bell next to an artist in a post, or under the search box → "Following" in the sidebar
+- The bell next to an artist in a post → "Following" in the sidebar, G opens the Following window
 - White / Dark / OLED, thumbnail styles (Settings → Look)
 - **X** = Censored mode (blurs every picture and comment – handy for sending me screenshots)
 - On a phone: swipe left / right in a post, swipe down to close

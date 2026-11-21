@@ -62,9 +62,11 @@
                                  // only on 'hover', or in a strip 'below' the picture
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         contextHints: true,      // little one-time tips the first time you meet a feature
+        homePage: true,          // rule34's start page as Steamy34's home (Beta 3.6): search, continue, recent, following
         censorComments: true,    // Censored mode (X) also blurs comment texts and names
 
         // Following
+        followingKey: 'KeyG',    // opens / closes the Following window (Beta 3.6)
         followButtons: true,     // bell (follow) next to artists (popup, post pages)
         checkFollowing: true,    // count new posts for followed artists & searches (in the background)
         tabBadge: true,          // "(12) rule34" in the browser tab while there are new posts
@@ -80,7 +82,7 @@
         tagBarMax: 2,            // max tags shown per type (rest as "+N")
 
         // Search box
-        searchChips: true,       // modern search: tags as chips, filter menus, recent searches, follow a search
+        searchChips: true,       // modern search: tags as chips, filter menus, recent searches
         searchMultiline: true,   // (only when searchChips is off) search box wraps and grows
         searchSuggestions: true, // tag suggestions while typing
         suggestionCount: 10,
@@ -151,6 +153,7 @@
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['homePage', 'Steamy34 start page', { hint: 'rule34\'s start page with your search, where you left off, your recent searches and the newest posts from who you follow – off: the site\'s own start page' }],
             ['contextHints', 'Little tips while you use Steamy34', { hint: 'A small bubble the first time you meet something – each tip only once, at most one every few minutes' }],
             ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
             ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
@@ -196,12 +199,13 @@
             ['padding', 'Gap to the window edges', { min: 0, max: 100, unit: 'px', adv: true }]
         ] },
         { id: 'following', title: 'Following', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 0 0-12 0c0 6.5-3 8.5-3 8.5h18s-3-2-3-8.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>', rows: [
-            ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages – searches are followed with the bell under the search box' }],
-            ['checkFollowing', 'Count new posts', { hint: 'For followed artists and searches – checked quietly in the background, at most every 20 minutes' }],
+            ['followingKey', 'Following window key', { hotkey: true, hint: 'Opens and closes the Following window – your artists\' newest posts in a grid' }],
+            ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages' }],
+            ['checkFollowing', 'Count new posts', { hint: 'For your followed artists – checked quietly in the background, at most every 20 minutes' }],
             ['tabBadge', 'New posts in the browser tab', { hint: 'The tab shows "(12) rule34" while there are new posts – handy when rule34 sits in a background tab' }]
         ] },
         { id: 'search', title: 'Search', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>', rows: [
-            ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, recent searches and the bell to follow a search' }],
+            ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, and recent searches' }],
             ['searchSuggestions', 'Tag suggestions while typing'],
             ['suggestionCount', 'Number of suggestions', { min: 3, max: 30, adv: true }],
             ['searchMultiline', 'Simple multi-line box (when the modern one is off)', { adv: true }]

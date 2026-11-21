@@ -45,7 +45,7 @@
             const t = e.target;
             if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
             if (document.querySelector('.s34-overlay:not(.s34-pv-overlay)')) return; // settings etc. open
-            if ([CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey].includes('KeyX')) return; // your own key wins
+            if ([CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey, CONFIG.followingKey].includes('KeyX')) return; // your own key wins
             e.preventDefault();
             setScreenshotMode(!sfwOn());
         }, true);

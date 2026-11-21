@@ -2,7 +2,7 @@
     // Shown once after installing (or updating to a version with new tips);
     // reopen it any time with the "?" in the popup or in the settings.
     const TIPS_KEY = 'steamy34_tips_seen';
-    const TIPS_VERSION = 8; // raise this when the tips get new entries -> shown once more
+    const TIPS_VERSION = 9; // raise this when the tips get new entries -> shown once more
 
     const MOUSE_MIDDLE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6" /><rect x="10.6" y="5.5" width="2.8" height="4.5" rx="1.4" fill="currentColor" stroke="none"/></svg>';
 
@@ -28,8 +28,7 @@
             [`${k('×')} on a tag bubble`, 'Remove it from the search'],
             [`${k('Pin')} next to a filter`, 'Keep that filter (Score, Size, Sort, Type, Rating) for every new search'],
             [`${k('★ Tags')}`, 'Your favourite tags – one tap puts one in the search'],
-            [`${k('Recent')}`, 'Run your earlier searches again'],
-            [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Follow')} under the search box`, `${nu}Follow the whole search – it shows up in the sidebar with a count of its new posts`]
+            [`${k('Recent')}`, 'Run your earlier searches again']
         ]];
         const sidebarGroup = ['Sidebar', SLIDERS, [
             [`${k('White')} ${k('Dark')} ${k('OLED')}`, 'Colour mode – in Settings → Look (OLED is true black)'],
@@ -37,7 +36,7 @@
             [`${k('Size')} slider`, 'Make the thumbnails bigger or smaller'],
             [`${k('⬇ Batch download')}`, 'Tick posts (or "Select all new"), then download them – a panel shows progress with Pause / Cancel – or add them to a collection'],
             [`${k('Collections')} · ${k('Stats')}`, 'Your own folders · your top artists, characters & series'],
-            [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – the bell next to an artist in a post (or under the search box) follows it`],
+            [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – click one for their newest posts in the Following window. The bell next to an artist in a post follows them`],
             [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted'],
             [`${k('⚙ Settings')}`, 'Every option, plus backup and what is stored on your device'],
             [`${k('Choose folder…')}`, `${nu}Settings → Downloads: save straight into any folder, e.g. Eagle's watch folder (computer)`]
@@ -63,6 +62,7 @@
                     [`${k('Ctrl')} + ${k('Click')} a thumbnail`, 'Open the full post page instead (new tab)']
                 ]],
                 ['Browsing', icon('posts'), [
+                    [`${k(keyLabel(CONFIG.followingKey))}`, `${nu}The Following window: your artists' newest posts in a grid – ← / → switch artists, Esc closes`],
                     [`${k('Hover')} a thumbnail`, 'Videos play, images load in full quality, score & size show up'],
                     [`${k('+')} / ${k('⊘')} on a tag`, 'Add the tag to your search / blacklist it'],
                     [`${k('Shift')} + ${k('+')}`, 'Exclude the tag from your search (-tag)'],
@@ -86,6 +86,7 @@
                 ['Browsing', icon('posts'), [
                     [`${k(MENU_SVG.replace('width="20" height="20"', 'width="13" height="13"') + ' Menu')} top right`, `${nu}Steamy34's tools (switches, Settings, Blacklist, tips) and all of rule34's pages`],
                     [`${k('+')} / ${k('⊘')} on a tag`, `${nu}Add the tag to your search / blacklist it – always shown on phones`],
+                    [`Following in the ${k('Menu')}`, `${nu}Your artists' newest posts in a full-screen grid – tap a circle to switch, Back closes`],
                     [`${k('♥')} on a thumbnail`, 'Add the post to your favourites (needs a rule34 login)'],
                     [`${k('⬇')} / ${k(EYE)} in a corner`, 'You already downloaded / viewed this post'],
                     [`"Quick check needed" bottom right`, `${nu}Cloudflare wants a robot check – tap "Solve"`],
@@ -200,6 +201,22 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.6', date: '2026-11-21', notify: true, items: [
+            'New Following window: everything you follow in one window on top of the page you\'re on. Your artists sit in a row of circles at the top (a coloured ring = new posts), their newest posts in a grid below, with NEW on the ones since your last visit.',
+            'Click a post and it opens in the popup as usual – ← / → go through that artist\'s posts and load more at the end. Close it and you\'re back in the grid; close the window and you\'re back on your page.',
+            'Open it with the sidebar\'s Following box or the G key (changeable in Settings → Following). ← / → switch between artists, Esc closes. "Bigger" in its bottom right corner makes it nearly as big as the screen. On phones it fills the screen and Back closes it.',
+            'New start page: rule34\'s start page becomes a small home. Your search, "Continue" where you left off, your recent searches and favourite tags on the left (the post count as plain text), the newest posts from who you follow on the right. Settings → Look & feel brings back the site\'s own.',
+            'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
+            'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',
+            'Sidebar: Recent and Tags open as small menus right next to the sidebar, instead of long lists inside it – on phones as a sheet that slides up from the bottom (swipe it down, tap the page or press Back to close). And when the sidebar is taller than the window, it scrolls on its own with the mouse wheel – Settings and the tips below it are always in reach.',
+            'With an ad blocker on, the empty ad space above "Page 1" folds away too, like the right column. Without an ad blocker every ad stays exactly as rule34 shows it.'
+        ] },
+        { v: 'Beta 3.5.1', date: '2026-11-21', items: [
+            'The popup no longer stops at the last loaded post: → loads the next page and goes on (it already starts loading 3 posts before the end).',
+            'Popup comments: the count shows all of them (rule34 sends 10 at a time), and "More comments" loads the rest right in the popup.',
+            'Popup: the site\'s own "< previous · Tag search · next >" bar no longer shows up as if it were a note about the post.',
+            'Sidebar: "Shortcuts & tips" and "What\'s new" no longer stick out of the site\'s narrow sidebar.'
+        ] },
         { v: 'Beta 3.5', date: '2026-11-21', notify: true, items: [
             'Far fewer Cloudflare checks: everything Steamy34 loads from rule34 now waits in one line and is spaced out – what you asked for (the popup, scrolling) goes first, the extras after it. After a check, it all runs slower for a while.',
             'Fewer page loads: the popup loads only the next post in advance (its picture straight from the image server), the size on hover waits a full second, and the Following check waits until you stop clicking around.',
@@ -586,12 +603,22 @@
                     ['⊘', 'Exclude', (phone ? 'Tap' : 'Click') + ' a bubble to exclude it, again to bring it back.'],
                     ['🎚️', 'Filters', 'Score, size, sort, type and rating – pin one to keep it for every search.'],
                     ['★', 'Favourite tags', 'Your go-to tags, one ' + (phone ? 'tap' : 'click') + ' away.'],
-                    ['🕘', 'Recent searches', 'Run your earlier searches again with one ' + (phone ? 'tap' : 'click') + '.'],
-                    [BELL_SVG, 'Follow', (phone ? 'Tap' : 'Click') + ' the bell next to an artist in a post – or under the search box to follow a whole search. The sidebar lists them, each with a count of its new posts.']
+                    ['🕘', 'Recent searches', (phone ? 'Tap' : 'Click') + ' Recent for a small list of your earlier searches – one ' + (phone ? 'tap' : 'click') + ' runs one again.']
                 ]
             },
             {
-                art: ic('downloads'), step: '3 · Downloads',
+                art: ic('following'), step: '3 · Following',
+                title: 'Your artists, newest first',
+                text: (phone ? 'Tap' : 'Click') + ' the bell next to an artist in a post to follow them. Their newest posts wait for you in the Following window.',
+                cards: [
+                    ['◎', 'A circle each', 'Everyone you follow sits in a row at the top – a coloured ring means new posts.'],
+                    ['NEW', 'Since your last visit', 'Their newest posts in a grid, each in its own shape – NEW on the ones you haven\'t seen.'],
+                    ['↔', 'Browse right there', (phone ? 'Tap' : 'Click') + ' a post and it opens in the popup – ' + (phone ? 'swipe' : prevNext) + ' through that artist, more load at the end.'],
+                    [BELL_SVG, 'Open it', phone ? 'Following in the ☰ Menu – Back closes it.' : `${k(keyLabel(CONFIG.followingKey))} or a name in the sidebar's Following box – "Bigger" makes it nearly full screen.`]
+                ]
+            },
+            {
+                art: ic('downloads'), step: '4 · Downloads',
                 title: 'One key, a perfectly named file',
                 text: phone ? 'Tap Download for the original file in full resolution.' : `Press ${k(dl)} on any post for the original file in full resolution.`,
                 cards: [
@@ -602,7 +629,7 @@
                 ]
             },
             {
-                art: FOLDER_SVG, step: '4 · Organise',
+                art: FOLDER_SVG, step: '5 · Organise',
                 title: 'Keep track of everything',
                 text: 'Your own little archive on top of rule34 – kept only on your device.',
                 cards: [
@@ -613,7 +640,7 @@
                 ]
             },
             {
-                art: ic('look'), step: '5 · Thumbnails',
+                art: ic('look'), step: '6 · Thumbnails',
                 title: 'Thumbnails your way',
                 text: 'Tags, VID / GIF labels, ♥ and the viewed / downloaded marks can sit on the picture, ' + (phone ? 'stay out of the way' : 'show up only while you hover') + ' – or move to a strip below, so nothing covers the picture.',
                 picks: [
@@ -630,7 +657,7 @@
                 note: 'Change both any time in Settings → Look.'
             },
             {
-                art: SPARKLE_SVG, step: '6 · Make it yours',
+                art: SPARKLE_SVG, step: '7 · Make it yours',
                 title: 'Pick your look',
                 text: 'Choose a colour mode – you can switch any time' + (phone ? ' in the ☰ Menu.' : ' in the sidebar.'),
                 picks: [
@@ -657,9 +684,9 @@
         const w = openWindow({ cls: 's34-wel-overlay', icon: SPARKLE_SVG, title: 'Welcome to Steamy34', width: 680 });
         w.setSub(CURRENT_VERSION);
         let idx = Math.min(Math.max(parseInt(startAt, 10) || 0, 0), slides.length - 1);
-        // Short tour first (welcome, popup, search, downloads); the rest
+        // Short tour first (welcome, popup, search, following, downloads); the rest
         // (organise, thumbnails, colours) only after "Show me more"
-        const SHORT = 4;
+        const SHORT = 5;
         let full = idx >= SHORT;
         const shown = () => (full ? slides.length : SHORT);
 

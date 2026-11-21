@@ -1,9 +1,10 @@
     const CORE_CSS = `
         /* Square corners (setting "Rounded corners" off): everything Steamy34
-           draws and styles - except loading circles and the video player */
-        html.s34-square body *:not(.s34-spin, .fluid_video_wrapper *),
-        html.s34-square body *:not(.s34-spin, .fluid_video_wrapper *)::before,
-        html.s34-square body *:not(.s34-spin, .fluid_video_wrapper *)::after { border-radius: 0 !important; }
+           draws and styles - except loading circles, the round pictures in
+           the Following window and the video player */
+        html.s34-square body *:not(.s34-spin, .s34-fw-av, .fluid_video_wrapper *),
+        html.s34-square body *:not(.s34-spin, .s34-fw-av, .fluid_video_wrapper *)::before,
+        html.s34-square body *:not(.s34-spin, .s34-fw-av, .fluid_video_wrapper *)::after { border-radius: 0 !important; }
         /* Download panel (batch downloads / collections): progress, pause, cancel */
         .s34-dlp {
             position: fixed;

@@ -197,8 +197,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            flex-wrap: wrap; /* the real site's sidebar is only 180px: two lines then */
+            gap: 0 4px;
             width: 100%;
+            box-sizing: border-box;
             margin: -6px 0 14px !important;
         }
         .s34-tools .s34-tipslink { margin: -2px 0 0 !important; }

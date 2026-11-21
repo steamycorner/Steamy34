@@ -39,10 +39,17 @@
         return groups;
     }
 
-    function visibleThumbs() {
-        return Array.from(document.querySelectorAll('.image-list span.thumb'))
-            .filter(t => t.isConnected && !t.classList.contains('s34-bl-hidden') && t.offsetParent !== null);
-    }
+    // The posts ← / → move through: the page's thumbnails - or, opened from
+    // the Following window, that window's grid (popupState.list, Beta 3.6).
+    // A list: { thumbs(), state() 'more' | 'loading' | 'done' | null, more() }
+    const PAGE_LIST = {
+        thumbs: () => Array.from(document.querySelectorAll('.image-list span.thumb'))
+            .filter(t => t.isConnected && !t.classList.contains('s34-bl-hidden') && t.offsetParent !== null),
+        state: () => (infiniteState ? infiniteState() : null),
+        more: () => window.dispatchEvent(new CustomEvent('s34-load-more'))
+    };
+    const popupList = () => (popupState && popupState.list) || PAGE_LIST;
+    function visibleThumbs() { return popupList().thumbs(); }
 
     function buildPopup() {
         const overlay = document.createElement('div');
@@ -193,7 +200,8 @@
         }
     }
 
-    function openPopup(thumb) {
+    // list: where ← / → go (see PAGE_LIST) - kept while browsing
+    function openPopup(thumb, list) {
         const img = thumb.querySelector('img');
         const link = thumb.querySelector('a[href]');
         if (!img || !link) return;
@@ -211,9 +219,9 @@
         // Where the page was when the popup first opened (restored on close)
         const browsing = !!popupState;
         const start = browsing
-            ? { startThumb: popupState.startThumb, startScroll: popupState.startScroll,
+            ? { startThumb: popupState.startThumb, startScroll: popupState.startScroll, list: popupState.list,
                 pushedHistory: popupState.pushedHistory, prevScrollRestoration: popupState.prevScrollRestoration }
-            : { startThumb: thumb, startScroll: window.scrollY };
+            : { startThumb: thumb, startScroll: window.scrollY, list: list || null };
         if (!browsing) hintAfterPopupOpen(); // the first time only: how to get around
         popupState = Object.assign({
             id: myId, thumb, overlay,
@@ -405,8 +413,51 @@
         const list = visibleThumbs();
         const i = list.indexOf(popupState.thumb);
         const target = list[i + dir];
-        if (target) openPopup(target);
-        else if (dir > 0) showToast('No more posts loaded yet – scroll down to load more.');
+        if (target) {
+            openPopup(target);
+            // 3 posts before the end: the next page starts loading already
+            if (dir > 0 && list.length - (i + 2) <= 3) askForMorePosts();
+        } else if (dir > 0) {
+            stepWhenMoreArrive(popupState.thumb, list.length);
+        }
+    }
+
+    // Browsing on past the last loaded post: load the next page and go on
+    // (Beta 3.5.1 - before, the popup stopped with "scroll down to load more")
+    function askForMorePosts() {
+        const list = popupList(), st = list.state();
+        if (!st || st === 'done') return false;
+        list.more();
+        return true;
+    }
+    let waitingForMore = false;
+    async function stepWhenMoreArrive(fromThumb, hadCount) {
+        if (waitingForMore) return;
+        const list = popupList();
+        if (!list.state()) { showToast('That was the last post on this page.'); return; }
+        waitingForMore = true;
+        // the list behind the popup goes to this post, so the new page lands
+        // near the window (and isn't tidied away as "far off" right away)
+        try { fromThumb.scrollIntoView({ block: 'center' }); } catch (e) {}
+        try {
+            for (let attempt = 0; attempt < 3; attempt++) {
+                if (list.state() === 'done') { showToast('That was the last post.'); return; }
+                if (cloudflarePaused()) { showToast('More posts wait for the quick Cloudflare check.', 'Solve check', openCloudflarePanel, 10000); return; }
+                if (attempt === 0) showToast('Loading more posts…');
+                askForMorePosts();
+                // wait for the page to arrive (up to ~15 s)
+                for (let t = 0; t < 60; t++) {
+                    await new Promise(r => setTimeout(r, 250));
+                    if (!popupState || popupState.thumb !== fromThumb) return; // closed or moved meanwhile
+                    if (list.state() !== 'loading' && visibleThumbs().length > hadCount) break;
+                }
+                if (visibleThumbs().length > hadCount) { popupStep(1); return; }
+                // (a page where every post was hidden - try the next one)
+            }
+            showToast('No more posts to show right now.');
+        } finally {
+            waitingForMore = false;
+        }
     }
 
     async function popupFavourite() {

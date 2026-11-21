@@ -11,7 +11,18 @@
             top: 10px !important;
             align-self: flex-start !important;
             z-index: 50;
+            /* Taller than the window (a long Following list)? Then it scrolls
+               on its own with the mouse wheel - infinite scroll never reaches
+               the page's end, so its bottom (Settings, tips) was out of reach
+               before Beta 3.6. No scrollbar: it looked out of place */
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
         }
+        #post-list > .sidebar::-webkit-scrollbar,
+        .sidebar:has(+ .content .image-list)::-webkit-scrollbar,
+        .sidebar:has(~ .content .image-list)::-webkit-scrollbar { display: none; }
     `;
 
     // Hide images/banners that sit below the tag list in the sidebar
@@ -52,7 +63,9 @@
     // detected, the right column is folded away, even if an ad slipped
     // through the blocker (that happened most on the first page load).
     // Without an ad blocker NOTHING is looked at or changed - every ad
-    // stays exactly as the site shows it. Other ad spaces are never touched.
+    // stays exactly as the site shows it. Since Beta 3.6 the same goes for
+    // the ad box above the posts (topAdSlots); every other ad space (the
+    // sidebar, post pages) is never touched.
 
     // A hidden "bait" box with typical ad names: ad blockers hide or remove it
     function adBlockerActive(waitMs = 900) {
@@ -90,9 +103,30 @@
         return cols;
     }
 
+    // The ad space above the posts ("Page 1"): a box the site keeps ~135px
+    // high for an ad (span > div[min-height] > ins). With an ad blocker it
+    // stays as an empty gap - folded the same way as the right column
+    // (steamycorner's decision, Beta 3.6). Found by what it is, not by
+    // name: before the posts, not ours, no text, no pictures, links or
+    // fields - only an ad frame (or nothing, when the blocker removed it).
+    function topAdSlots() {
+        const list = document.querySelector('.image-list');
+        const slots = [];
+        if (!list || !list.parentElement) return slots;
+        for (let s = list.parentElement.firstElementChild; s && s !== list; s = s.nextElementSibling) {
+            if (/(^|\s)s34-/.test(s.className || '') || s.matches('script, style, #paginator, .pagination')) continue;
+            if (s.textContent.trim()) continue;
+            if (s.querySelector('img, a[href], input, textarea, select, button, form, span.thumb, video')) continue;
+            const adFrame = s.matches('ins, iframe') || !!s.querySelector('ins, iframe');
+            const reserved = s.getBoundingClientRect().height > 40 || !!s.querySelector('[style*="min-height"]');
+            if (adFrame || reserved) slots.push(s);
+        }
+        return slots;
+    }
+
     async function foldEmptyAdColumn() {
         const root = document.documentElement;
-        const cols = rightAdColumns();
+        const cols = rightAdColumns().concat(topAdSlots());
         if (!cols.length) { root.classList.remove('s34-adcol-early'); return; }
         // Quick check first; blockers that act a bit later get a second look
         let blocked = await adBlockerActive(150);
@@ -100,9 +134,9 @@
         try { GM_setValue(ADBLOCK_SEEN_KEY, blocked); } catch (e) {}
         if (blocked) {
             cols.forEach(col => col.classList.add('s34-empty-col'));
-            console.log('[Steamy34] Ad blocker detected – the ad column on the right was folded away.');
+            console.log('[Steamy34] Ad blocker detected – the ad spaces (right column, above the posts) were folded away.');
         }
-        root.classList.remove('s34-adcol-early'); // no ad blocker: the column is back as the site shows it
+        root.classList.remove('s34-adcol-early'); // no ad blocker: everything is back as the site shows it
     }
 
     // Posts page only: sidebar blends into the page background

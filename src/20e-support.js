@@ -52,7 +52,7 @@
         let manager = '?';
         try { if (typeof GM_info !== 'undefined') manager = (GM_info.scriptHandler || 'userscript manager') + ' ' + (GM_info.version || ''); } catch (e) {}
         lines.push('Steamy34 ' + CURRENT_VERSION + ' · ' + browserName() + ' · ' + systemName() + ' · ' + manager.trim());
-        const page = isPostView ? 'single post' : onFeedPage() ? 'Following page' : (params.get('page') === 'post' ? 'posts page' : (params.get('page') || 'start page'));
+        const page = isPostView ? 'single post' : fwState ? 'Following window' : (params.get('page') === 'post' ? 'posts page' : (params.get('page') || 'start page'));
         lines.push('Page: ' + page + ' · ' + (isPhoneLayout() ? 'phone layout' : 'computer layout') + ' · window ' + innerWidth + '×' + innerHeight +
                    (NO_HOVER ? ' · touch' : '') + (sfwOn() ? ' · censored mode on' : ''));
         // Settings that differ from the defaults (no folder names or texts)
@@ -62,7 +62,7 @@
         let f = { artists: [], searches: [] };
         try { f = getFollowing(); } catch (e) {}
         const count = o => { try { return Object.keys(o || {}).length; } catch (e) { return '?'; } };
-        lines.push('Data: following ' + f.artists.length + ' artists / ' + f.searches.length + ' searches · viewed ' + count(loadViewed()) +
+        lines.push('Data: following ' + f.artists.length + ' artists · viewed ' + count(loadViewed()) +
                    ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length);
         const site = siteShapeProblems();
         lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));

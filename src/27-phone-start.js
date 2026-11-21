@@ -101,7 +101,7 @@
                 if (e.target === overlay || e.target.closest('.s34-menu-x')) { close(); return; }
                 // A tool that opens a window (or select mode): the menu steps
                 // aside so the window is on top. Switches & sliders keep it open.
-                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
+                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
             });
             document.addEventListener('keydown', onKey, true);
             document.body.appendChild(overlay);
@@ -144,16 +144,19 @@
         showFlashMessage();    // e.g. "Backup imported" after the reload
         if (!isPostView && CONFIG.infiniteScroll) setupInfiniteScroll();
         removeTagTooltips();
-        migrateSavedSearches(); // old saved searches -> Following (once, Beta 3.1)
+        moveFollowedSearchesToRecent(); // followed / saved searches -> Recent (once, Beta 3.6: Following is for artists)
         if (CONFIG.searchChips) setupChipSearch();
         else if (CONFIG.searchMultiline) setupMultilineSearch();
         setupQuickPanel();     // hide viewed / downloaded, size slider, select mode
         addBlacklistButton();  // opens the blacklist window
         addHub();              // Collections · Stats
         addFollowBox();        // "Following": artists + searches with "N new" each (above Collections · Stats)
-        setupFeedPage();       // an artist's / a search's posts, all artists: bar on top, NEW marks
+        // an old Following page address opens the Following window; a normal
+        // search for a followed artist / search counts as a visit (NEW marks)
+        if (!openFollowFromAddress()) setupFeedPage();
         if (isPostView) addFollowButtonsToRows(); // bell next to artists
-        if (!onFeedPage()) setTimeout(() => checkFollowing(), 6000); // quiet "N new" count
+        setupHome();           // rule34's start page as a small home (search, continue, recent, following)
+        setTimeout(() => checkFollowing(), 6000); // quiet "N new" count
         trimDlHistory();
         addPostCollectButton(); // single posts: "Save to collection"
         addTipsLink();         // "? Shortcuts & tips" under the settings button

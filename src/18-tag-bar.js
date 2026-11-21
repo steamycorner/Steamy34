@@ -465,6 +465,11 @@
         return div;
     }
 
+    // The popup asks for the next page when you browse to the end of what's
+    // loaded (Beta 3.5.1): 'more' | 'loading' | 'done', null = no infinite
+    // scroll on this page. Ask with the 's34-load-more' event.
+    let infiniteState = null;
+
     function setupInfiniteScroll() {
         const list = document.querySelector('.image-list');
         const paginator = document.querySelector('#paginator');
@@ -645,6 +650,10 @@
         new IntersectionObserver(entries => {
             if (entries.some(e => e.isIntersecting)) loadNext();
         }, { rootMargin: `0px 0px ${CONFIG.infiniteScrollMargin}px 0px` }).observe(status);
+
+        // The popup reached the end of the loaded posts
+        infiniteState = () => (done ? 'done' : loading ? 'loading' : 'more');
+        window.addEventListener('s34-load-more', () => { if (!loading && !done) loadNext(); });
 
         // Posts were hidden (e.g. "Hide viewed" switched on) while the end of
         // the list was already on screen: the observer doesn't fire again in

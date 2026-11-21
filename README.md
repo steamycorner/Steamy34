@@ -34,11 +34,12 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Modern thumbnail layout (original ratios or square tiles) with a size slider
 - VID / GIF labels and artist / character tags on the thumbnails – or clean thumbnails, with tags only on hover or in a strip below
 - Square or rounded corners
+- A start page that's a small home: your search, "Continue" where you left off, recent searches, favourite tags and the newest posts from who you follow (Settings → Look & feel turns it off)
 
 **Viewing posts**
 - Popup viewer: posts open on top of the list, no new tabs
-- Browse with ← / → or A / D, close with Esc or a middle click
-- Comments, votes, favourites, post info and parent / child / pool links inside the popup
+- Browse with ← / → or A / D, close with Esc or a middle click – at the end of the list the next page loads by itself
+- Comments (all of them – "More comments" loads the rest), votes, favourites, post info and parent / child / pool links inside the popup
 - Slideshow ("Auto next") with a timer, theater mode, click-to-zoom
 - Hover previews: videos play and score / resolution show when you hover a thumbnail
 
@@ -46,13 +47,14 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Tags as bubbles: add, remove or exclude a tag with one click
 - Filter menus for score, size, sort, type and rating
 - Pinned filters that stay on for every new search
-- Recent searches and favourite tags, one click away
+- Recent searches and favourite tags, one click away – small menus next to the sidebar (on phones: a sheet from the bottom)
 
-**Follow artists and searches**
-- Click the bell next to an artist in a post to follow them – or the bell under the search box to follow any search (e.g. a character with a score filter)
-- The sidebar lists everything you follow, each with a count of its new posts
-- Each has its own page; posts since your last visit are marked NEW. Filters you pick there only narrow that page
-- "All artists" mixes every followed artist in one feed; a shared filter (score, type, rating) – or a different one per artist
+**Follow artists**
+- Click the bell next to an artist in a post to follow them
+- The sidebar lists everyone you follow, each with a count of their new posts
+- **Following window** (click one, or press G): your artists as a row of circles – a coloured ring means new posts – and their newest posts in a grid, with NEW on the ones since your last visit, each post in its own shape. It opens on top of the page you're on – "Bigger" makes it nearly full screen
+- Click a post to open it in the popup: ← / → go through that artist's posts and load more at the end. "All" mixes every followed artist
+- Always newest first – "Open as a search" takes you to the normal search with every filter and sort
 - The browser tab shows "(12) rule34" while there are new posts; L in the popup follows the artist
 
 **Downloads**
@@ -72,10 +74,12 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Picture on top in the popup, info and comments below
 - Swipe left / right to browse, swipe down or press Back to close
 - One ☰ Menu with all of Steamy34's tools
+- The Following window fills the screen; Back closes it
 
 **More**
 - Infinite scrolling with "Page N" dividers – and "Continue at page N" when you come back to a search
 - "Copy info for a bug report" in Settings → Help
+- With an ad blocker on, no empty ad spaces next to or above the posts – without one, every ad stays exactly as rule34 shows it
 - Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a small notice sits in the corner and only the extras pause
 - A short welcome tour, small one-time tips and a quick tips window with all shortcuts
 - Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
@@ -109,8 +113,9 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 | Esc or middle click | Close the post |
 | L | Follow (or unfollow) the post's artist |
 | X | Censored mode: blur every picture, video and comment (anywhere, not just the popup) |
+| G | Open / close the Following window (anywhere; ← / → switch artists there) |
 
-All keys can be changed in *Settings → Viewing posts* and *Settings → Downloads*.
+All keys can be changed in *Settings → Viewing posts*, *Settings → Following* and *Settings → Downloads*.
 
 ---
 
@@ -132,10 +137,7 @@ Yes. Use "Batch download" in the sidebar, tick the posts you want (or "Select al
 Yes, in Chrome, Edge and Brave: Settings → Downloads → *Choose folder…*. In Brave, first turn on `brave://flags/#file-system-access-api`. Firefox and phones save to the normal Downloads folder.
 
 ### How do I follow an artist on rule34.xxx and see their new posts?
-Open a post and click the bell next to the artist's name. The artist then appears in the sidebar under "Following", with a count of their new posts. Click the artist to see their posts – the ones since your last visit are marked NEW.
-
-### Can I get notified about new posts for a tag search on rule34.xxx?
-Yes. Search for anything (for example a character with a score filter) and click the bell under the search box. The search appears in the sidebar under "Following" with a count of its new posts, checked quietly in the background while rule34.xxx is open.
+Open a post and click the bell next to the artist's name. The artist then appears in the sidebar under "Following", with a count of their new posts. Click the artist (or press G) to see their newest posts in the Following window – the ones since your last visit are marked NEW.
 
 ### Is there a popup viewer for rule34.xxx?
 Yes. With Steamy34, every post opens in a large viewer on top of the list, with tags, comments, votes and favourites. Browse with the arrow keys (or A / D), close with Esc or a middle click.

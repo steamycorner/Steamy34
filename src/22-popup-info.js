@@ -48,6 +48,10 @@
                 // the site's own scripts - useless (and unclickable) here
                 if (el.id === 'resized_notice' || el.closest('#resized_notice') ||
                     /has been resized/i.test(el.textContent)) return false;
+                // "< previous · Tag search: … · next >" is the site's own
+                // browsing bar (same class), not a notice about the post
+                if (el.id === 'navlinksContainer' || el.closest('#navlinksContainer') ||
+                    el.querySelector('#prev_search_link, #next_search_link')) return false;
                 return el.textContent.trim().length > 0;
             })
             .map(cleanNotice)
@@ -247,14 +251,21 @@
                     .join('\n').replace(date, '').trim();
             }
             return {
+                id: b.id || '',
                 user: userA ? userA.textContent.trim() : 'Anonymous',
                 userUrl: userA ? absUrl(userA.getAttribute('href')) : '',
                 date, score, body
             };
         }).filter(c => c.body);
-        console.log('[Steamy34] Comments:', comments.length,
+        // rule34 shows 10 comments a page: "17 comments" at the top, "Next »"
+        // (with a cursor) at the bottom - for the popup's "More comments"
+        const total = root ? parseInt((root.textContent.slice(0, 300).match(/^\s*(\d+)\s+comments?\b/i) || [])[1], 10) || 0 : 0;
+        const nextA = Array.from(doc.querySelectorAll('#post-comments #paginator a, #comment-list #paginator a, #paginator a[href*="cursor="]'))
+            .find(a => /cursor=/.test(a.getAttribute('href') || '') || /next/i.test(a.textContent));
+        const next = nextA ? absUrl(nextA.getAttribute('href')) : '';
+        console.log('[Steamy34] Comments:', comments.length + (total ? ' of ' + total : ''),
             root ? '(from #' + (root.id || root.className) + ')' : '(no comment list on the page)');
-        return { comments, found: !!root || comments.length > 0 };
+        return { comments, found: !!root || comments.length > 0, total, next };
     }
 
     // Plain text with clickable web links
@@ -309,7 +320,7 @@
         sec.appendChild(head);
 
         const list = result ? result.comments : [];
-        count.textContent = result ? String(list.length) : '…';
+        count.textContent = result ? String(Math.max(list.length, result.total || 0)) : '…';
         count.hidden = !result;
 
         if (!result) {
@@ -331,44 +342,78 @@
 
         const wrap = document.createElement('div');
         wrap.className = 's34-cm-list';
-        list.forEach(c => {
-            const art = document.createElement('article');
-            art.className = 's34-cm';
-            const av = document.createElement('div');
-            av.className = 's34-cm-avatar';
-            av.textContent = (c.user || '?').charAt(0).toUpperCase();
-            av.style.setProperty('background-color', avatarColor(c.user || '?'), 'important');
-            const main = document.createElement('div');
-            main.className = 's34-cm-main';
-            const meta = document.createElement('div');
-            meta.className = 's34-cm-meta';
-            const user = document.createElement(c.userUrl ? 'a' : 'span');
-            user.className = 's34-cm-user';
-            user.textContent = c.user;
-            if (c.userUrl) { user.href = c.userUrl; user.target = '_blank'; user.rel = 'noopener'; }
-            meta.appendChild(user);
-            if (c.date) {
-                const d = document.createElement('span');
-                d.className = 's34-cm-date';
-                const ms = Date.parse(c.date.replace(' ', 'T'));
-                d.textContent = isNaN(ms) ? c.date : timeAgo(ms);
-                d.title = c.date;
-                meta.appendChild(d);
-            }
-            if (c.score != null && c.score !== '0') {
-                const s = document.createElement('span');
-                s.className = 's34-cm-score';
-                s.textContent = '▲ ' + c.score;
-                meta.appendChild(s);
-            }
-            const text = document.createElement('div');
-            text.className = 's34-cm-text';
-            linkifyInto(text, c.body);
-            main.append(meta, text);
-            art.append(av, main);
-            wrap.appendChild(art);
-        });
+        list.forEach(c => wrap.appendChild(commentElement(c)));
         sec.appendChild(wrap);
+        addMoreCommentsButton(state, sec, wrap, result);
+    }
+
+    // "More comments (7 more)": the next 10 from the site, through the shared
+    // page line (Beta 3.5.1 - before, the popup showed only the first 10)
+    function addMoreCommentsButton(state, sec, wrap, result) {
+        if (!result.next) return;
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 's34-cm-more';
+        const left = (result.total || 0) - wrap.children.length;
+        const label = left > 0 ? `More comments (${left} more)` : 'More comments';
+        more.textContent = label;
+        more.addEventListener('click', async () => {
+            more.disabled = true;
+            more.textContent = 'Loading…';
+            try {
+                const page = await loadPage(result.next, 'popup');
+                if (!popupState || popupState.id !== state.id) return;
+                const r = readComments(new DOMParser().parseFromString(page.html, 'text/html'));
+                const have = new Set(Array.from(wrap.children).map(el => el.dataset.cid).filter(Boolean));
+                r.comments.filter(c => !c.id || !have.has(c.id)).forEach(c => wrap.appendChild(commentElement(c)));
+                more.remove();
+                addMoreCommentsButton(state, sec, wrap, { next: r.next, total: result.total });
+            } catch (e) {
+                more.disabled = false;
+                more.textContent = e && e.cloudflare ? 'Solve the quick check, then try again' : 'Couldn\'t load – try again';
+            }
+        });
+        sec.appendChild(more);
+    }
+
+    // One comment: round initial, name, "3 days ago", ▲ score, the text
+    function commentElement(c) {
+        const art = document.createElement('article');
+        art.className = 's34-cm';
+        if (c.id) art.dataset.cid = c.id;
+        const av = document.createElement('div');
+        av.className = 's34-cm-avatar';
+        av.textContent = (c.user || '?').charAt(0).toUpperCase();
+        av.style.setProperty('background-color', avatarColor(c.user || '?'), 'important');
+        const main = document.createElement('div');
+        main.className = 's34-cm-main';
+        const meta = document.createElement('div');
+        meta.className = 's34-cm-meta';
+        const user = document.createElement(c.userUrl ? 'a' : 'span');
+        user.className = 's34-cm-user';
+        user.textContent = c.user;
+        if (c.userUrl) { user.href = c.userUrl; user.target = '_blank'; user.rel = 'noopener'; }
+        meta.appendChild(user);
+        if (c.date) {
+            const d = document.createElement('span');
+            d.className = 's34-cm-date';
+            const ms = Date.parse(c.date.replace(' ', 'T'));
+            d.textContent = isNaN(ms) ? c.date : timeAgo(ms);
+            d.title = c.date;
+            meta.appendChild(d);
+        }
+        if (c.score != null && c.score !== '0') {
+            const s = document.createElement('span');
+            s.className = 's34-cm-score';
+            s.textContent = '▲ ' + c.score;
+            meta.appendChild(s);
+        }
+        const text = document.createElement('div');
+        text.className = 's34-cm-text';
+        linkifyInto(text, c.body);
+        main.append(meta, text);
+        art.append(av, main);
+        return art;
     }
 
     // ---- Popup: auto next post (slideshow) ----
@@ -436,7 +481,9 @@
             let i = list.indexOf(popupState.thumb);
             if (!list[i + 1]) {
                 // End of what's loaded: let infinite scroll fetch the next page
-                window.scrollTo(0, document.documentElement.scrollHeight);
+                // (from the Following window: its grid loads more)
+                if (popupState.list) popupState.list.more();
+                else window.scrollTo(0, document.documentElement.scrollHeight);
                 await pause(2500);
                 if (!popupState || !autoNext.on) return;
                 list = visibleThumbs();

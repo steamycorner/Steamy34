@@ -1,4 +1,4 @@
-    // Following feed: bell buttons, sidebar box, feed bar, Manage window
+    // Following: bell buttons, sidebar box, Manage window, the Following window
     const FOLLOW_CSS = `
         /* The bell next to artist tags (outline = follow, filled = following) */
         svg.s34-bell, svg.s34-bell * { color: inherit !important; }
@@ -16,8 +16,8 @@
         .s34-chip .s34-chip-follow svg { width: 13px; height: 13px; }
         #tag-sidebar li a.r34-follow-btn svg { width: 13px; height: 13px; vertical-align: -2px; }
         .s34-bell-i svg { width: 1.05em; height: 1.05em; vertical-align: -.16em; color: #ffb347 !important; }
-        .s34-feed-bar .s34-feed-btn, .s34-follow-win .s34-follow-addbtn { display: inline-flex; align-items: center; gap: 6px; }
-        .s34-feed-btn svg, .s34-follow-addbtn svg { width: 14px; height: 14px; color: #ffb347 !important; }
+        .s34-follow-win .s34-follow-addbtn { display: inline-flex; align-items: center; gap: 6px; }
+        .s34-follow-addbtn svg { width: 14px; height: 14px; color: #ffb347 !important; }
         .s34-chip .s34-chip-follow:hover { opacity: 1; color: #ffcf6b !important; }
         .s34-chip .s34-chip-follow.s34-following { opacity: 1; color: #ffb347 !important; }
         #tag-sidebar li a.r34-follow-btn {
@@ -57,6 +57,10 @@
         }
         .s34-follow-head a { margin-left: auto; font-size: 11px; color: #9a9aa6 !important; text-decoration: none !important; }
         .s34-follow-head a:hover { color: #ffb347 !important; }
+        /* (the rows are real links since 3.6: :link / :visited keeps the general
+           "visited link" blue from colouring artists you once searched) */
+        .s34-follow-box a.s34-follow-row:is(:link, :visited) { color: #ff8a80 !important; }
+        .s34-follow-box a.s34-follow-row.s34-follow-allrow:is(:link, :visited) { color: #ffcf8a !important; }
         .s34-follow-row {
             display: flex;
             align-items: center;
@@ -72,11 +76,9 @@
         .s34-follow-row:hover { background-color: #2a2a31 !important; }
         .s34-follow-row.s34-on { background-color: rgba(255,179,71,0.12) !important; }
         .s34-follow-row.s34-follow-allrow { color: #ffcf8a !important; }
-        /* A followed search: magnifier + its words, in the search blue */
-        .s34-follow-row.s34-follow-srow { color: #8ab4f8 !important; }
-        .s34-follow-srow svg { flex: none; width: 12px; height: 12px; margin-right: -1px; opacity: .8; }
-        .s34-follow-chip.s34-follow-schip a { color: #8ab4f8 !important; }
-        .s34-feed-head b.s34-feed-q { color: #8ab4f8 !important; }
+        .s34-follow-chip a { text-decoration: none !important; font-weight: 600; }
+        .s34-follow-chip a:hover { text-decoration: underline !important; }
+        .s34-follow-chip.s34-feed-artist a { color: #ff8a80 !important; }
         .s34-follow-box small.s34-has-new, .s34-follow-chip small.s34-has-new {
             flex: none;
             padding: 0 6px;
@@ -92,71 +94,6 @@
         .s34-follow-more { display: block; padding: 4px 6px 1px; font-size: 11px; color: #9a9aa6 !important; text-decoration: none !important; }
         .s34-follow-more:hover { color: #ffb347 !important; }
         .s34-follow-none { padding: 0 4px 2px; font-size: 11.5px; opacity: .6; }
-
-        /* The feed page: a bar above the posts */
-        /* One calm line: [bell] name · what's new ........ [Following] [Manage] */
-        .s34-feed-bar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px 12px;
-            margin: 6px 0 4px;
-            padding: 8px 10px 8px 14px;
-            border-radius: 10px;
-            border: 1px solid #2e2e36 !important;
-            border-left: 3px solid #ffb347 !important;
-            background-color: #18181c !important;
-            color: #dcdce0 !important;
-            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif;
-        }
-        .s34-feed-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; min-width: 0; flex: 1 1 auto; }
-        .s34-feed-head svg { align-self: center; flex: none; color: #ffb347 !important; }
-        .s34-feed-head svg * { color: inherit !important; }
-        .s34-feed-head b { font-size: 15px; color: #fff !important; }
-        .s34-feed-head b.s34-feed-artist { color: #ff8a80 !important; }
-        .s34-feed-sub { font-size: 12px; opacity: .65; color: #dcdce0 !important; }
-        .s34-feed-tags { display: flex; flex-wrap: wrap; gap: 5px; flex: 1 1 260px; min-width: 0; }
-        .s34-feed-tag, .s34-follow-chip a {
-            text-decoration: none !important;
-            font-weight: 600;
-        }
-        .s34-feed-tag {
-            padding: 1px 8px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.14) !important;
-            background-color: rgba(18,18,22,0.85) !important;
-            font-size: 11.5px;
-        }
-        .s34-feed-tag:hover, .s34-follow-chip a:hover { text-decoration: underline !important; }
-        .s34-feed-artist, .s34-feed-artist a { color: #ff8a80 !important; }
-        .s34-feed-character, .s34-feed-character a { color: #7ee07e !important; }
-        .s34-feed-copyright, .s34-feed-copyright a { color: #d68cff !important; }
-        .s34-feed-general, .s34-feed-general a { color: #8ab4f8 !important; }
-        .s34-feed-groups { display: flex; gap: 4px; }
-        .s34-feed-groups a {
-            padding: 1px 8px;
-            border-radius: 6px;
-            border: 1px solid #3a3a44 !important;
-            font-size: 11.5px;
-            color: #dcdce0 !important;
-            text-decoration: none !important;
-        }
-        .s34-feed-groups a.s34-on { border-color: #ffb347 !important; color: #ffb347 !important; }
-        .s34-feed-bar .s34-feed-btn, .s34-follow-win .s34-follow-act, .s34-follow-win .s34-follow-addbtn {
-            height: 30px;
-            padding: 0 14px !important;
-            border-radius: 8px;
-            border: 1px solid #3a3a44 !important;
-            background-color: #26262c !important;
-            color: #e8e8ee !important;
-            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        /* The buttons stay together on the right */
-        .s34-feed-bar .s34-feed-btn { margin-left: 0; height: 28px; padding: 0 12px !important; }
-        .s34-feed-bar .s34-feed-btn[data-f="unfollow"] { border-color: rgba(255,179,71,0.45) !important; }
-        .s34-feed-bar .s34-feed-btn:hover, .s34-follow-win .s34-follow-act:hover, .s34-follow-win .s34-follow-addbtn:hover { border-color: #ffb347 !important; }
 
         /* ---- Sidebar layout (Beta 3.3) ---- */
         /* "View" header: same small caps as "Following" */
@@ -236,7 +173,6 @@
         }
         .s34-follow-win .s34-follow-addbtn { height: 34px; }
         .s34-follow-list { display: flex; flex-direction: column; gap: 6px; max-height: 42vh; overflow-y: auto; }
-        .s34-follow-group { margin-top: 4px; font-size: 10.5px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; opacity: .55; }
         .s34-follow-chips { display: flex; flex-wrap: wrap; gap: 6px; }
         .s34-follow-chip {
             display: inline-flex;
@@ -274,25 +210,19 @@
             color: #dcdce0 !important;
             font: 700 11px system-ui, sans-serif;
         }
-        /* Per-artist filter inside the artist's chip */
-        .s34-follow-chip select.s34-follow-afilter {
-            height: 20px;
-            margin: 0 0 0 6px !important;
-            padding: 0 2px !important;
-            border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.12) !important;
-            background-color: rgba(0,0,0,0.25) !important;
-            color: #b9b9c3 !important;
-            font: 11px system-ui, sans-serif;
-            cursor: pointer;
-        }
         .s34-follow-empty { padding: 14px 4px; font-size: 13px; line-height: 1.55; opacity: .75; }
-        .s34-follow-filter { padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08) !important; }
-        .s34-follow-label { font-size: 12.5px; font-weight: 700; margin-bottom: 8px; }
-        .s34-follow-label span { font-weight: 400; opacity: .55; }
-        .s34-follow-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-        .s34-follow-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; opacity: .85; }
-        .s34-follow-filters select { height: 30px; border-radius: 7px; font-size: 12.5px; }
+        .s34-follow-win .s34-follow-act, .s34-follow-win .s34-follow-addbtn {
+            height: 30px;
+            padding: 0 14px !important;
+            border-radius: 8px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #26262c !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .s34-follow-win .s34-follow-act:hover, .s34-follow-win .s34-follow-addbtn:hover { border-color: #ffb347 !important; }
         .s34-follow-foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
         .s34-follow-win .s34-follow-act[disabled] { opacity: .4; cursor: default; }
         .s34-follow-win .s34-follow-act[hidden] { display: none !important; }
@@ -304,13 +234,343 @@
         }
         .s34-follow-primary svg, .s34-follow-primary svg * { color: inherit !important; }
         @media (max-width: 760px) {
-            /* Phones: left-aligned, a bit smaller, buttons in one row below */
-            .s34-feed-bar { text-align: left; padding: 8px 10px 8px 12px; }
-            .s34-feed-head b { font-size: 14px; }
-            .s34-feed-head { flex-basis: 100%; }
-            .s34-follow-filters { grid-template-columns: 1fr; }
-            .s34-feed-bar .s34-feed-btn { margin-left: 0; }
             .s34-chip .s34-chip-follow { padding: 0 8px 0 4px; }
             .s34-chip .s34-chip-follow svg { width: 15px; height: 15px; }
+        }
+
+        /* ---- The Following window (Beta 3.6): circles, header, grid ---- */
+        html.s34-fw-open { overflow: hidden !important; }
+        .s34-fw-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99985; /* under the popup viewer (a tile opens on top), over the page */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+            /* nearly opaque: the page behind steps right back */
+            background-color: rgba(3,3,6,0.94) !important;
+        }
+        .s34-fw {
+            display: flex;
+            flex-direction: column;
+            width: min(1000px, 100%);
+            height: min(920px, 100%);
+            box-sizing: border-box;
+            overflow: hidden;
+            border-radius: 16px;
+            border: 1.5px solid transparent !important;
+            background: linear-gradient(#18181c, #18181c) padding-box, linear-gradient(135deg, rgba(255,95,143,0.7), rgba(139,61,255,0.7)) border-box !important;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 30px rgba(255,95,143,0.12);
+            color: #e8e8ee !important;
+            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif;
+        }
+        .s34-fw * { box-sizing: border-box; }
+        /* "Bigger": nearly the whole window, with a margin of dimmed page around it */
+        .s34-fw-overlay.s34-fw-large { padding: 18px 22px; }
+        .s34-fw-overlay.s34-fw-large .s34-fw { width: 100%; height: 100%; }
+        .s34-fw-foot .s34-fw-size { margin-left: auto; height: 26px; padding: 0 10px !important; font-size: 12px; }
+        .s34-fw-top { display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 16px; border-bottom: 1px solid #2c2c33 !important; }
+        .s34-fw-title { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+        .s34-fw-title b { color: #f2f2f5 !important; }
+        .s34-fw-title svg { width: 16px; height: 16px; color: #ffb347 !important; }
+        .s34-fw-checked { flex: 1; min-width: 0; font-size: 11.5px; color: #8e8e9a !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .s34-fw-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 30px;
+            padding: 0 12px !important;
+            border-radius: 8px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #24242a !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            text-decoration: none !important;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .s34-fw-btn:hover { border-color: #ff5f8f !important; }
+        .s34-fw-btn svg { width: 14px; height: 14px; color: inherit !important; }
+        .s34-fw-btn svg * { color: inherit !important; }
+        .s34-fw-x { width: 30px; justify-content: center; padding: 0 !important; }
+        .s34-fw-follow.s34-following { border-color: rgba(255,179,71,0.5) !important; color: #ffb347 !important; }
+
+        /* The row of circles (scrolls sideways) */
+        .s34-fw-circles {
+            display: flex;
+            gap: 12px;
+            flex: none;
+            padding: 12px 16px 10px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            border-bottom: 1px solid #2c2c33 !important;
+        }
+        .s34-fw-c {
+            all: unset;
+            flex: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 68px;
+            cursor: pointer;
+            text-align: center;
+            background: transparent !important; /* beats the general button look */
+            border: 0 !important;
+        }
+        .s34-fw-ring {
+            display: grid;
+            place-items: center;
+            width: 62px;
+            height: 62px;
+            padding: 2.5px;
+            border-radius: 50%;
+            background: #3a3a44 !important;
+        }
+        .s34-fw-c.s34-new .s34-fw-ring { background: linear-gradient(135deg, #ffb347, #ff5f8f, #8b3dff) !important; }
+        .s34-fw-c.s34-on .s34-fw-ring { outline: 2px solid #f2f2f5; outline-offset: 2px; }
+        .s34-fw-c:focus-visible .s34-fw-ring { outline: 2px solid #ff5f8f; outline-offset: 2px; }
+        .s34-fw-c.s34-gone { opacity: .45; }
+        .s34-fw-pic {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 50%;
+            border: 2.5px solid #18181c !important;
+            background: linear-gradient(135deg, hsl(var(--h, 330) 62% 52%), hsl(calc(var(--h, 330) + 40) 58% 32%)) !important;
+            color: #fff !important;
+        }
+        .s34-fw-pic img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+        .s34-fw-pic svg { width: 42%; height: 42%; color: #fff !important; }
+        .s34-fw-pic svg * { color: inherit !important; }
+        .s34-fw-allpic { background: conic-gradient(from 200deg, #ff5f8f, #8b3dff, #ffb347, #ff5f8f) !important; }
+        .s34-fw-letter { font: 700 20px system-ui, -apple-system, Segoe UI, sans-serif; color: #fff !important; }
+        .s34-fw-name { max-width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: #a4a4b0 !important; }
+        .s34-fw-c.s34-on .s34-fw-name { color: #f2f2f5 !important; font-weight: 700; }
+
+        /* Header + grid scroll together (like a profile page) */
+        .s34-fw-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+        .s34-fw-head { display: flex; align-items: center; gap: 18px; padding: 16px 18px; flex-wrap: wrap; }
+        .s34-fw-big { flex: none; width: 76px; height: 76px; border-radius: 50%; }
+        .s34-fw-big .s34-fw-pic { border-color: transparent !important; }
+        .s34-fw-big .s34-fw-letter { font-size: 28px; }
+        .s34-fw-info { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+        .s34-fw-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .s34-fw-nm { font-size: 19px; color: #f2f2f5 !important; overflow-wrap: anywhere; }
+        .s34-fw-nums { display: flex; flex-wrap: wrap; gap: 4px 18px; color: #a4a4b0 !important; font-size: 13px; font-variant-numeric: tabular-nums; }
+        .s34-fw-nums b { color: #f2f2f5 !important; }
+        .s34-fw-empty { padding: 30px 8px; max-width: 520px; margin: 0 auto; text-align: center; font-size: 13.5px; line-height: 1.6; color: #b9b9c3 !important; }
+
+        /* Each post in its own shape, in rows of one height that fill the
+           width (like the posts page) - newest first, left to right. --r is
+           the picture's ratio (setThumbRatios); a tall guess until it's known */
+        .s34-fw { --s34-fw-row: 230px; }
+        .s34-fw-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 3px;
+            padding: 0 3px 3px;
+        }
+        .s34-fw-grid::after { content: ''; flex-grow: 1000000000; } /* the last row doesn't stretch */
+        .s34-fw-grid span.thumb {
+            position: relative;
+            display: block !important;
+            flex-grow: calc(var(--r, 0.75) * 100);
+            flex-basis: calc(var(--r, 0.75) * var(--s34-fw-row));
+            aspect-ratio: var(--r, 0.75);
+            max-height: calc(var(--s34-fw-row) * 1.8);
+            min-width: 0;
+            width: auto !important;
+            height: auto !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+            background-color: #26262c !important;
+            text-align: left;
+        }
+        .s34-fw-grid span.thumb > a { position: absolute; inset: 0; display: block; }
+        .s34-fw-grid span.thumb img {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            object-fit: cover;
+        }
+        .s34-fw-grid span.thumb:hover img { filter: brightness(.85); }
+        .s34-fw-by {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 14px 8px 5px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.75)) !important;
+            color: #fff !important;
+            font: 600 11px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+        }
+        .s34-fw-status { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 12px; color: #a4a4b0 !important; font-size: 12.5px; }
+        .s34-fw-foot {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 16px;
+            padding: 8px 16px;
+            border-top: 1px solid #2c2c33 !important;
+            color: #8e8e9a !important;
+            font-size: 12px;
+        }
+        .s34-fw-foot kbd {
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #24242a !important;
+            color: #e8e8ee !important;
+            font: 700 11px system-ui, sans-serif;
+        }
+        /* Phones: the whole screen, lower rows, no key hints */
+        @media (max-width: 760px) {
+            .s34-fw-overlay { padding: 0; }
+            .s34-fw { --s34-fw-row: 140px; width: 100%; height: 100%; border-radius: 0; border: 0 !important; background: #18181c !important; }
+            .s34-fw-grid { gap: 2px; padding: 0 0 2px; }
+            .s34-fw-head { gap: 14px; padding: 14px; }
+            .s34-fw-big { width: 64px; height: 64px; }
+            .s34-fw-info { min-width: 0; }
+            .s34-fw-nm { font-size: 17px; }
+            .s34-fw-foot { display: none; }
+            .s34-fw-top .s34-fw-btn { height: 34px; }
+            .s34-fw-x { width: 34px; }
+        }
+
+        /* ---- Home: rule34's start page as a small home (Beta 3.6, 26c-home.js) ---- */
+        html.s34-home-on div#static-index { display: block; text-align: left; align-items: stretch; }
+        .s34-home-old { display: none !important; }
+        .s34-home {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px 20px 48px;
+            box-sizing: border-box;
+            font: 13px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
+            color: #dcdce0 !important;
+        }
+        .s34-home * { box-sizing: border-box; }
+        .s34-home-head { display: flex; align-items: center; gap: 10px 26px; flex-wrap: wrap; margin-bottom: 16px; }
+        .s34-home-head .s34-home-logo { margin: 0; line-height: 0; }
+        .s34-home-head .s34-home-logo img { width: auto !important; max-width: 260px !important; max-height: 96px; height: auto; }
+        .s34-home-head #links { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; }
+        .s34-home-main { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+        .s34-home-left { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+        .s34-home-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #2c2c33 !important;
+            background-color: #101014 !important;
+        }
+        .s34-home-card[hidden] { display: none !important; }
+        .s34-home-label {
+            font: 800 10.5px/1.2 system-ui, -apple-system, Segoe UI, sans-serif;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: #9a9aa6 !important;
+        }
+        .s34-home-search .space, .s34-home-search form { margin: 0; }
+        /* Recent and favourite tags have their own card here (the bell needs a search) */
+        .s34-home .s34-sb-tools { display: none !important; }
+        .s34-home-resume { flex-direction: row; align-items: center; gap: 12px; }
+        .s34-home-resume-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+        .s34-home-resume-text b { font-size: 14px; color: #f2f2f5 !important; overflow-wrap: anywhere; }
+        .s34-home-resume-text small { font-size: 12px; color: #9a9aa6 !important; }
+        .s34-home-btn {
+            flex: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 30px;
+            padding: 0 12px !important;
+            border-radius: 8px;
+            border: 1px solid #3a3a44 !important;
+            background-color: #24242a !important;
+            color: #e8e8ee !important;
+            font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            text-decoration: none !important;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .s34-home-btn:hover { border-color: #ff5f8f !important; }
+        .s34-home-btn[hidden] { display: none !important; }
+        .s34-home-btn kbd { padding: 0 5px; border-radius: 4px; border: 1px solid #3a3a44 !important; background-color: #18181c !important; color: #e8e8ee !important; font: 700 11px system-ui, sans-serif; }
+        .s34-home-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .s34-home a.s34-home-recent-item:is(:link, :visited) {
+            max-width: 100%;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid #2c2c33 !important;
+            background-color: #17171b !important;
+            color: #c9c9d2 !important;
+            font-size: 12px;
+            text-decoration: none !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .s34-home a.s34-home-recent-item:hover { border-color: #3a6fd4 !important; color: #f2f2f5 !important; }
+        .s34-home .s34-home-fav-chip {
+            padding: 2px 10px !important;
+            border-radius: 999px;
+            border: 1px solid #34508c !important;
+            background-color: #1f2a44 !important;
+            color: #cfe0ff !important;
+            font: 600 12px/20px system-ui, -apple-system, Segoe UI, sans-serif;
+            cursor: pointer;
+        }
+        .s34-home .s34-home-fav-chip:hover { border-color: #3a6fd4 !important; }
+        .s34-home .s34-home-fav-chip.s34-on { border-color: #3a6fd4 !important; background-color: rgba(44,95,204,0.45) !important; }
+        /* The post count as text, Terms · Contact · DMCA below it */
+        .s34-home-meta { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; font-size: 11.5px; color: #8e8e9a !important; }
+        .s34-home-meta p { margin: 0; }
+        .s34-home-meta small { font-size: 11px; line-height: 1.6; }
+        .s34-home-meta small a { margin-right: 10px; }
+        .s34-home-follow-head { display: flex; align-items: center; gap: 10px; }
+        .s34-home-follow-head .s34-home-label { flex: 1; min-width: 0; }
+        .s34-home-new { flex: none; padding: 0 7px; border-radius: 4px; background-color: #e0457b !important; color: #fff !important; font: 700 11px/19px system-ui, sans-serif; }
+        .s34-home .s34-home-circles { padding: 0 0 4px; border: 0 !important; }
+        .s34-home .s34-fw-pic { border-color: #101014 !important; }
+        .s34-home-grid { --s34-fw-row: 170px; padding: 0; border-radius: 10px; overflow: hidden; }
+        .s34-home-status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1.5; color: #a4a4b0 !important; }
+        .s34-home-status:empty { display: none; }
+        /* Phones: one column - search, following, continue, recent */
+        @media (max-width: 760px) {
+            .s34-home { padding: 12px 12px 36px; }
+            .s34-home-head { justify-content: center; text-align: center; }
+            .s34-home-head .s34-home-logo img { max-width: 220px !important; max-height: 80px; }
+            .s34-home-head #links { justify-content: center; }
+            .s34-home-main { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+            .s34-home-search .space, .s34-home-search form, .s34-home-search .s34-sb { width: 100% !important; max-width: none !important; }
+            .s34-home-grid span.thumb:nth-child(n+9) { display: none !important; } /* 8 here - all of them in the window */
+            .s34-home-left { display: contents; }
+            .s34-home-search { order: 1; }
+            .s34-home-follow { order: 2; }
+            .s34-home-resume { order: 3; }
+            .s34-home-recent { order: 4; }
+            .s34-home-meta { order: 5; text-align: center; }
+            .s34-home-grid { --s34-fw-row: 120px; }
         }
     `;
