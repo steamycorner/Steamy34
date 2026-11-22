@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.7.1-beta
+// @version      3.7.2-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -149,6 +149,7 @@
 
         // Fit to viewport
         padding: 10,             // px gap kept to the window edges
+        fitToScreen: true,       // single post pages: fit the picture to the window (click it for its real size)
         allowUpscale: true,      // false -> only shrink, never enlarge
         useOriginalImage: true,  // swap the resized "sample" for the full-res original
         scrollToMedia: true,     // scroll so the media sits at the top of the window
@@ -314,6 +315,7 @@
             ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
             ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
+            ['fitToScreen', 'Fit pictures to the screen', { hint: 'On single post pages. Off: pictures open at their real size. Either way, a click on the picture switches between the two' }],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
             ['videoServer', 'Video server', { options: { default: 'Default (rule34 picks)', eu: 'EU', cusa: 'Central USA', eusa: 'East USA', wusa: 'West USA', api: 'API-CDN' }, hint: 'Videos stall or won\'t start? Try another server. The same as \"Preferred CDN location\" in rule34\'s Options' }],
             ['useOriginalImage', 'Show the full-resolution picture', { hint: 'On single post pages, instead of the smaller sample' }],
@@ -6543,9 +6545,19 @@
             el.style.setProperty('object-fit', 'contain', 'important');
         }
 
+        // (Beta 3.7.2) Pictures can also be shown at their real size - a click
+        // on the picture switches. Videos are always fitted.
+        let realSize = !!img && !video && !CONFIG.fitToScreen;
+
         function fit() {
             const { w, h } = getNaturalSize();
             if (!w || !h) return;
+            if (realSize) {
+                setSize(img, w, h);
+                img.style.setProperty('cursor', 'zoom-out', 'important');
+                return;
+            }
+            if (img && !video) img.style.setProperty('cursor', 'zoom-in', 'important');
 
             const availW = document.documentElement.clientWidth - getLeftEdge() - CONFIG.padding;
             const availH = window.innerHeight - CONFIG.padding * 2;
@@ -6582,6 +6594,17 @@
         }
 
         if (img) img.addEventListener('load', fitAndScroll);
+        if (img && !video) {
+            img.addEventListener('click', () => {
+                const { w, h } = getNaturalSize();
+                if (!w || !h) return;
+                const before = img.getBoundingClientRect();
+                realSize = !realSize;
+                fit();
+                // keep the top of the picture where it was
+                if (realSize && before.top < 0) window.scrollTo({ top: window.scrollY + img.getBoundingClientRect().top - before.top });
+            });
+        }
         if (video) {
             video.addEventListener('loadedmetadata', fitAndScroll);
             [300, 1000, 2500].forEach(t => setTimeout(fit, t));
@@ -13637,6 +13660,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.7.2', date: '2026-11-22', items: [
+            'Single post pages: click the picture to see it at its real size, click again to fit it to the window. With "Fit pictures to the screen" off (Steamy34 Settings → Viewing posts), pictures open at their real size.'
+        ] },
         { v: 'Beta 3.7.1', date: '2026-11-22', items: [
             'Phones: thumbnails are back to their earlier size (as on computers). The Size slider in the ☰ Menu still changes them on their own.'
         ] },

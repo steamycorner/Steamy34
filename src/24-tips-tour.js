@@ -202,6 +202,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.7.2', date: '2026-11-22', items: [
+            'Single post pages: click the picture to see it at its real size, click again to fit it to the window. With "Fit pictures to the screen" off (Steamy34 Settings → Viewing posts), pictures open at their real size.'
+        ] },
         { v: 'Beta 3.7.1', date: '2026-11-22', items: [
             'Phones: thumbnails are back to their earlier size (as on computers). The Size slider in the ☰ Menu still changes them on their own.'
         ] },

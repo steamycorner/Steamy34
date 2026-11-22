@@ -41,9 +41,19 @@
             el.style.setProperty('object-fit', 'contain', 'important');
         }
 
+        // (Beta 3.7.2) Pictures can also be shown at their real size - a click
+        // on the picture switches. Videos are always fitted.
+        let realSize = !!img && !video && !CONFIG.fitToScreen;
+
         function fit() {
             const { w, h } = getNaturalSize();
             if (!w || !h) return;
+            if (realSize) {
+                setSize(img, w, h);
+                img.style.setProperty('cursor', 'zoom-out', 'important');
+                return;
+            }
+            if (img && !video) img.style.setProperty('cursor', 'zoom-in', 'important');
 
             const availW = document.documentElement.clientWidth - getLeftEdge() - CONFIG.padding;
             const availH = window.innerHeight - CONFIG.padding * 2;
@@ -80,6 +90,17 @@
         }
 
         if (img) img.addEventListener('load', fitAndScroll);
+        if (img && !video) {
+            img.addEventListener('click', () => {
+                const { w, h } = getNaturalSize();
+                if (!w || !h) return;
+                const before = img.getBoundingClientRect();
+                realSize = !realSize;
+                fit();
+                // keep the top of the picture where it was
+                if (realSize && before.top < 0) window.scrollTo({ top: window.scrollY + img.getBoundingClientRect().top - before.top });
+            });
+        }
         if (video) {
             video.addEventListener('loadedmetadata', fitAndScroll);
             [300, 1000, 2500].forEach(t => setTimeout(fit, t));

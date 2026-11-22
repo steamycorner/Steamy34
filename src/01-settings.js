@@ -32,6 +32,7 @@
 
         // Fit to viewport
         padding: 10,             // px gap kept to the window edges
+        fitToScreen: true,       // single post pages: fit the picture to the window (click it for its real size)
         allowUpscale: true,      // false -> only shrink, never enlarge
         useOriginalImage: true,  // swap the resized "sample" for the full-res original
         scrollToMedia: true,     // scroll so the media sits at the top of the window
@@ -197,6 +198,7 @@
             ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
             ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
+            ['fitToScreen', 'Fit pictures to the screen', { hint: 'On single post pages. Off: pictures open at their real size. Either way, a click on the picture switches between the two' }],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
             ['videoServer', 'Video server', { options: { default: 'Default (rule34 picks)', eu: 'EU', cusa: 'Central USA', eusa: 'East USA', wusa: 'West USA', api: 'API-CDN' }, hint: 'Videos stall or won\'t start? Try another server. The same as \"Preferred CDN location\" in rule34\'s Options' }],
             ['useOriginalImage', 'Show the full-resolution picture', { hint: 'On single post pages, instead of the smaller sample' }],
