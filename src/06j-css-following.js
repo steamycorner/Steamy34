@@ -76,6 +76,24 @@
         .s34-follow-row:hover { background-color: #2a2a31 !important; }
         .s34-follow-row.s34-on { background-color: rgba(255,179,71,0.12) !important; }
         .s34-follow-row.s34-follow-allrow { color: #ffcf8a !important; }
+        /* Saved searches (Beta 3.7): the same box, a disk instead of a bell, plain-coloured rows */
+        .s34-saved-box[hidden] { display: none !important; }
+        .s34-saved-box .s34-follow-head svg { color: #8ab4f8 !important; }
+        .s34-saved-box .s34-follow-head a:hover { color: #8ab4f8 !important; }
+        .s34-follow-box.s34-saved-box a.s34-follow-row:is(:link, :visited) { color: #d6d6de !important; }
+        .s34-saved-box .s34-follow-row.s34-on { background-color: rgba(138,180,248,0.12) !important; }
+        .s34-saved-item { display: flex; align-items: center; gap: 2px; }
+        .s34-saved-item .s34-follow-row { flex: 1; min-width: 0; }
+        .s34-follow-box .s34-saved-x {
+            all: unset; box-sizing: border-box; flex: none; width: 22px; height: 22px; border-radius: 6px;
+            display: grid; place-items: center; cursor: pointer; font-size: 10px; line-height: 1;
+            color: #9a9aa6 !important; background: transparent !important; opacity: .55;
+        }
+        .s34-follow-box .s34-saved-x:hover, .s34-follow-box .s34-saved-x:focus-visible { opacity: 1; color: #ff6b6b !important; background-color: rgba(255,255,255,0.08) !important; }
+        .s34-follow-box .s34-saved-x:focus-visible { outline: 2px solid #8ab4f8; }
+        @media (max-width: 760px) { .s34-follow-box .s34-saved-x { width: 34px; height: 34px; font-size: 12px; opacity: .8; } }
+        .s34-follow-grouphead { display: flex; align-items: center; gap: 6px; margin: 14px 0 6px; font: 800 10.5px system-ui, -apple-system, Segoe UI, sans-serif; letter-spacing: .8px; text-transform: uppercase; color: #9a9aa6 !important; }
+        .s34-follow-grouphead svg { width: 13px; height: 13px; color: #8ab4f8 !important; }
         .s34-follow-chip a { text-decoration: none !important; font-weight: 600; }
         .s34-follow-chip a:hover { text-decoration: underline !important; }
         .s34-follow-chip.s34-feed-artist a { color: #ff8a80 !important; }
@@ -454,8 +472,6 @@
             .s34-fw-info { min-width: 0; }
             .s34-fw-nm { font-size: 17px; }
             .s34-fw-foot { display: none; }
-            .s34-fw-top .s34-fw-btn { height: 34px; }
-            .s34-fw-x { width: 34px; }
         }
 
         /* ---- Home: rule34's start page as a small home (Beta 3.6, 26c-home.js) ---- */

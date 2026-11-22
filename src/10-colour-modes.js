@@ -40,26 +40,50 @@
         return [hue(p, q, h + 1 / 3), hue(p, q, h), hue(p, q, h - 1 / 3)].map(v => Math.round(v * 255));
     }
 
-    // One colour -> its White / OLED version (null = leave it as it is)
-    function themeColor(r, g, b, hasAlpha, theme) {
+    // One colour -> its White / OLED version (null = leave it as it is).
+    // role (Beta 3.7) - what the colour is used for, from its CSS property:
+    //  'surface' (backgrounds, shadows), 'line' (borders, outlines), 'text', 'other'
+    // In Dark, raised things are lighter and lines lighter still. White and
+    // OLED keep those layers (before, White came out flat and too white, and
+    // OLED's panels all landed a hair from black):
+    //  White: surfaces light, raised ones lighter (cards near white on a soft
+    //         grey page); lines darker than the surfaces they frame
+    //  OLED:  the page true black, panels a little above it, lines as in Dark
+    function themeColor(r, g, b, hasAlpha, theme, role) {
         const [h, s, l] = rgbToHsl(r, g, b);
         const neutral = s < 0.2;
         let l2 = l;
         if (theme === 'oled') {
             if (!neutral || l >= 0.4) return null;
-            l2 = Math.max(0, l - 0.09);
+            if (role === 'line') return null;                          // lines: as in Dark
+            l2 = l < 0.09 ? 0 : Math.max(0, l - 0.05);                 // page black, panels above it
         } else {
             if (r === 255 && g === 255 && b === 255 && !hasAlpha) return null; // white text on coloured buttons
-            if (neutral) l2 = l >= 0.5 ? (1 - l) * 0.9 : 1 - l * 0.6;
+            if (neutral) {
+                if (l >= 0.5) l2 = (1 - l) * 0.9;                       // light (text, icons) -> dark
+                else if (role === 'surface' && l <= 0.2) l2 = 0.955 + (l - 0.05) * 0.18; // raised = lighter
+                else if (role === 'surface' || role === 'line') l2 = 0.86 - Math.max(0, l - 0.15) * 0.6; // lines - and mid-grey backgrounds (switch tracks, rails): darker than the surfaces
+                else l2 = 1 - l * 0.6;                                   // anything else: as before
+            }
             else if (l > 0.65 && s > 0.3) l2 = l - 0.32;
             else return null;
         }
         return hslToRgb(h, neutral ? Math.min(s, 0.12) : s, Math.min(1, Math.max(0, l2)));
     }
 
+    // What a CSS property's colour is for (custom properties: by their name)
+    function colorRole(prop) {
+        prop = prop.toLowerCase();
+        if (prop.startsWith('--')) return /border|line/.test(prop) ? 'line' : /bg|panel|card|surface/.test(prop) ? 'surface' : /fg|text|muted|link/.test(prop) ? 'text' : 'other';
+        if (/border|outline|column-rule/.test(prop)) return 'line';
+        if (/^(color|fill|stroke|caret-color|text-decoration-color|-webkit-text-fill-color|accent-color)$/.test(prop)) return 'text';
+        if (/background|box-shadow/.test(prop)) return 'surface';
+        return 'other';
+    }
+
     function recolorCss(css, theme) {
         const COLOR_RE = /#([0-9a-f]{6}|[0-9a-f]{3})\b|rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/gi;
-        const fix = decls => decls.replace(COLOR_RE, (m, hex, r, g, b, a) => {
+        const convert = role => (m, hex, r, g, b, a) => {
             let rgb;
             if (hex) {
                 const x = hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex;
@@ -67,17 +91,27 @@
             } else {
                 rgb = [+r, +g, +b];
             }
-            const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme);
+            // White (Beta 3.7): shadows and dimming stay dark - softer - instead
+            // of turning white (white shadows were invisible: no depth at all)
+            // (strong dimming behind windows - alpha 0.6 and up - stays as strong as in Dark)
+            if (theme === 'white' && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
+                return parseFloat(a) >= 0.6 ? m : `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.round(parseFloat(a) * 50) / 100})`;
+            }
+            const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme, role);
             if (!out) return m;
             return a != null ? `rgba(${out[0]},${out[1]},${out[2]},${a})`
                              : '#' + out.map(v => v.toString(16).padStart(2, '0')).join('');
-        });
+        };
+        // declaration by declaration, so each colour knows its role
+        // (comments out first: one between two declarations hid the next one
+        // from this, and its colour stayed as in Dark - e.g. a black bar in White)
+        const fix = decls => decls.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|;)(\s*)([-\w]+)(\s*:)([^;]*)/g, (m, sep, sp, prop, colon, val) =>
+            sep + sp + prop + colon + val.replace(COLOR_RE, convert(colorRole(prop))));
         // Each innermost "selector { … }" block; keep-dark ones are skipped
         return css.replace(/([^{}]*)\{([^{}]*)\}/g, (m, sel, decls) =>
             KEEP_DARK_RE.test(sel) || /^\s*(\d+%|from|to)\s*$/.test(sel) ? m : sel + '{' + fix(decls) + '}')
             .replace(/color-scheme:\s*dark/g, theme === 'white' ? 'color-scheme: light' : 'color-scheme: dark');
     }
-
     // Hand-tuned spots the converter can't judge
     const THEME_FIX_CSS = {
         white: `
@@ -92,6 +126,10 @@
                 border-color: #cfd3dc !important;
                 box-shadow: 0 2px 0 rgba(0,0,0,0.12);
             }
+            /* My Account / Options (Beta 3.7) */
+            html.s34-theme-white .s34-opt-nav button.s34-on, html.s34-theme-white .s34-opt-nav button:hover,
+            html.s34-theme-white .s34-opt-seg button:hover:not(:disabled):not(.s34-on),
+            html.s34-theme-white .s34-acc .s34-acc-btn:hover, html.s34-theme-white .s34-opt .s34-opt-btn:hover:not(.s34-opt-primary) { color: #1d1f24 !important; }
             /* Tag bubbles in the popup sidebar (on thumbnails they stay dark) */
             html.s34-theme-white .s34-pv-chips .s34-chip { background-color: #fff !important; border-color: #d3d6de !important; }
             html.s34-theme-white .s34-pv-chips .s34-chip-artist    .s34-chip-name { color: #c62828 !important; }
@@ -108,6 +146,11 @@
             html.s34-theme-white .s34-pv-chips .s34-chip-follow { color: #6b6f7a !important; }
             html.s34-theme-white .s34-chip-follow.s34-following,
             html.s34-theme-white #tag-sidebar li a.r34-follow-btn.s34-following { color: #d97800 !important; }
+            html.s34-theme-white .s34-fw-follow.s34-following { color: #a85d00 !important; border-color: rgba(168,93,0,0.45) !important; }
+            html.s34-theme-white .s34-gear.s34-gear-nav:hover { color: #1d1f24 !important; }
+            /* Saved searches (Beta 3.7) */
+            html.s34-theme-white .s34-sb .s34-sb-save:hover { color: #1d1f24 !important; }
+            html.s34-theme-white .s34-sb .s34-sb-save.s34-on, html.s34-theme-white .s34-saved-box .s34-follow-head svg { color: #2c5fcc !important; }
             html.s34-theme-white .s34-follow-box a.s34-follow-row.s34-follow-allrow:is(:link, :visited) { color: #b35c00 !important; }
             html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { color: #d97800 !important; }
             html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-name { color: #8a4a00 !important; }
@@ -120,6 +163,8 @@
             html.s34-theme-white .s34-overlay { background-color: rgba(30,32,40,0.35) !important; }
             html.s34-theme-white .s34-stat-tile b { -webkit-text-fill-color: transparent; }
             html.s34-theme-white ::-webkit-scrollbar-thumb { background: #c5c8d0 !important; }
+            /* (Beta 3.7) the page a soft grey, so the lighter cards and panels stand out on it */
+            html.s34-theme-white { --s34-bg: #e2e4e9 !important; }
         `,
         oled: `
             html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
@@ -138,7 +183,7 @@
             BUTTON_CSS + AC_CSS + (CONFIG.searchChips ? SEARCH_CSS : '') + SETTINGS_CSS +
             // the big extras block, in its original order (src\06a-06i)
             EXTRA_CSS + WINDOWS_CSS + CONTROLS_CSS + POPUP_SIDE_CSS + COLLECTIONS_CSS +
-            POPUP_INFO_CSS + MISC_CSS + PHONE_CSS + TOUR_CSS + FOLLOW_CSS +
+            POPUP_INFO_CSS + MISC_CSS + PHONE_CSS + TOUR_CSS + FOLLOW_CSS + ACCOUNT_CSS +
             (CONFIG.hideListTags && !isPostView ? HIDE_LIST_TAGS_CSS : '') +
             (!isPostView ? LIST_SIDEBAR_CSS : '') +
             (CONFIG.postTagChips && isPostView ? POST_TAGS_CSS : '');

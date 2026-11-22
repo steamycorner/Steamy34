@@ -52,6 +52,82 @@
         }
     }
 
+    function forgetFav(id) {
+        const f = getFavs();
+        delete f[id];
+        GM_setValue(FAVS_KEY, f);
+    }
+
+    // Beta 3.7: ♥ again = remove it (the site's own "Remove", from its
+    // favourites page: a plain address that removes it and shows the list)
+    async function removeFavourite(id) {
+        if (!id) return false;
+        try {
+            let r;
+            try { r = await loadPage('index.php?page=favorites&s=delete&id=' + encodeURIComponent(id) + '&return_pid=0', 'action'); }
+            catch (e) { if (e.cloudflare) { showToast('Favourite not removed – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            if (/[?&]s=login\b/.test(r.url || '') || /name=["']?pass(word)?["']?/i.test(r.html)) {
+                showToast('Log in to rule34.xxx to use favourites.');
+                return false;
+            }
+            forgetFav(id);
+            return true;
+        } catch (e) {
+            showToast('Could not remove the favourite (' + (e.message || e) + ').');
+            return false;
+        }
+    }
+
+    // Every ♥ for this post on the page (thumbnails, the popup) shows the state
+    function showFavState(id, faved) {
+        allThumbs().filter(t => String(thumbPostId(t)) === String(id)).forEach(t => {
+            styleFavButton(t.querySelector('.s34-fav-btn'), faved, false);
+            t.classList.toggle('s34-unfaved', !faved && t.classList.contains('s34-on-favpage'));
+        });
+        if (popupState && String(postIdFrom(popupState.postUrl)) === String(id)) {
+            styleFavButton(popupState.overlay.querySelector('.s34-pv-fav'), faved, true);
+        }
+    }
+
+    // One click on a ♥: favourite - or, when it already is one, remove it
+    // (with Undo, so a slip costs nothing)
+    async function toggleFavourite(id, btn) {
+        if (!id || (btn && btn.classList.contains('s34-busy'))) return;
+        const faved = isFav(id) || (btn && btn.classList.contains('s34-faved'));
+        setBusy(btn, true);
+        const ok = faved ? await removeFavourite(id) : await addFavourite(id);
+        setBusy(btn, false);
+        if (!ok) return;
+        showFavState(id, !faved);
+        if (faved) {
+            showToast('Removed from your favourites', 'Undo', async () => {
+                if (await addFavourite(id)) showFavState(id, true);
+            });
+        }
+    }
+
+    // Your own favourites page: every post there is a favourite (the site
+    // shows "Remove" only on your own list) - the ♥ is filled and removes it
+    // right there; the site's "Remove" links step aside (CSS in 06a, so
+    // there's no flash of them)
+    function setupFavouritesPage() {
+        if (!CONFIG.favButtons || params.get('page') !== 'favorites') return;
+        const removes = Array.from(document.querySelectorAll('.image-list a[onclick*="s=delete"]'));
+        removes.forEach(a => {
+            const m = (a.getAttribute('onclick') || '').match(/[?&;]id=(\d+)/);
+            const cell = a.parentElement;
+            const thumb = cell && cell.querySelector('span.thumb');
+            if (!m || !thumb) return;
+            if (!isFav(m[1])) rememberFav(m[1]);
+            thumb.classList.add('s34-on-favpage');
+            a.classList.add('s34-site-remove');
+            const br = a.previousElementSibling;
+            if (br && br.tagName === 'BR') br.classList.add('s34-site-remove');
+            styleFavButton(thumb.querySelector('.s34-fav-btn'), true, false);
+        });
+    }
+
     // Loading circle on a button while the site answers (♥ favourite, ▲ vote)
     function setBusy(btn, busy) {
         if (!btn) return;
@@ -71,7 +147,7 @@
         if (!btn) return;
         btn.classList.toggle('s34-faved', faved);
         btn.innerHTML = HEART_SVG + (withText ? `<span>${faved ? 'In favourites' : 'Favourite'}</span>` : '');
-        btn.title = faved ? 'In your favourites' : 'Add to your favourites';
+        btn.title = faved ? 'In your favourites – click to remove' : 'Add to your favourites';
     }
 
     function addFavButtons(thumbs) {
@@ -85,18 +161,10 @@
             btn.type = 'button';
             btn.className = 's34-fav-btn';
             styleFavButton(btn, !!favs[id], false);
-            btn.addEventListener('click', async e => {
+            btn.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (btn.classList.contains('s34-faved')) {
-                    showToast('Already in your favourites ♥');
-                    return;
-                }
-                if (btn.classList.contains('s34-busy')) return;
-                setBusy(btn, true);
-                const ok = await addFavourite(id);
-                setBusy(btn, false);
-                if (ok) styleFavButton(btn, true, false);
+                toggleFavourite(id, btn);
             });
             thumb.appendChild(btn);
         });

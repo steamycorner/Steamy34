@@ -453,7 +453,20 @@
         .s34-blm-group:first-child { margin-top: 2px; }
         .s34-blm-empty { padding: 26px 8px; text-align: center; opacity: .55; font-style: italic; }
         .s34-blm-foot { display: flex; flex-direction: column; gap: 6px; font-size: 11px; text-align: center; }
-        .s34-blm-foot > div:last-child { opacity: .45; }
+        .s34-blm-foot > div:last-child { opacity: .55; }
+        /* Not on the account yet (Beta 3.7): an amber dashed outline */
+        .s34-blm-chip.s34-blm-unsaved { border-style: dashed !important; box-shadow: inset 0 0 0 1px rgba(255,179,71,0.55); }
+        .s34-blm-account { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -6px 0 -2px; font-size: 12px; color: #9fe3b8 !important; }
+        .s34-blm-account[hidden] { display: none; }
+        .s34-blm-account.s34-blm-account-diff { margin: 0; padding: 8px 12px; border-radius: 9px; color: #ffd9ad !important; border: 1px dashed rgba(255,179,71,0.5) !important; background: rgba(255,179,71,0.07) !important; }
+        .s34-blm a.s34-blm-account-go { margin-left: auto; color: #ffb347 !important; font-weight: 700; text-decoration: none !important; white-space: nowrap; }
+        .s34-blm a.s34-blm-account-go:hover { text-decoration: underline !important; }
+        /* The same panel inline on rule34's Options page */
+        .s34-blm.s34-blm-inline {
+            width: auto; max-height: none; padding: 4px 0 12px; border-radius: 0; animation: none;
+            background: none !important; border: none !important; box-shadow: none;
+        }
+        .s34-blm-inline .s34-blm-list { flex: none; min-height: 0; max-height: 460px; }
         .s34-blm-dates[hidden], .s34-blm-status[hidden] { display: none; }
         .s34-blm-dates {
             padding: 7px 10px;

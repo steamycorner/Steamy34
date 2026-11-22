@@ -481,16 +481,8 @@
         const state = popupState;
         const id = postIdFrom(state.postUrl);
         const btn = state.overlay.querySelector('.s34-pv-fav');
-        if (isFav(id)) { showToast('Already in your favourites ♥'); return; }
-        if (!btn || btn.classList.contains('s34-busy')) return;
-        setBusy(btn, true);
-        const ok = await addFavourite(id);
-        setBusy(btn, false);
-        if (ok) {
-            styleFavButton(btn, true, true);
-            const heart = state.thumb && state.thumb.querySelector('.s34-fav-btn');
-            styleFavButton(heart, true, false);
-        }
+        if (!btn) return;
+        await toggleFavourite(id, btn); // (♥ again removes it, with Undo)
     }
 
     async function popupDownload() {

@@ -283,6 +283,8 @@
         grid.replaceChildren(...tiles);
         setThumbRatios(tiles);
         removeTagTooltips(tiles);
+        if (CONFIG.hoverPreview || CONFIG.hoverHighRes) setupHoverPreview(tiles); // (as on the posts page)
+        setupHoverInfo(tiles);
         if (CONFIG.thumbBadges) addThumbBadges(tiles);
         tiles.forEach((t, i) => {
             const who = thumbArtists(t, tags);

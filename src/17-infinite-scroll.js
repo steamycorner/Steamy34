@@ -61,6 +61,33 @@
         });
     }
 
+    // Beta 3.7: rule34 hides only the tags in its cookie. The ones that didn't
+    // fit (see readBlocklist) are hidden here - while the page is still
+    // being built, so they never show up. Only those: the cookie's tags stay
+    // with the site (its "Hidden" link keeps working for them).
+    function hideExtraBlocklisted() {
+        if (isPostView) return;
+        const inCookie = new Set(readCookieBlocklist().map(t => t.toLowerCase()));
+        const extra = new Set(readBlocklist().map(t => t.toLowerCase()).filter(t => !inCookie.has(t)));
+        if (!extra.size) return;
+        const check = img => {
+            const thumb = img.closest('span.thumb');
+            if (!thumb || thumb.classList.contains('s34-bl-hidden')) return;
+            if (thumbTags(img).trim().split(' ').some(t => extra.has(t))) thumb.classList.add('s34-bl-hidden');
+        };
+        const all = () => document.querySelectorAll('span.thumb img').forEach(check);
+        all();
+        if (document.readyState !== 'loading') return;
+        const mo = new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => {
+            if (n.nodeType !== 1) return;
+            if (n.tagName === 'IMG') check(n);
+            else if (n.querySelectorAll) n.querySelectorAll('span.thumb img').forEach(check);
+        })));
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); all(); }, { once: true });
+    }
+    try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
+
     // A newly loaded page: set up only its thumbnails, not every one again
     function enhanceThumbs(thumbs) {
         removeTagTooltips(thumbs);

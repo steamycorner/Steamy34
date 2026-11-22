@@ -101,7 +101,7 @@
                 if (e.target === overlay || e.target.closest('.s34-menu-x')) { close(); return; }
                 // A tool that opens a window (or select mode): the menu steps
                 // aside so the window is on top. Switches & sliders keep it open.
-                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
+                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-saved-box a[data-ss], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
             }, true); // (checked before the tool reacts: opening the Following window
                       // redraws the Following list, and the tapped row would be gone)
             document.addEventListener('keydown', onKey, true);
@@ -151,12 +151,15 @@
         setupQuickPanel();     // hide viewed / downloaded, size slider, select mode
         addBlacklistButton();  // opens the blacklist window
         addHub();              // Collections · Stats
-        addFollowBox();        // "Following": artists + searches with "N new" each (above Collections · Stats)
+        addFollowBox();        // "Following": artists with "N new" each (above Collections · Stats)
+        addSavedBox();         // "Saved searches" under it (only once something is saved)
         // an old Following page address opens the Following window; a normal
         // search for a followed artist / search counts as a visit (NEW marks)
-        if (!openFollowFromAddress()) setupFeedPage();
+        if (!openFollowFromAddress()) { setupFeedPage(); setupSavedSearchPage(); }
         if (isPostView) addFollowButtonsToRows(); // bell next to artists
         setupHome();           // rule34's start page as a small home (search, continue, recent, following)
+        setupAccountHome();    // My Account as tiles (rule34 · Steamy34 · Security)
+        setupOptionsPage();    // Options in groups, the blacklist as tag bubbles
         setTimeout(() => checkFollowing(), 6000); // quiet "N new" count
         trimDlHistory();
         addPostCollectButton(); // single posts: "Save to collection"
@@ -178,6 +181,7 @@
         if (isPostView) rememberView(params.get('id')); // opening a post = viewed
         showDownloadedState(); // ✓ / 👁 on posts you already downloaded / viewed
         addFavButtons();
+        setupFavouritesPage(); // your favourites page: every ♥ filled, ♥ removes (the site's Remove links step aside)
         setupHoverInfo();
         learnTagTypes(document); // remember tag types from this page's tag list
         if (isPostView) {

@@ -76,8 +76,7 @@
     function fwSeen(k) {
         const st = fwState;
         if (!(k in st.seen)) {
-            const d = getFollowing();
-            const it = findArtist(k.slice(2), d);
+            const it = findArtist(k.slice(2), getFollowing());
             st.seen[k] = it ? it.seen || 0 : 0;
         }
         return st.seen[k];
@@ -457,6 +456,9 @@
         });
         setThumbRatios(tiles); // each tile in its picture's shape (--r)
         removeTagTooltips(tiles);
+        // hover: the full-quality picture / the video playing, like on the posts page
+        if (CONFIG.hoverPreview || CONFIG.hoverHighRes) setupHoverPreview(tiles);
+        setupHoverInfo(tiles);
         if (CONFIG.thumbBadges) addThumbBadges(tiles);
         tiles.forEach(t => {
             if (!fwIsNew(view, t)) return;

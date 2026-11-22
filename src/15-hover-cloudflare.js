@@ -160,7 +160,7 @@
                 pauseForCloudflare(job.url, job.kind);
                 job.reject(pageError('Cloudflare check (HTTP ' + r.status + ')', { cloudflare: true }));
             } else {
-                job.resolve({ status: r.status, ok: r.ok, html });
+                job.resolve({ status: r.status, ok: r.ok, html, url: r.url || job.url });
             }
         } catch (e) {
             job.reject(e);
@@ -388,7 +388,13 @@
     function getPostMedia(postUrl, kind = 'popup', opts) {
         if (mediaCache.has(postUrl)) bumpPage(postUrl, kind, opts && opts.wanted);
         if (!mediaCache.has(postUrl)) {
-            const p = fetchPostDoc(postUrl, kind, opts)
+            // With an API key (20h): hover previews ask the API for the file
+            // first - much less than the whole post page. (Not batch downloads:
+            // they need the post page anyway, for the tags in the file name.)
+            const viaApi = kind === 'hover' && hasApiKey()
+                ? apiPostMedia(postUrl).then(m => { if (m) { if (m.video) rememberMediaHost('video', m.video); if (m.image) rememberMediaHost('image', m.image); } return m; })
+                : Promise.resolve(null);
+            const p = viaApi.then(m => m || fetchPostDoc(postUrl, kind, opts)
                 .then(doc => {
                     if (!doc) throw new Error('post page not available');
                     const abs = u => u ? new URL(u, location.href).href : null;
@@ -418,7 +424,7 @@
                     console.warn('[Steamy34] Could not read post', postUrl, err);
                     mediaCache.delete(postUrl); // allow a retry later
                     return null;
-                });
+                })); // (the API's answer, or else the page's)
             mediaCache.set(postUrl, p);
         }
         return mediaCache.get(postUrl);

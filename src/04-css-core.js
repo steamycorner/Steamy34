@@ -449,6 +449,8 @@
         .s34-badge.s34-video { background: rgba(30,90,220,0.85) !important; }
 
         #paginator { text-align: center; margin: 16px 0; }
+        /* Only one page (e.g. a short favourites list): no lone "1" */
+        #paginator:not(:has(a)) { display: none !important; }
 
         /* Page divider: a line across with a "PAGE N" pill in the middle */
         .s34-page-divider {

@@ -64,6 +64,10 @@
                                  // only on 'hover', or in a strip 'below' the picture
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         homePage: true,          // rule34's start page as Steamy34's home (Beta 3.6): search, continue, recent, following
+        accountPages: true,      // My Account and Options in Steamy34's look (Beta 3.7)
+        matchSiteTheme: true,    // keep rule34's own Light / Dark theme in step with the colour mode (no white flash)
+        videoServer: 'default',  // rule34's 'Preferred CDN location': default, eu, cusa, eusa, wusa, api
+        siteSuggestions: false,  // rule34's own tag suggestion list (Steamy34 has its own in the search box)
         censorComments: true,    // Censored mode (X) also blurs comment texts and names
 
         // Following
@@ -151,6 +155,8 @@
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
+            ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],
             ['homePage', 'Steamy34 start page', { hint: 'rule34\'s start page with your search, where you left off, your recent searches and the newest posts from who you follow – off: the site\'s own start page' }],
             ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
             ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
@@ -192,6 +198,7 @@
             ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
+            ['videoServer', 'Video server', { options: { default: 'Default (rule34 picks)', eu: 'EU', cusa: 'Central USA', eusa: 'East USA', wusa: 'West USA', api: 'API-CDN' }, hint: 'Videos stall or won\'t start? Try another server. The same as \"Preferred CDN location\" in rule34\'s Options' }],
             ['useOriginalImage', 'Show the full-resolution picture', { hint: 'On single post pages, instead of the smaller sample' }],
             ['muteIfBlocked', 'Play muted if sound is blocked', { adv: true }],
             ['scrollToMedia', 'Scroll to the picture on post pages', { adv: true }],
@@ -206,6 +213,7 @@
         { id: 'search', title: 'Search', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>', rows: [
             ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, and recent searches' }],
             ['searchSuggestions', 'Tag suggestions while typing'],
+            ['siteSuggestions', 'rule34\'s own suggestion list', { adv: true, hint: 'The site\'s list under tag boxes, e.g. when you edit a post\'s tags. Off by default – Steamy34\'s suggestions in the search box don\'t need it' }],
             ['suggestionCount', 'Number of suggestions', { min: 3, max: 30, adv: true }],
             ['searchMultiline', 'Simple multi-line box (when the modern one is off)', { adv: true }]
         ] },

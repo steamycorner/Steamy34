@@ -1,6 +1,6 @@
 # Steamy34 – a free userscript for rule34.xxx
 
-**Steamy34 is a free, all-in-one userscript for rule34.xxx.** It adds a dark mode (White, Dark and OLED), a popup viewer, a much easier tag search, downloads named after the post's tags, and artist following with new-post counts. It also has a touch-friendly phone layout for Android. It runs in Tampermonkey or Violentmonkey.
+**Steamy34 is a free, all-in-one userscript for rule34.xxx.** It adds a dark mode (White, Dark and OLED), a popup viewer, a much easier tag search, downloads named after the post's tags, artist following and saved searches with new-post counts, and blacklists of any length. It also has a touch-friendly phone layout for Android. It runs in Tampermonkey or Violentmonkey.
 
 By **steamycorner** · written with AI · License: CC BY-NC-SA 4.0 · Beta
 
@@ -32,16 +32,18 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 ## Features
 
 **Look**
-- White, Dark and OLED (true black) colour modes for rule34.xxx
+- White, Dark and OLED (true black) colour modes for rule34.xxx, each with depth (cards, panels, shadows) – rule34's own theme follows along, so pages don't flash white while they load
 - Modern thumbnail layout (original ratios or square tiles) with a size slider
 - VID / GIF labels and artist / character tags on the thumbnails – or clean thumbnails, with tags only on hover or in a strip below
 - Square or rounded corners
-- A start page that's a small home: your search, "Continue" where you left off, recent searches, favourite tags and the newest posts from who you follow (Settings → Look & feel turns it off)
+- A start page that's a small home: your search, "Continue" where you left off, recent searches, favourite tags and the newest posts from who you follow
+- My Account as clean tiles (rule34's pages on top, security below) and Options in tidy groups, with the API field folded away
 
 **Viewing posts**
 - Popup viewer: posts open on top of the list, no new tabs
 - Browse with ← / → or A / D, close with Esc or a middle click – at the end of the list the next page loads by itself
 - Comments (all of them – "More comments" loads the rest), votes, favourites, post info and parent / child / pool links inside the popup
+- ♥ favourites both ways: on thumbnails and in the popup, ♥ again removes a favourite (with Undo) – also right on your favourites page
 - Slideshow ("Auto next") with a timer, theater mode, click-to-zoom
 - Hover previews: videos play and score / resolution show when you hover a thumbnail
 
@@ -51,12 +53,13 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Pinned filters that stay on for every new search
 - Recent searches and favourite tags, one click away – small menus next to the sidebar (on phones: a sheet from the bottom)
 
-**Follow artists**
+**Follow artists & save searches**
 - Click the bell next to an artist in a post to follow them
 - The sidebar lists everyone you follow, each with a count of their new posts
 - **Following window** (click one, or press G): your artists as a row of circles – a coloured ring means new posts – and their newest posts in a grid, with NEW on the ones since your last visit, each post in its own shape. It opens on top of the page you're on – "Bigger" makes it nearly full screen
 - Click a post to open it in the popup: ← / → go through that artist's posts and load more at the end. "All" mixes every followed artist
 - Always newest first – "Open as a search" takes you to the normal search with every filter and sort
+- **Saved searches:** the disk button next to Search saves a search with all its filters. They sit under Following in the sidebar, each with its new posts – a click opens that search, with NEW on what's new
 - The browser tab shows "(12) rule34" while there are new posts; L in the popup follows the artist
 
 **Downloads**
@@ -66,16 +69,22 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Batch downloads of ticked posts or whole collections, with Pause / Cancel
 - Asks before downloading a post a second time
 
+**Blacklist**
+- One Blacklist panel – in the sidebar and on rule34's Options page – with tag types, sorting, a filter and your recent tags
+- ⊘ next to any tag blacklists it; posts already on screen are greyed out, with Undo
+- **As long as you like:** rule34 keeps the blacklist in one browser cookie of about 4,000 characters, so longer lists get lost. Steamy34 keeps the whole list and hides the rest itself, everywhere
+- Your account keeps a copy: tags not on it yet are marked, and Save on Options puts the list there
+
 **Organising**
 - Marks posts you viewed or downloaded, and can hide them
 - Local collections (your own folders of posts)
 - Stats: your top artists, characters and series
-- Blacklist manager
 
 **Phone (Android)**
 - Picture on top in the popup, info and comments below
 - Swipe left / right to browse, swipe down or press Back to close
 - One ☰ Menu with all of Steamy34's tools
+- Thumbnails sized for phones (the Size slider in the menu changes them)
 - The Following window fills the screen; Back closes it
 
 **More**
@@ -87,6 +96,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
 - Settings with a search box
 - Backup and restore of all settings and data
+- **Optional: your rule34 API key** (Settings → API key). With it, new-post counts and hover previews use rule34's API – plain data instead of whole pages, so fewer Cloudflare checks. The key only goes to rule34's own API, stays in this browser and is never in a backup. Without it, everything works the same
 
 ---
 
@@ -108,7 +118,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 |---|---|
 | ← / → (or A / D) | Previous / next post |
 | B | Download the original, named after its tags |
-| F | Add to your rule34 favourites |
+| F | Add to your rule34 favourites (again: remove it) |
 | C | Add to one of your collections |
 | T | Theater mode (only the picture) |
 | W / S | Scroll to the comments and back (when A / D browsing is on) |
@@ -127,7 +137,16 @@ All keys can be changed in *Settings → Viewing posts*, *Settings → Following
 A free userscript that upgrades rule34.xxx: dark mode, popup viewer, easier tag search, tag-named downloads, artist following and a phone layout. It runs in your browser through Tampermonkey or Violentmonkey.
 
 ### Is there a dark mode for rule34.xxx?
-Yes. Steamy34 has three colour modes: White, Dark and OLED (true black). Pick one in the sidebar, in the welcome tour or in Settings → Look.
+Yes. Steamy34 has three colour modes: White, Dark and OLED (true black). Pick one in the sidebar, in the welcome tour or in Settings → Look & feel.
+
+### Can I blacklist more tags than rule34 allows?
+Yes. rule34 keeps your blacklist in a single browser cookie, which holds about 4,000 characters – tags beyond that are silently lost in the browser. Steamy34 keeps the whole list and hides the rest itself. Open My Account → Options once and it takes over every tag on your account.
+
+### What does the API key do – and is it safe?
+It's optional. rule34's API sends the same posts as plain data instead of whole web pages. If you paste your key in Settings → API key, Steamy34 uses it for new-post counts and hover previews, which means far less for rule34 to send and fewer Cloudflare checks. The key is only ever sent to rule34's own API (api.rule34.xxx), stays in your browser, isn't in backups or bug reports, and "Remove key" deletes it. Steamy34 never reads it from your Options page. Not sure? Ask on the [Discord](https://discord.gg/Udg9sNTBHb).
+
+### Videos stall or won't start. What can I do?
+Try another video server: Settings → Viewing posts → *Video server* (the same as "Preferred CDN location" in rule34's Options).
 
 ### How do I download from rule34.xxx with the tags in the file name?
 Install Steamy34 and press **B** on any post (or click Download in the popup). The file is saved in full resolution and named like `[character] [series] [artist] #12345.jpg`. You can switch to the classic `Character_Series_Artist_Resolution` style in Settings → Downloads.
@@ -148,7 +167,7 @@ Yes. With Steamy34, every post opens in a large viewer on top of the list, with 
 Yes, on Android with Firefox and Tampermonkey. It uses a touch-friendly layout: swipe to browse, swipe down or press Back to close a post, and one ☰ Menu for all tools. Steamy34 is made and tested for Android; iPhones and iPads aren't tested.
 
 ### Does Steamy34 collect any data?
-No. It only talks to rule34.xxx itself. Everything it remembers (settings, searches, collections, viewed and downloaded posts, followed artists) stays in your browser. Settings → Privacy & data shows all of it and lets you delete it.
+No. It only talks to rule34.xxx itself. Everything it remembers (settings, searches, collections, viewed and downloaded posts, followed artists, your blacklist) stays in your browser. Settings → Privacy & data shows all of it and lets you delete it.
 
 ### Do I need a rule34.xxx account?
 No. Only favourites, voting and comments need a rule34.xxx login. Everything else works without one.
@@ -157,7 +176,7 @@ No. Only favourites, voting and comments need a rule34.xxx login. Everything els
 It's free and will never be monetized. It's a fan-made hobby project by steamycorner, not made by or connected to rule34.xxx.
 
 ### Can I move my settings to another browser or my phone?
-Yes. Settings → Backup saves everything to a file; restore it on the other device.
+Yes. Settings → Privacy & data → *Export backup* saves everything to a file; *Import backup* restores it on the other device.
 
 ### Which browsers are supported?
 Any browser with Tampermonkey or Violentmonkey: Chrome, Firefox, Edge, Brave, Waterfox, Opera and others. On Android: Firefox.

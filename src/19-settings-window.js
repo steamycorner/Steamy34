@@ -19,6 +19,7 @@
         overlay.appendChild(panel);
 
         const sections = SETTINGS_UI.concat([
+            { id: 'api', title: 'API key (optional)', icon: KEY_SVG },
             { id: 'privacy', title: 'Privacy & data', icon: LOCK_SVG },
             { id: 'help', title: 'Help', icon: HELP_SVG }
         ]);
@@ -202,6 +203,14 @@
             pages.privacy = page;
         }
 
+        // ---- API key (optional, 20h): explained, pasted by the person themself ----
+        {
+            const page = document.createElement('div');
+            page.className = 's34-set-page';
+            page.appendChild(buildApiSection());
+            pages.api = page;
+        }
+
         // ---- Help ----
         {
             const page = document.createElement('div');
@@ -261,6 +270,7 @@
             });
         }));
         [
+            ['api', 'API key (optional)', 'Your rule34 API key – fewer Cloudflare checks, faster new-post counts and hover previews – private, only sent to rule34'],
             ['privacy', 'What is stored', 'See and delete everything Steamy34 keeps – privacy, data, storage'],
             ['privacy', 'Export / import backup', 'Move everything to another browser or your phone – backup, restore, save'],
             ['privacy', 'Reset all settings', 'Back to how it was at the start – default'],
@@ -451,6 +461,18 @@
             // Single post: in the sidebar, under the Download button
             makeInline();
             slot.appendChild(gear);
+        } else if (!isPhoneLayout() && document.querySelector('#navbar')) {
+            // Pages without the sidebar (favourites, My Account, Options…): at
+            // the end of rule34's own menu at the top. (On phones that menu folds
+            // into the ☰ Menu, so there it stays in the corner.)
+            gear.classList.add('s34-gear-nav');
+            const label = document.createElement('span');
+            label.textContent = 'Steamy34';
+            gear.appendChild(label);
+            const li = document.createElement('li');
+            li.className = 's34-nav-steamy';
+            li.appendChild(gear);
+            document.querySelector('#navbar').appendChild(li);
         } else {
             document.body.appendChild(gear);
         }

@@ -24,13 +24,61 @@
     let blCacheRaw = null;
     let blCacheList = [];
 
-    function readBlocklist() {
+    // Beta 3.7: a blacklist as long as you like. rule34 keeps it in ONE
+    // cookie, and browsers refuse cookies over about 4,000 characters - so
+    // the full list lives in Steamy34's storage, the cookie gets as many
+    // tags as fit (rule34 hides those itself), and Steamy34 hides the rest
+    // (hideExtraBlocklisted on rule34's own pages, hideBlocklisted on every
+    // page Steamy34 loads). readBlocklist = the full list + anything the
+    // site put in the cookie on its own (e.g. after saving Options).
+    const BL_FULL_KEY = 'steamy34_bl_full';
+    const BL_COOKIE_MAX = 4000; // characters, name included (browsers allow 4096)
+    let blFullCache = null;
+    let blFullAt = 0;
+
+    function readFullBlocklist() {
+        if (blFullCache && Date.now() - blFullAt < 2000) return blFullCache;
+        let v = null;
+        try { v = GM_getValue(BL_FULL_KEY, null); } catch (e) {}
+        blFullCache = Array.isArray(v) ? v.filter(t => typeof t === 'string' && t) : [];
+        blFullAt = Date.now();
+        return blFullCache;
+    }
+
+    function readCookieBlocklist() {
         const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + BL_COOKIE + '=([^;]*)'));
-        if (!m) return [];
+        if (!m) { blCacheRaw = ''; blCacheList = []; return []; }
         if (m[1] === blCacheRaw) return blCacheList.slice();
         blCacheRaw = m[1];
         blCacheList = parseBlocklist(m[1]);
         return blCacheList.slice();
+    }
+
+    // (read very often while rendering: the merged list is kept until the
+    // cookie or the stored list changes)
+    let blMergeKey = null, blMergeFull = null, blMergeList = [];
+    function readBlocklist() {
+        const cookie = readCookieBlocklist();
+        const full = readFullBlocklist();
+        if (!full.length) return cookie;
+        if (blMergeFull === full && blMergeKey === blCacheRaw) return blMergeList.slice();
+        const seen = new Set(full.map(t => t.toLowerCase()));
+        blMergeList = full.concat(cookie.filter(t => !seen.has(t.toLowerCase())));
+        blMergeFull = full;
+        blMergeKey = blCacheRaw;
+        return blMergeList.slice();
+    }
+
+    // The tags that fit into rule34's cookie (the rest: Steamy34 hides them)
+    const blCookieValue = list => encodeURIComponent(list.map(escapeHtml).join('%20'));
+    function blCookieFit(list) {
+        const fit = [];
+        let len = BL_COOKIE.length + 1;
+        list.forEach(t => {
+            const add = encodeURIComponent(escapeHtml(t)).length + (fit.length ? 5 : 0); // ("%2520" between tags)
+            if (len + add <= BL_COOKIE_MAX) { fit.push(t); len += add; }
+        });
+        return fit;
     }
 
     function parseBlocklist(cookieValue) {
@@ -58,17 +106,21 @@
         } catch (e) { return {}; }
     }
 
-    function writeBlocklist(list) {
+    // quiet: tags taken over from elsewhere (the account) - no "blacklisted now" date
+    function writeBlocklist(list, quiet) {
         const before = new Set(readBlocklist().map(t => t.toLowerCase()));
-        // Same format the site itself writes (see readBlocklist)
-        const value = encodeURIComponent(list.map(escapeHtml).join('%20'));
+        // The full list in Steamy34's storage, what fits into the cookie -
+        // in the same format the site itself writes (see readBlocklist)
+        const seen = new Set();
+        list = list.filter(t => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
+        try { GM_setValue(BL_FULL_KEY, list); blFullCache = list.slice(); blFullAt = Date.now(); } catch (e) {}
         const maxAge = 60 * 60 * 24 * 365 * 5; // 5 years
-        document.cookie = `${BL_COOKIE}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        document.cookie = `${BL_COOKIE}=${blCookieValue(blCookieFit(list))}; path=/; max-age=${maxAge}; SameSite=Lax`;
         try {
             const times = getBlTimes();
             const now = Date.now();
             const lower = new Set(list.map(t => t.toLowerCase()));
-            lower.forEach(k => { if (!before.has(k) && !times[k]) times[k] = now; });
+            if (!quiet) lower.forEach(k => { if (!before.has(k) && !times[k]) times[k] = now; });
             Object.keys(times).forEach(k => { if (!lower.has(k)) delete times[k]; });
             GM_setValue(BL_TIMES_KEY, times);
         } catch (e) {}

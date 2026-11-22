@@ -28,7 +28,8 @@
             [`${k('×')} on a tag bubble`, 'Remove it from the search'],
             [`${k('Pin')} next to a filter`, 'Keep that filter (Score, Size, Sort, Type, Rating) for every new search'],
             [`${k('★ Tags')}`, 'Your favourite tags – one tap puts one in the search'],
-            [`${k('Recent')}`, 'Run your earlier searches again']
+            [`${k('Recent')}`, 'Run your earlier searches again'],
+            [`${k(DISK_SVG.replace('width="16" height="16"', 'width="13" height="13"'))} next to Search`, 'Save the search with its filters – it shows up under Saved searches, with its new posts']
         ]];
         const sidebarGroup = ['Sidebar', SLIDERS, [
             [`${k('White')} ${k('Dark')} ${k('OLED')}`, 'Colour mode – in Settings → Look (OLED is true black)'],
@@ -50,7 +51,7 @@
                     [CONFIG.browseKeys === 'wasd' ? `${k('A')} ${k('D')}` : CONFIG.browseKeys === 'both' ? `${k('←')} ${k('→')} / ${k('A')} ${k('D')}` : `${k('←')} ${k('→')}`,
                         `${nu}Previous / next post – arrow keys or WASD in Settings → Viewing posts`],
                     [`${k(key)}`, 'Download the original in maximum resolution'],
-                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, 'Favourite · add to a collection · theater mode (keys changeable in Settings → Viewing posts)'],
+                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, 'Favourite (again: remove) · add to a collection · theater mode (keys changeable in Settings → Viewing posts)'],
                     [`${k(keyLabel(CONFIG.followKey))}`, `${nu}Follow (or unfollow) the post's artist`],
                     ...(CONFIG.browseKeys !== 'arrows' ? [[`${k('W')} ${k('S')}`, `${nu}Scroll to the comments and back`]] : []),
                     [`${k('Click')} the picture`, 'Full size – drag to move around, click again to fit'],
@@ -201,13 +202,20 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
-        { v: 'Beta 3.6.3', date: '2026-11-21', items: [
-            'The Cloudflare check can\'t be missed any more: a big notice at the bottom of the screen that keeps pulsing until it\'s solved. The ? on it explains why it matters – without the check, rule34 loads nothing new.',
-            'Bigger thumbnails on phones: they have their own size now (about two posts to a row). The Size slider in the ☰ Menu changes it.',
-            'Phone menu: tapping an artist under Following now closes the menu and opens the Following window.'
-        ] },
-        { v: 'Beta 3.6.1', date: '2026-11-21', items: [
-            'The little tip bubbles are gone – the welcome tour and the quick tips (?) still explain everything when you want them.'
+        { v: 'Beta 3.7', date: '2026-11-21', notify: true, items: [
+            'My Account in Steamy34\'s look: rule34\'s own links as clean tiles – its pages on top, password, two-factor and e-mail below.',
+            'Blacklists as long as you like: rule34 keeps the blacklist in one browser cookie, which holds about 4,000 characters – longer lists used to get lost in the browser. Steamy34 now keeps the whole list and hides the tags that don\'t fit itself, everywhere.',
+            'Options is sorted into four groups with a small menu: Filtering, Display, Video server, Account & API.',
+            'One blacklist: the Blacklist window and the Filtering part of Options are the same panel (types, sorting, filter, recent tags) and edit the same list – changes apply right away. Your account keeps a copy: tags not on it yet get a dashed amber outline, and Save on Options puts the list there (the window links to it). Opening Options takes over every tag already on your account.',
+            'Video server ("Preferred CDN location") is now also in Steamy34 Settings → Viewing posts – for when videos stall or won\'t start.',
+            'rule34\'s own theme now follows Steamy34\'s colour mode, so pages don\'t flash white while they load. rule34\'s own tag suggestion list is off (Steamy34\'s search box has its own) – both can be changed in Settings.',
+            'Saved searches are back – with filters: the square disk button next to Search saves what the search box holds (tags, score, size, sort, type, rating). They sit under Following in the sidebar, each with its new posts – a click opens that search, with NEW on what came out since your last visit. Click the disk again to remove one.',
+            'Optional: your rule34 API key (Settings → API key). rule34\'s API sends plain data instead of whole pages – with your key, Steamy34 uses it for new-post counts and hover previews, so Cloudflare checks come less often. The page explains what it does and what Steamy34 promises: the key only goes to rule34\'s own API, stays in this browser, isn\'t in backups. Without it, everything works as before.',
+            'White and OLED have depth now: in White, cards and panels sit lighter on a soft grey page, with darker borders and real shadows; in OLED the page stays true black while panels keep visible steps above it. (Dark stays as it was.)',
+            'Fixed: "N new" for followed artists also counted posts with blacklisted tags – which the Following window (rightly) hides. The counts now match the NEW marks.',
+            'Favourites both ways: ♥ (or F in the popup) on a post that\'s already a favourite removes it – with Undo. On your favourites page every ♥ is filled and removes the post right there, and the posts sit in the normal grid.',
+            'On pages without the sidebar (your favourites, My Account, Options…), Steamy34 is an item in rule34\'s top menu now, instead of a button in the corner. And a list that fits on one page no longer shows a lone page number.',
+            'The API key field in Options stays folded away – Steamy34 never reads it.'
         ] },
         { v: 'Beta 3.6', date: '2026-11-21', notify: true, items: [
             'New Following window: everything you follow in one window on top of the page you\'re on. Your artists sit in a row of circles at the top (a coloured ring = new posts), their newest posts in a grid below, with NEW on the ones since your last visit.',
@@ -220,7 +228,10 @@
             'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
             'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',
             'Sidebar: Recent and Tags open as small menus right next to the sidebar, instead of long lists inside it – on phones as a sheet that slides up from the bottom (swipe it down, tap the page or press Back to close). And when the sidebar is taller than the window, it scrolls on its own with the mouse wheel – Settings and the tips below it are always in reach.',
-            'With an ad blocker on, the empty ad space above "Page 1" folds away too, like the right column. Without an ad blocker every ad stays exactly as rule34 shows it.'
+            'With an ad blocker on, the empty ad space above "Page 1" folds away too, like the right column. Without an ad blocker every ad stays exactly as rule34 shows it.',
+            'The Cloudflare check can\'t be missed any more (3.6.3): a big notice at the bottom of the screen that keeps pulsing until it\'s solved. The ? on it explains why it matters – without the check, rule34 loads nothing new.',
+            'Phones (3.6.3): bigger thumbnails with their own size (about two posts to a row – the Size slider in the ☰ Menu changes it), and tapping an artist under Following in the menu closes the menu and opens the Following window.',
+            'The little tip bubbles are gone (3.6.1) – the welcome tour and the quick tips (?) still explain everything when you want them.'
         ] },
         { v: 'Beta 3.5.1', date: '2026-11-21', items: [
             'The popup no longer stops at the last loaded post: → loads the next page and goes on (it already starts loading 3 posts before the end).',

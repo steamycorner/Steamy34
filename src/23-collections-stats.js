@@ -595,6 +595,8 @@
         const follow = document.querySelector('.s34-follow-box');
         const view = document.querySelector('.s34-quick');
         if (follow && view && follow.parentElement === view.parentElement) view.before(follow);
+        const saved = document.querySelector('.s34-saved-box'); // saved searches right under Following
+        if (saved && follow) follow.after(saved);
     }
 
     // Single post page: "📁 Collection" button under Download

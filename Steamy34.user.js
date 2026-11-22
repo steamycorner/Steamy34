@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.6.3-beta
+// @version      3.7-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
 // @supportURL   https://sleazyfork.org/en/scripts/606445-steamy34/feedback
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjVmOGYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjNkZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNSIgZmlsbD0idXJsKCNnKSIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIzLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iLjk1Ij48cGF0aCBkPSJNMjIgMjZjLTMuMi0zIDMuMi01LjYgMC04LjZzMy4yLTUuNiAwLTguNCIvPjxwYXRoIGQ9Ik0zMSAyNmMtMy4yLTMgMy4yLTUuNiAwLTguNnMzLjItNS42IDAtOC40Ii8+PHBhdGggZD0iTTQwIDI2Yy0zLjItMyAzLjItNS42IDAtOC42czMuMi01LjYgMC04LjQiLz48L2c+PHBhdGggZD0iTTE0IDMxaDM0djdhMTMgMTMgMCAwIDEtMTMgMTNoLThhMTMgMTMgMCAwIDEtMTMtMTN6IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTQ3LjUgMzQuNWgyLjVhNS41IDUuNSAwIDAgMSAwIDExaC00IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIxMSIgeT0iNTMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzLjQiIHJ4PSIxLjciIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii45Ii8+PC9zdmc+
-// @description  All-in-one rule34.xxx upgrade: dark / OLED mode, popup viewer, easy tag search with filters, follow artists in their own grid window with new-post counts, downloads named after the tags (press B), batch downloads, collections, infinite scroll and a phone layout. Designed by steamycorner, written with AI. A free fan-made hobby project, never monetized.
+// @description  All-in-one rule34.xxx upgrade: dark / OLED mode, popup viewer, easy tag search with filters, follow artists and save searches, with new-post counts and their own grid window, downloads named after the tags (press B), batch downloads, collections, blacklists of any length, infinite scroll, tidy My Account and Options pages and a phone layout. Designed by steamycorner, written with AI. A free fan-made hobby project, never monetized.
 // @match        https://rule34.xxx/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -181,6 +181,10 @@
                                  // only on 'hover', or in a strip 'below' the picture
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         homePage: true,          // rule34's start page as Steamy34's home (Beta 3.6): search, continue, recent, following
+        accountPages: true,      // My Account and Options in Steamy34's look (Beta 3.7)
+        matchSiteTheme: true,    // keep rule34's own Light / Dark theme in step with the colour mode (no white flash)
+        videoServer: 'default',  // rule34's 'Preferred CDN location': default, eu, cusa, eusa, wusa, api
+        siteSuggestions: false,  // rule34's own tag suggestion list (Steamy34 has its own in the search box)
         censorComments: true,    // Censored mode (X) also blurs comment texts and names
 
         // Following
@@ -268,6 +272,8 @@
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
+            ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],
             ['homePage', 'Steamy34 start page', { hint: 'rule34\'s start page with your search, where you left off, your recent searches and the newest posts from who you follow – off: the site\'s own start page' }],
             ['thumbGrid', 'Modern thumbnail layout', { hint: 'Clean rows of thumbnails without gaps' }],
             ['thumbLayout', 'Thumbnail shape', { options: { justified: 'Original ratios (rows)', grid: 'Square tiles' } }],
@@ -309,6 +315,7 @@
             ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['allowUpscale', 'Enlarge small pictures to fit the screen'],
+            ['videoServer', 'Video server', { options: { default: 'Default (rule34 picks)', eu: 'EU', cusa: 'Central USA', eusa: 'East USA', wusa: 'West USA', api: 'API-CDN' }, hint: 'Videos stall or won\'t start? Try another server. The same as \"Preferred CDN location\" in rule34\'s Options' }],
             ['useOriginalImage', 'Show the full-resolution picture', { hint: 'On single post pages, instead of the smaller sample' }],
             ['muteIfBlocked', 'Play muted if sound is blocked', { adv: true }],
             ['scrollToMedia', 'Scroll to the picture on post pages', { adv: true }],
@@ -323,6 +330,7 @@
         { id: 'search', title: 'Search', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>', rows: [
             ['searchChips', 'Modern search box', { hint: 'Tag bubbles, filters, favourite tags, and recent searches' }],
             ['searchSuggestions', 'Tag suggestions while typing'],
+            ['siteSuggestions', 'rule34\'s own suggestion list', { adv: true, hint: 'The site\'s list under tag boxes, e.g. when you edit a post\'s tags. Off by default – Steamy34\'s suggestions in the search box don\'t need it' }],
             ['suggestionCount', 'Number of suggestions', { min: 3, max: 30, adv: true }],
             ['searchMultiline', 'Simple multi-line box (when the modern one is off)', { adv: true }]
         ] },
@@ -517,6 +525,12 @@
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: var(--s34-bg); }
         ::-webkit-scrollbar-thumb { background: #3a3a42; border-radius: 5px; }
+
+        /* rule34's own dark theme (Steamy34 switches it on with the colour mode -
+           matchSiteTheme) draws halos around the header links and a black glow on
+           every link while hovered - not wanted under Steamy34's colours */
+        #header a, #header li a { text-shadow: none !important; }
+        html body a:hover { text-shadow: none; }
     `;
 
     const GRID_CSS = `
@@ -1104,6 +1118,8 @@
         .s34-badge.s34-video { background: rgba(30,90,220,0.85) !important; }
 
         #paginator { text-align: center; margin: 16px 0; }
+        /* Only one page (e.g. a short favourites list): no lone "1" */
+        #paginator:not(:has(a)) { display: none !important; }
 
         /* Page divider: a line across with a "PAGE N" pill in the middle */
         .s34-page-divider {
@@ -1326,6 +1342,15 @@
         span.thumb:hover .s34-fav-btn { opacity: .9; }
         .s34-fav-btn:hover { opacity: 1 !important; transform: scale(1.12); color: #ff6b7a !important; }
         .s34-fav-btn.s34-faved { opacity: 1; color: #ff6b7a !important; }
+        /* Favourites pages: rule34 wraps each thumbnail in an extra box (with
+           "Remove" under it on your own list) - the box steps aside so the
+           thumbnails join the normal grid, and the ♥ does the removing */
+        ${CONFIG.favButtons ? `
+        .image-list > span:has(> span.thumb) { display: contents !important; }
+        .image-list > span:has(> span.thumb) > :is(br, a[onclick*="s=delete"]) { display: none !important; }` : ''}
+        .image-list .s34-site-remove { display: none !important; }
+        .image-list span.thumb.s34-unfaved { opacity: .35; filter: grayscale(1); transition: opacity .2s ease; }
+        .image-list span.thumb.s34-unfaved:hover { opacity: .7; }
 
         /* Thumbnail extras only while hovering (the picture stays clean).
            visibility too, so hidden chips can't catch taps on phones.
@@ -2043,7 +2068,20 @@
         .s34-blm-group:first-child { margin-top: 2px; }
         .s34-blm-empty { padding: 26px 8px; text-align: center; opacity: .55; font-style: italic; }
         .s34-blm-foot { display: flex; flex-direction: column; gap: 6px; font-size: 11px; text-align: center; }
-        .s34-blm-foot > div:last-child { opacity: .45; }
+        .s34-blm-foot > div:last-child { opacity: .55; }
+        /* Not on the account yet (Beta 3.7): an amber dashed outline */
+        .s34-blm-chip.s34-blm-unsaved { border-style: dashed !important; box-shadow: inset 0 0 0 1px rgba(255,179,71,0.55); }
+        .s34-blm-account { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -6px 0 -2px; font-size: 12px; color: #9fe3b8 !important; }
+        .s34-blm-account[hidden] { display: none; }
+        .s34-blm-account.s34-blm-account-diff { margin: 0; padding: 8px 12px; border-radius: 9px; color: #ffd9ad !important; border: 1px dashed rgba(255,179,71,0.5) !important; background: rgba(255,179,71,0.07) !important; }
+        .s34-blm a.s34-blm-account-go { margin-left: auto; color: #ffb347 !important; font-weight: 700; text-decoration: none !important; white-space: nowrap; }
+        .s34-blm a.s34-blm-account-go:hover { text-decoration: underline !important; }
+        /* The same panel inline on rule34's Options page */
+        .s34-blm.s34-blm-inline {
+            width: auto; max-height: none; padding: 4px 0 12px; border-radius: 0; animation: none;
+            background: none !important; border: none !important; box-shadow: none;
+        }
+        .s34-blm-inline .s34-blm-list { flex: none; min-height: 0; max-height: 460px; }
         .s34-blm-dates[hidden], .s34-blm-status[hidden] { display: none; }
         .s34-blm-dates {
             padding: 7px 10px;
@@ -3868,6 +3906,24 @@
         .s34-follow-row:hover { background-color: #2a2a31 !important; }
         .s34-follow-row.s34-on { background-color: rgba(255,179,71,0.12) !important; }
         .s34-follow-row.s34-follow-allrow { color: #ffcf8a !important; }
+        /* Saved searches (Beta 3.7): the same box, a disk instead of a bell, plain-coloured rows */
+        .s34-saved-box[hidden] { display: none !important; }
+        .s34-saved-box .s34-follow-head svg { color: #8ab4f8 !important; }
+        .s34-saved-box .s34-follow-head a:hover { color: #8ab4f8 !important; }
+        .s34-follow-box.s34-saved-box a.s34-follow-row:is(:link, :visited) { color: #d6d6de !important; }
+        .s34-saved-box .s34-follow-row.s34-on { background-color: rgba(138,180,248,0.12) !important; }
+        .s34-saved-item { display: flex; align-items: center; gap: 2px; }
+        .s34-saved-item .s34-follow-row { flex: 1; min-width: 0; }
+        .s34-follow-box .s34-saved-x {
+            all: unset; box-sizing: border-box; flex: none; width: 22px; height: 22px; border-radius: 6px;
+            display: grid; place-items: center; cursor: pointer; font-size: 10px; line-height: 1;
+            color: #9a9aa6 !important; background: transparent !important; opacity: .55;
+        }
+        .s34-follow-box .s34-saved-x:hover, .s34-follow-box .s34-saved-x:focus-visible { opacity: 1; color: #ff6b6b !important; background-color: rgba(255,255,255,0.08) !important; }
+        .s34-follow-box .s34-saved-x:focus-visible { outline: 2px solid #8ab4f8; }
+        @media (max-width: 760px) { .s34-follow-box .s34-saved-x { width: 34px; height: 34px; font-size: 12px; opacity: .8; } }
+        .s34-follow-grouphead { display: flex; align-items: center; gap: 6px; margin: 14px 0 6px; font: 800 10.5px system-ui, -apple-system, Segoe UI, sans-serif; letter-spacing: .8px; text-transform: uppercase; color: #9a9aa6 !important; }
+        .s34-follow-grouphead svg { width: 13px; height: 13px; color: #8ab4f8 !important; }
         .s34-follow-chip a { text-decoration: none !important; font-weight: 600; }
         .s34-follow-chip a:hover { text-decoration: underline !important; }
         .s34-follow-chip.s34-feed-artist a { color: #ff8a80 !important; }
@@ -4246,8 +4302,6 @@
             .s34-fw-info { min-width: 0; }
             .s34-fw-nm { font-size: 17px; }
             .s34-fw-foot { display: none; }
-            .s34-fw-top .s34-fw-btn { height: 34px; }
-            .s34-fw-x { width: 34px; }
         }
 
         /* ---- Home: rule34's start page as a small home (Beta 3.6, 26c-home.js) ---- */
@@ -4394,6 +4448,180 @@
             .s34-home-right { display: contents; }
             .s34-home-tagline { order: 5; }
             .s34-home-grid { --s34-fw-row: 120px; }
+        }
+    `;
+    // My Account (tiles) and Options (groups) - see 26d-account.js.
+    // Written dark-first like everything else; White and OLED are converted.
+    const ACCOUNT_CSS = `
+        /* The site's own list / table stay in the page, hidden */
+        #user-index.s34-acc-on > :not(.s34-acc) { display: none !important; }
+        #user-edit.s34-opt-on > p, #user-edit.s34-opt-on form > table { display: none !important; }
+
+        .s34-acc, .s34-opt {
+            --acc-line: #2a2a31;
+            --acc-card: #121216;
+            --acc-card-2: #18181d;
+            --acc-fg: #ececf1;
+            --acc-muted: #9a9aa6;
+            box-sizing: border-box;
+            max-width: 1080px;
+            margin: 8px auto 40px;
+            padding: 0 4px;
+            color: var(--acc-fg) !important;
+            font: 13.5px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
+            text-align: left;
+        }
+        .s34-acc *, .s34-opt * { box-sizing: border-box; }
+
+        /* ---- My Account ---- */
+        .s34-acc-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+        .s34-acc-avatar {
+            width: 52px; height: 52px; border-radius: 50%; flex: none;
+            display: grid; place-items: center;
+            background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important;
+        }
+        .s34-acc-avatar svg { width: 26px; height: 26px; }
+        .s34-acc-name { flex: 1; min-width: 150px; display: flex; flex-direction: column; }
+        .s34-acc-name b { font-size: 20px; font-weight: 800; color: var(--acc-fg) !important; }
+        .s34-acc-name small { color: var(--acc-muted) !important; font-size: 12.5px; }
+        .s34-acc-headbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .s34-acc .s34-acc-btn, .s34-opt .s34-opt-btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            height: 34px; padding: 0 14px !important; border-radius: 9px;
+            border: 1px solid #3a3a44 !important; background: #222228 !important; color: #e8e8ee !important;
+            font: 600 13px system-ui, -apple-system, Segoe UI, sans-serif; text-decoration: none !important;
+            cursor: pointer; white-space: nowrap;
+        }
+        .s34-acc .s34-acc-btn:hover, .s34-opt .s34-opt-btn:hover { border-color: #ff5f8f !important; background: #26262d !important; color: #fff !important; }
+        .s34-acc-btn svg { width: 16px; height: 16px; }
+
+        .s34-acc-label { display: flex; align-items: center; gap: 8px; margin: 18px 0 8px; }
+        .s34-acc-label span { font: 800 11px system-ui, -apple-system, Segoe UI, sans-serif; letter-spacing: .8px; text-transform: uppercase; color: var(--acc-muted) !important; }
+        .s34-acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+        .s34-acc .s34-acc-tile {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 13px 14px !important; margin: 0; border-radius: 12px;
+            border: 1px solid var(--acc-line) !important; background: var(--acc-card) !important;
+            color: var(--acc-fg) !important; text-decoration: none !important; text-align: left;
+            font: inherit; cursor: pointer; min-width: 0; width: 100%;
+            transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+        }
+        .s34-acc .s34-acc-tile:hover { border-color: #4a4a55 !important; background: var(--acc-card-2) !important; transform: translateY(-1px); }
+        .s34-acc .s34-acc-tile:focus-visible { outline: 2px solid #ff5f8f; outline-offset: 2px; }
+        .s34-acc-ico {
+            width: 36px; height: 36px; border-radius: 10px; flex: none; display: grid; place-items: center;
+            border: 1px solid var(--acc-line) !important; background: #1c1c22 !important; color: #c9c9d3 !important;
+        }
+        .s34-acc-txt { display: flex; flex-direction: column; min-width: 0; }
+        .s34-acc-txt b { color: #f2f2f5 !important; font-size: 14px; font-weight: 700; }
+        .s34-acc-txt small { color: var(--acc-muted) !important; font-size: 12.5px; line-height: 1.4; }
+        .s34-acc-quiet .s34-acc-tile { background: transparent !important; }
+        .s34-acc-quiet .s34-acc-ico { background: transparent !important; }
+
+        /* ---- Options ---- */
+        .s34-opt { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 18px; align-items: start; }
+        .s34-opt-nav { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 2px; }
+        .s34-opt-nav button {
+            all: unset; border: none !important; box-sizing: border-box; display: block; padding: 8px 12px; border-radius: 9px; cursor: pointer;
+            color: #b9b9c3 !important; font: 600 13.5px system-ui, -apple-system, Segoe UI, sans-serif;
+            background: transparent !important;
+        }
+        .s34-opt-nav button:hover { color: #fff !important; background: #17171c !important; }
+        .s34-opt-nav button.s34-on { color: #fff !important; background: #1d1d23 !important; box-shadow: inset 3px 0 0 #ff5f8f; }
+        .s34-opt-nav button:focus-visible { outline: 2px solid #ff5f8f; }
+        .s34-opt-main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+        .s34-opt-card {
+            padding: 6px 18px 8px; border-radius: 14px; scroll-margin-top: 12px;
+            border: 1px solid var(--acc-line) !important; background: var(--acc-card) !important;
+        }
+        .s34-opt .s34-opt-h {
+            margin: 10px 0 2px !important; padding: 0 !important; border: none !important;
+            font: 800 11px system-ui, -apple-system, Segoe UI, sans-serif !important; letter-spacing: .8px; text-transform: uppercase;
+            color: var(--acc-muted) !important; background: none !important;
+        }
+        .s34-opt-row {
+            display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 20px; align-items: center;
+            padding: 13px 0; border-top: 1px solid #1f1f25;
+        }
+        .s34-opt-h + .s34-opt-row { border-top: none; }
+        .s34-opt-row.s34-opt-wide { grid-template-columns: minmax(0, 1fr); }
+        .s34-opt-txt { display: flex; flex-direction: column; min-width: 0; }
+        .s34-opt-txt b { color: #f2f2f5 !important; font-size: 14px; font-weight: 700; }
+        .s34-opt-txt small { color: var(--acc-muted) !important; font-size: 12.5px; line-height: 1.45; }
+        .s34-opt-ctl { min-width: 0; }
+        .s34-opt-wide .s34-opt-ctl { display: flex; flex-direction: column; gap: 10px; }
+        .s34-opt-auto .s34-opt-seg { opacity: .55; }
+        .s34-opt-locked .s34-opt-txt { padding-left: 30px; position: relative; }
+        .s34-opt-lock { position: absolute; left: 0; top: 1px; color: #9a9aa6 !important; }
+
+        /* inputs the site's fields became */
+        .s34-opt input.s34-opt-num, .s34-opt input[type="text"], .s34-opt textarea, .s34-opt select {
+            box-sizing: border-box; border-radius: 8px !important;
+            border: 1px solid #3a3a44 !important; background: #0d0d10 !important; color: #e8e8ee !important;
+            font: 13.5px system-ui, -apple-system, Segoe UI, sans-serif; padding: 6px 10px !important;
+        }
+        .s34-opt input.s34-opt-num { width: 84px; height: 34px; text-align: center; }
+        .s34-opt textarea { width: 100% !important; min-height: 64px; resize: vertical; }
+        .s34-opt input:focus, .s34-opt textarea:focus, .s34-opt select:focus { outline: none; border-color: #ff5f8f !important; }
+        .s34-opt .awesomplete { display: block; width: 100%; }
+
+        /* a row of choices (it clicks the site's own radio buttons) */
+        .s34-opt-seg { display: inline-flex; flex-wrap: wrap; padding: 3px; gap: 2px; border-radius: 10px; border: 1px solid #33333c !important; background: #0d0d10 !important; }
+        .s34-opt-seg button {
+            all: unset; box-sizing: border-box; padding: 6px 12px; border-radius: 7px; cursor: pointer; white-space: nowrap;
+            color: #a9a9b3 !important; font: 600 12.5px system-ui, -apple-system, Segoe UI, sans-serif; background: transparent !important;
+            border: none !important;
+        }
+        .s34-opt-wide .s34-opt-ctl > .s34-opt-seg { align-self: flex-start; }
+        .s34-opt-seg button:hover:not(:disabled) { color: #fff !important; }
+        .s34-opt-seg button.s34-on { color: #fff !important; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; }
+        .s34-opt-seg button:disabled { cursor: default; }
+        .s34-opt-seg button:focus-visible { outline: 2px solid #ff5f8f; }
+
+        /* the blacklist: Steamy34's Blacklist panel, inline (styles in 06b) */
+        .s34-opt-bl { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+        .s34-opt-picked[hidden] { display: none; }
+        .s34-opt-picked {
+            margin: 0 !important; padding: 9px 12px; border-radius: 10px; font-size: 13px;
+            border: 1px solid rgba(95,208,138,0.35) !important; background: rgba(95,208,138,0.08) !important; color: #9fe3b8 !important;
+        }
+        .s34-opt .s34-opt-btn:disabled { opacity: .6; cursor: default; }
+
+        .s34-opt-fold { padding: 4px 0 8px; }
+        .s34-opt-fold[hidden] { display: none; }
+        .s34-opt-fold ul { margin: 6px 0 0 18px; color: var(--acc-muted) !important; }
+        .s34-opt-api textarea { width: 100% !important; }
+
+        /* Save: the site's own button, kept in reach at the bottom */
+        .s34-opt-save {
+            position: sticky; bottom: 0; z-index: 5;
+            display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+            padding: 12px 64px 12px 0; /* (room for the Steamy34 button in the corner) */
+            background: linear-gradient(to bottom, transparent, #000 40%) !important;
+        }
+        html.s34-theme-dark .s34-opt-save { background: linear-gradient(to bottom, transparent, #0e0e11 40%) !important; }
+        .s34-opt-dirty { margin-right: auto; color: #ffb347 !important; font-weight: 700; font-size: 12.5px; }
+        .s34-opt input.s34-opt-submit {
+            height: 36px; padding: 0 26px !important; border-radius: 9px !important; border: none !important; cursor: pointer;
+            background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; font: 700 14px system-ui, -apple-system, Segoe UI, sans-serif;
+        }
+        .s34-opt input.s34-opt-submit:hover { filter: brightness(1.1); }
+
+        @media (max-width: 760px) {
+            .s34-acc, .s34-opt { padding: 0; margin-top: 4px; }
+            .s34-acc-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+            .s34-acc-headbtns { width: 100%; }
+            .s34-acc-headbtns > * { flex: 1; justify-content: center; }
+            .s34-opt { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+            .s34-opt-nav { flex-direction: row; overflow-x: auto; top: 0; z-index: 6; padding: 6px 0; scrollbar-width: none; background: #000 !important; }
+            .s34-opt-nav::-webkit-scrollbar { display: none; }
+            .s34-opt-nav button { white-space: nowrap; }
+            .s34-opt-nav button.s34-on { box-shadow: inset 0 -2px 0 #ff5f8f; }
+            .s34-opt-card { padding: 4px 14px 6px; }
+            .s34-opt-row { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .s34-acc .s34-acc-tile { transition: none; }
         }
     `;
     const SEARCH_CSS = `
@@ -4638,6 +4866,20 @@
             cursor: pointer;
         }
         .s34-sb .s34-sb-submit:hover { background-color: #3a6fd4 !important; }
+        /* Search + the square disk button: save this search (Beta 3.7) */
+        .s34-sb-gorow { display: flex; gap: 6px; }
+        .s34-sb .s34-sb-gorow .s34-sb-submit { flex: 1; min-width: 0; width: auto !important; }
+        .s34-sb .s34-sb-save {
+            flex: none; width: 30px; height: 30px; box-sizing: border-box; padding: 0 !important; margin: 0;
+            display: grid; place-items: center; cursor: pointer; border-radius: 8px;
+            border: 1px solid #3a3a44 !important; background-color: #1c1c22 !important; color: #b9b9c3 !important;
+        }
+        .s34-sb .s34-sb-save svg { display: block; pointer-events: none; }
+        .s34-sb .s34-sb-save svg * { color: inherit !important; }
+        .s34-sb .s34-sb-save:hover { border-color: #8ab4f8 !important; color: #fff !important; }
+        .s34-sb .s34-sb-save.s34-on { border-color: rgba(138,180,248,0.65) !important; background-color: rgba(138,180,248,0.14) !important; color: #8ab4f8 !important; }
+        .s34-sb .s34-sb-save.s34-on svg path:first-child { fill: currentColor; fill-opacity: .3; }
+        .s34-sb .s34-sb-save:focus-visible { outline: 2px solid #8ab4f8; outline-offset: 2px; }
 
         /* 🕘 Recent · ★ Tags · 🔔 (follow this search) - one list opens below */
         .s34-sb-tools {
@@ -4807,6 +5049,39 @@
             pointer-events: none;
         }
         .s34-gear:hover { opacity: 1; transform: scale(1.08); }
+        /* Settings → API key (optional, Beta 3.7) */
+        .s34-api-hero { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 6px; border-radius: 12px; border: 1px solid rgba(95,208,138,0.35) !important; background: rgba(95,208,138,0.08) !important; color: #cfeedd !important; }
+        .s34-api-hero b { color: #9fe3b8 !important; }
+        .s34-api-icon { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; }
+        .s34-api-icon svg * { color: inherit !important; }
+        .s34-api ul { margin: 4px 0 10px; padding-left: 20px; }
+        .s34-api li { margin: 3px 0; line-height: 1.45; }
+        .s34-api-promises { list-style: none; padding-left: 0 !important; }
+        .s34-api-promises li { position: relative; padding-left: 24px; }
+        .s34-api-promises li::before { content: '✓'; position: absolute; left: 4px; top: 0; font-weight: 800; color: #5fd08a !important; }
+        .s34-api code { padding: 1px 5px; border-radius: 4px; background: #24242a !important; font-size: 12px; }
+        .s34-api-row { display: flex; gap: 8px; margin: 6px 0 8px; }
+        .s34-api .s34-api-input { flex: 1; min-width: 0; height: 34px; box-sizing: border-box; padding: 0 10px !important; border-radius: 8px; border: 1px solid #3a3a44 !important; background: #0d0d10 !important; color: #e8e8ee !important; font: 13px ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .s34-api .s34-api-input:focus { outline: none; border-color: #8b3dff !important; }
+        .s34-api-status { min-height: 18px; margin: 2px 0 8px; font-size: 12.5px; color: #a9a9b3 !important; }
+        .s34-api-status.s34-api-ok { color: #5fd08a !important; }
+        .s34-api-status.s34-api-bad { color: #ff8a8a !important; }
+        .s34-api-ask { color: #b9b9c3 !important; }
+        .s34-api-terms { margin-top: 10px !important; font-size: 11.5px; color: #8e8e9a !important; }
+        /* Pages without the sidebar (favourites, My Account, Options…): an item
+           at the end of rule34's own menu at the top, instead of the corner */
+        #navbar li.s34-nav-steamy { display: inline-block; }
+        .s34-gear.s34-gear-nav {
+            position: static; z-index: auto; opacity: 1; filter: none;
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 5px 14px 5px 10px; border-radius: 999px;
+            border: 1px solid transparent !important; background-color: transparent !important; /* (beats the general box look) */
+            font-weight: 600; color: var(--s34-fg) !important;
+            transition: background-color .15s ease, border-color .15s ease;
+        }
+        .s34-gear.s34-gear-nav img { height: 20px; border-radius: 5px; }
+        .s34-gear.s34-gear-nav span { color: inherit !important; }
+        .s34-gear.s34-gear-nav:hover { transform: none; background-color: var(--s34-panel-2) !important; border-color: var(--s34-border) !important; color: #fff !important; }
 
         /* Download button (single post pages), sits above the logo button */
         .s34-dl-btn {
@@ -5239,26 +5514,50 @@
         return [hue(p, q, h + 1 / 3), hue(p, q, h), hue(p, q, h - 1 / 3)].map(v => Math.round(v * 255));
     }
 
-    // One colour -> its White / OLED version (null = leave it as it is)
-    function themeColor(r, g, b, hasAlpha, theme) {
+    // One colour -> its White / OLED version (null = leave it as it is).
+    // role (Beta 3.7) - what the colour is used for, from its CSS property:
+    //  'surface' (backgrounds, shadows), 'line' (borders, outlines), 'text', 'other'
+    // In Dark, raised things are lighter and lines lighter still. White and
+    // OLED keep those layers (before, White came out flat and too white, and
+    // OLED's panels all landed a hair from black):
+    //  White: surfaces light, raised ones lighter (cards near white on a soft
+    //         grey page); lines darker than the surfaces they frame
+    //  OLED:  the page true black, panels a little above it, lines as in Dark
+    function themeColor(r, g, b, hasAlpha, theme, role) {
         const [h, s, l] = rgbToHsl(r, g, b);
         const neutral = s < 0.2;
         let l2 = l;
         if (theme === 'oled') {
             if (!neutral || l >= 0.4) return null;
-            l2 = Math.max(0, l - 0.09);
+            if (role === 'line') return null;                          // lines: as in Dark
+            l2 = l < 0.09 ? 0 : Math.max(0, l - 0.05);                 // page black, panels above it
         } else {
             if (r === 255 && g === 255 && b === 255 && !hasAlpha) return null; // white text on coloured buttons
-            if (neutral) l2 = l >= 0.5 ? (1 - l) * 0.9 : 1 - l * 0.6;
+            if (neutral) {
+                if (l >= 0.5) l2 = (1 - l) * 0.9;                       // light (text, icons) -> dark
+                else if (role === 'surface' && l <= 0.2) l2 = 0.955 + (l - 0.05) * 0.18; // raised = lighter
+                else if (role === 'surface' || role === 'line') l2 = 0.86 - Math.max(0, l - 0.15) * 0.6; // lines - and mid-grey backgrounds (switch tracks, rails): darker than the surfaces
+                else l2 = 1 - l * 0.6;                                   // anything else: as before
+            }
             else if (l > 0.65 && s > 0.3) l2 = l - 0.32;
             else return null;
         }
         return hslToRgb(h, neutral ? Math.min(s, 0.12) : s, Math.min(1, Math.max(0, l2)));
     }
 
+    // What a CSS property's colour is for (custom properties: by their name)
+    function colorRole(prop) {
+        prop = prop.toLowerCase();
+        if (prop.startsWith('--')) return /border|line/.test(prop) ? 'line' : /bg|panel|card|surface/.test(prop) ? 'surface' : /fg|text|muted|link/.test(prop) ? 'text' : 'other';
+        if (/border|outline|column-rule/.test(prop)) return 'line';
+        if (/^(color|fill|stroke|caret-color|text-decoration-color|-webkit-text-fill-color|accent-color)$/.test(prop)) return 'text';
+        if (/background|box-shadow/.test(prop)) return 'surface';
+        return 'other';
+    }
+
     function recolorCss(css, theme) {
         const COLOR_RE = /#([0-9a-f]{6}|[0-9a-f]{3})\b|rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/gi;
-        const fix = decls => decls.replace(COLOR_RE, (m, hex, r, g, b, a) => {
+        const convert = role => (m, hex, r, g, b, a) => {
             let rgb;
             if (hex) {
                 const x = hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex;
@@ -5266,17 +5565,27 @@
             } else {
                 rgb = [+r, +g, +b];
             }
-            const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme);
+            // White (Beta 3.7): shadows and dimming stay dark - softer - instead
+            // of turning white (white shadows were invisible: no depth at all)
+            // (strong dimming behind windows - alpha 0.6 and up - stays as strong as in Dark)
+            if (theme === 'white' && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
+                return parseFloat(a) >= 0.6 ? m : `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.round(parseFloat(a) * 50) / 100})`;
+            }
+            const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme, role);
             if (!out) return m;
             return a != null ? `rgba(${out[0]},${out[1]},${out[2]},${a})`
                              : '#' + out.map(v => v.toString(16).padStart(2, '0')).join('');
-        });
+        };
+        // declaration by declaration, so each colour knows its role
+        // (comments out first: one between two declarations hid the next one
+        // from this, and its colour stayed as in Dark - e.g. a black bar in White)
+        const fix = decls => decls.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|;)(\s*)([-\w]+)(\s*:)([^;]*)/g, (m, sep, sp, prop, colon, val) =>
+            sep + sp + prop + colon + val.replace(COLOR_RE, convert(colorRole(prop))));
         // Each innermost "selector { … }" block; keep-dark ones are skipped
         return css.replace(/([^{}]*)\{([^{}]*)\}/g, (m, sel, decls) =>
             KEEP_DARK_RE.test(sel) || /^\s*(\d+%|from|to)\s*$/.test(sel) ? m : sel + '{' + fix(decls) + '}')
             .replace(/color-scheme:\s*dark/g, theme === 'white' ? 'color-scheme: light' : 'color-scheme: dark');
     }
-
     // Hand-tuned spots the converter can't judge
     const THEME_FIX_CSS = {
         white: `
@@ -5291,6 +5600,10 @@
                 border-color: #cfd3dc !important;
                 box-shadow: 0 2px 0 rgba(0,0,0,0.12);
             }
+            /* My Account / Options (Beta 3.7) */
+            html.s34-theme-white .s34-opt-nav button.s34-on, html.s34-theme-white .s34-opt-nav button:hover,
+            html.s34-theme-white .s34-opt-seg button:hover:not(:disabled):not(.s34-on),
+            html.s34-theme-white .s34-acc .s34-acc-btn:hover, html.s34-theme-white .s34-opt .s34-opt-btn:hover:not(.s34-opt-primary) { color: #1d1f24 !important; }
             /* Tag bubbles in the popup sidebar (on thumbnails they stay dark) */
             html.s34-theme-white .s34-pv-chips .s34-chip { background-color: #fff !important; border-color: #d3d6de !important; }
             html.s34-theme-white .s34-pv-chips .s34-chip-artist    .s34-chip-name { color: #c62828 !important; }
@@ -5307,6 +5620,11 @@
             html.s34-theme-white .s34-pv-chips .s34-chip-follow { color: #6b6f7a !important; }
             html.s34-theme-white .s34-chip-follow.s34-following,
             html.s34-theme-white #tag-sidebar li a.r34-follow-btn.s34-following { color: #d97800 !important; }
+            html.s34-theme-white .s34-fw-follow.s34-following { color: #a85d00 !important; border-color: rgba(168,93,0,0.45) !important; }
+            html.s34-theme-white .s34-gear.s34-gear-nav:hover { color: #1d1f24 !important; }
+            /* Saved searches (Beta 3.7) */
+            html.s34-theme-white .s34-sb .s34-sb-save:hover { color: #1d1f24 !important; }
+            html.s34-theme-white .s34-sb .s34-sb-save.s34-on, html.s34-theme-white .s34-saved-box .s34-follow-head svg { color: #2c5fcc !important; }
             html.s34-theme-white .s34-follow-box a.s34-follow-row.s34-follow-allrow:is(:link, :visited) { color: #b35c00 !important; }
             html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-check { color: #d97800 !important; }
             html.s34-theme-white .s34-follow-menu .s34-cmenu-item.s34-on .s34-cmenu-name { color: #8a4a00 !important; }
@@ -5319,6 +5637,8 @@
             html.s34-theme-white .s34-overlay { background-color: rgba(30,32,40,0.35) !important; }
             html.s34-theme-white .s34-stat-tile b { -webkit-text-fill-color: transparent; }
             html.s34-theme-white ::-webkit-scrollbar-thumb { background: #c5c8d0 !important; }
+            /* (Beta 3.7) the page a soft grey, so the lighter cards and panels stand out on it */
+            html.s34-theme-white { --s34-bg: #e2e4e9 !important; }
         `,
         oled: `
             html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
@@ -5337,7 +5657,7 @@
             BUTTON_CSS + AC_CSS + (CONFIG.searchChips ? SEARCH_CSS : '') + SETTINGS_CSS +
             // the big extras block, in its original order (src\06a-06i)
             EXTRA_CSS + WINDOWS_CSS + CONTROLS_CSS + POPUP_SIDE_CSS + COLLECTIONS_CSS +
-            POPUP_INFO_CSS + MISC_CSS + PHONE_CSS + TOUR_CSS + FOLLOW_CSS +
+            POPUP_INFO_CSS + MISC_CSS + PHONE_CSS + TOUR_CSS + FOLLOW_CSS + ACCOUNT_CSS +
             (CONFIG.hideListTags && !isPostView ? HIDE_LIST_TAGS_CSS : '') +
             (!isPostView ? LIST_SIDEBAR_CSS : '') +
             (CONFIG.postTagChips && isPostView ? POST_TAGS_CSS : '');
@@ -6327,13 +6647,61 @@
     let blCacheRaw = null;
     let blCacheList = [];
 
-    function readBlocklist() {
+    // Beta 3.7: a blacklist as long as you like. rule34 keeps it in ONE
+    // cookie, and browsers refuse cookies over about 4,000 characters - so
+    // the full list lives in Steamy34's storage, the cookie gets as many
+    // tags as fit (rule34 hides those itself), and Steamy34 hides the rest
+    // (hideExtraBlocklisted on rule34's own pages, hideBlocklisted on every
+    // page Steamy34 loads). readBlocklist = the full list + anything the
+    // site put in the cookie on its own (e.g. after saving Options).
+    const BL_FULL_KEY = 'steamy34_bl_full';
+    const BL_COOKIE_MAX = 4000; // characters, name included (browsers allow 4096)
+    let blFullCache = null;
+    let blFullAt = 0;
+
+    function readFullBlocklist() {
+        if (blFullCache && Date.now() - blFullAt < 2000) return blFullCache;
+        let v = null;
+        try { v = GM_getValue(BL_FULL_KEY, null); } catch (e) {}
+        blFullCache = Array.isArray(v) ? v.filter(t => typeof t === 'string' && t) : [];
+        blFullAt = Date.now();
+        return blFullCache;
+    }
+
+    function readCookieBlocklist() {
         const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + BL_COOKIE + '=([^;]*)'));
-        if (!m) return [];
+        if (!m) { blCacheRaw = ''; blCacheList = []; return []; }
         if (m[1] === blCacheRaw) return blCacheList.slice();
         blCacheRaw = m[1];
         blCacheList = parseBlocklist(m[1]);
         return blCacheList.slice();
+    }
+
+    // (read very often while rendering: the merged list is kept until the
+    // cookie or the stored list changes)
+    let blMergeKey = null, blMergeFull = null, blMergeList = [];
+    function readBlocklist() {
+        const cookie = readCookieBlocklist();
+        const full = readFullBlocklist();
+        if (!full.length) return cookie;
+        if (blMergeFull === full && blMergeKey === blCacheRaw) return blMergeList.slice();
+        const seen = new Set(full.map(t => t.toLowerCase()));
+        blMergeList = full.concat(cookie.filter(t => !seen.has(t.toLowerCase())));
+        blMergeFull = full;
+        blMergeKey = blCacheRaw;
+        return blMergeList.slice();
+    }
+
+    // The tags that fit into rule34's cookie (the rest: Steamy34 hides them)
+    const blCookieValue = list => encodeURIComponent(list.map(escapeHtml).join('%20'));
+    function blCookieFit(list) {
+        const fit = [];
+        let len = BL_COOKIE.length + 1;
+        list.forEach(t => {
+            const add = encodeURIComponent(escapeHtml(t)).length + (fit.length ? 5 : 0); // ("%2520" between tags)
+            if (len + add <= BL_COOKIE_MAX) { fit.push(t); len += add; }
+        });
+        return fit;
     }
 
     function parseBlocklist(cookieValue) {
@@ -6361,17 +6729,21 @@
         } catch (e) { return {}; }
     }
 
-    function writeBlocklist(list) {
+    // quiet: tags taken over from elsewhere (the account) - no "blacklisted now" date
+    function writeBlocklist(list, quiet) {
         const before = new Set(readBlocklist().map(t => t.toLowerCase()));
-        // Same format the site itself writes (see readBlocklist)
-        const value = encodeURIComponent(list.map(escapeHtml).join('%20'));
+        // The full list in Steamy34's storage, what fits into the cookie -
+        // in the same format the site itself writes (see readBlocklist)
+        const seen = new Set();
+        list = list.filter(t => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
+        try { GM_setValue(BL_FULL_KEY, list); blFullCache = list.slice(); blFullAt = Date.now(); } catch (e) {}
         const maxAge = 60 * 60 * 24 * 365 * 5; // 5 years
-        document.cookie = `${BL_COOKIE}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        document.cookie = `${BL_COOKIE}=${blCookieValue(blCookieFit(list))}; path=/; max-age=${maxAge}; SameSite=Lax`;
         try {
             const times = getBlTimes();
             const now = Date.now();
             const lower = new Set(list.map(t => t.toLowerCase()));
-            lower.forEach(k => { if (!before.has(k) && !times[k]) times[k] = now; });
+            if (!quiet) lower.forEach(k => { if (!before.has(k) && !times[k]) times[k] = now; });
             Object.keys(times).forEach(k => { if (!lower.has(k)) delete times[k]; });
             GM_setValue(BL_TIMES_KEY, times);
         } catch (e) {}
@@ -6751,7 +7123,7 @@
                 pauseForCloudflare(job.url, job.kind);
                 job.reject(pageError('Cloudflare check (HTTP ' + r.status + ')', { cloudflare: true }));
             } else {
-                job.resolve({ status: r.status, ok: r.ok, html });
+                job.resolve({ status: r.status, ok: r.ok, html, url: r.url || job.url });
             }
         } catch (e) {
             job.reject(e);
@@ -6979,7 +7351,13 @@
     function getPostMedia(postUrl, kind = 'popup', opts) {
         if (mediaCache.has(postUrl)) bumpPage(postUrl, kind, opts && opts.wanted);
         if (!mediaCache.has(postUrl)) {
-            const p = fetchPostDoc(postUrl, kind, opts)
+            // With an API key (20h): hover previews ask the API for the file
+            // first - much less than the whole post page. (Not batch downloads:
+            // they need the post page anyway, for the tags in the file name.)
+            const viaApi = kind === 'hover' && hasApiKey()
+                ? apiPostMedia(postUrl).then(m => { if (m) { if (m.video) rememberMediaHost('video', m.video); if (m.image) rememberMediaHost('image', m.image); } return m; })
+                : Promise.resolve(null);
+            const p = viaApi.then(m => m || fetchPostDoc(postUrl, kind, opts)
                 .then(doc => {
                     if (!doc) throw new Error('post page not available');
                     const abs = u => u ? new URL(u, location.href).href : null;
@@ -7009,7 +7387,7 @@
                     console.warn('[Steamy34] Could not read post', postUrl, err);
                     mediaCache.delete(postUrl); // allow a retry later
                     return null;
-                });
+                })); // (the API's answer, or else the page's)
             mediaCache.set(postUrl, p);
         }
         return mediaCache.get(postUrl);
@@ -7730,6 +8108,8 @@
             showFilters();
             renderFavTags();
             if (typeof refreshSearchButtons === 'function') refreshSearchButtons();
+            const save = root.parentElement && root.parentElement.querySelector('.s34-sb-save');
+            if (save && save._s34Update) save._s34Update(); // filled when this search is saved
         }
 
         function addTerms(words) {
@@ -8018,7 +8398,11 @@
         }
         if (!root.contains(submitBtn)) {
             submitBtn.classList.add('s34-sb-submit');
-            filtersEl.after(submitBtn);
+            // Search + a square disk button: save this search (20g) - Beta 3.7
+            const goRow = document.createElement('div');
+            goRow.className = 's34-sb-gorow';
+            filtersEl.after(goRow);
+            goRow.append(submitBtn, makeSaveSearchButton(query, () => commitField(true)));
         }
 
         // The site's own Search button: take along what's still typed
@@ -8293,6 +8677,33 @@
             thumb.classList.toggle('s34-bl-hidden', blocked.some(b => tags.includes(b)));
         });
     }
+
+    // Beta 3.7: rule34 hides only the tags in its cookie. The ones that didn't
+    // fit (see readBlocklist) are hidden here - while the page is still
+    // being built, so they never show up. Only those: the cookie's tags stay
+    // with the site (its "Hidden" link keeps working for them).
+    function hideExtraBlocklisted() {
+        if (isPostView) return;
+        const inCookie = new Set(readCookieBlocklist().map(t => t.toLowerCase()));
+        const extra = new Set(readBlocklist().map(t => t.toLowerCase()).filter(t => !inCookie.has(t)));
+        if (!extra.size) return;
+        const check = img => {
+            const thumb = img.closest('span.thumb');
+            if (!thumb || thumb.classList.contains('s34-bl-hidden')) return;
+            if (thumbTags(img).trim().split(' ').some(t => extra.has(t))) thumb.classList.add('s34-bl-hidden');
+        };
+        const all = () => document.querySelectorAll('span.thumb img').forEach(check);
+        all();
+        if (document.readyState !== 'loading') return;
+        const mo = new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => {
+            if (n.nodeType !== 1) return;
+            if (n.tagName === 'IMG') check(n);
+            else if (n.querySelectorAll) n.querySelectorAll('span.thumb img').forEach(check);
+        })));
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); all(); }, { once: true });
+    }
+    try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
     // A newly loaded page: set up only its thumbnails, not every one again
     function enhanceThumbs(thumbs) {
@@ -8995,6 +9406,7 @@
         overlay.appendChild(panel);
 
         const sections = SETTINGS_UI.concat([
+            { id: 'api', title: 'API key (optional)', icon: KEY_SVG },
             { id: 'privacy', title: 'Privacy & data', icon: LOCK_SVG },
             { id: 'help', title: 'Help', icon: HELP_SVG }
         ]);
@@ -9178,6 +9590,14 @@
             pages.privacy = page;
         }
 
+        // ---- API key (optional, 20h): explained, pasted by the person themself ----
+        {
+            const page = document.createElement('div');
+            page.className = 's34-set-page';
+            page.appendChild(buildApiSection());
+            pages.api = page;
+        }
+
         // ---- Help ----
         {
             const page = document.createElement('div');
@@ -9237,6 +9657,7 @@
             });
         }));
         [
+            ['api', 'API key (optional)', 'Your rule34 API key – fewer Cloudflare checks, faster new-post counts and hover previews – private, only sent to rule34'],
             ['privacy', 'What is stored', 'See and delete everything Steamy34 keeps – privacy, data, storage'],
             ['privacy', 'Export / import backup', 'Move everything to another browser or your phone – backup, restore, save'],
             ['privacy', 'Reset all settings', 'Back to how it was at the start – default'],
@@ -9427,6 +9848,18 @@
             // Single post: in the sidebar, under the Download button
             makeInline();
             slot.appendChild(gear);
+        } else if (!isPhoneLayout() && document.querySelector('#navbar')) {
+            // Pages without the sidebar (favourites, My Account, Options…): at
+            // the end of rule34's own menu at the top. (On phones that menu folds
+            // into the ☰ Menu, so there it stays in the corner.)
+            gear.classList.add('s34-gear-nav');
+            const label = document.createElement('span');
+            label.textContent = 'Steamy34';
+            gear.appendChild(label);
+            const li = document.createElement('li');
+            li.className = 's34-nav-steamy';
+            li.appendChild(gear);
+            document.querySelector('#navbar').appendChild(li);
         } else {
             document.body.appendChild(gear);
         }
@@ -9702,6 +10135,7 @@
         const d = getFollowing();
         document.querySelectorAll('[data-follow-tag]').forEach(b => styleFollowButton(b, isFollowed(b.dataset.followTag, d)));
         renderFollowBox(d);
+        renderSavedBox();
         const win = document.querySelector('.s34-follow-win');
         if (win && win._s34Render) win._s34Render();
         fwRefresh(); // the Following window, if open
@@ -9756,8 +10190,9 @@
             try {
                 d = d || getFollowing();
                 const t = followTotals(d, true);
-                n = t.n;
-                more = /\+/.test(t.text);
+                const s = savedTotals();
+                n = t.n + s.n;
+                more = /\+/.test(t.text) || s.more;
             } catch (e) {}
         }
         const base = document.title.replace(/^(\(\d+\+?\)\s*)+/, ''); // our own count, however often it got there
@@ -9877,32 +10312,57 @@
         const src = img && (img.getAttribute('src') || img.dataset.s34Src || '');
         try { return src ? new URL(src, location.href).href : ''; } catch (e) { return ''; }
     }
+    // The newest posts of a search, for counting: [{ id, words, pic }] -
+    // through rule34's API when there's a key (20h; plain data, up to 100),
+    // else the normal page (42). null: skip this one; throws when Cloudflare
+    // wants a check (then the whole round stops)
+    // Posts with a blacklisted tag don't count: the pages and the Following
+    // window hide them, so a count with them would promise posts nobody sees
+    // (Beta 3.7 - "7 new", but 3 NEW marks)
+    async function postsForCounting(query, force) {
+        const blocked = new Set(readBlocklist().map(t => t.toLowerCase()));
+        const shown = got => Object.assign(got, { posts: got.posts.filter(p => ![...p.words].some(w => blocked.has(w))) });
+        if (hasApiKey()) {
+            try {
+                const list = await apiPosts(query, 100);
+                return shown({ posts: list.map(p => ({ id: p.id, words: new Set(p.tags.split(/\s+/).concat(p.rating ? ['rating:' + p.rating] : [])), pic: p.preview })), full: list.length >= 100 });
+            } catch (e) { /* the normal page instead */ }
+        }
+        let r;
+        try { r = await loadPage(plainSearchUrl(query), force ? 'followNow' : 'follow'); }
+        catch (e) { if (e.cloudflare || e.paused) throw e; return null; }
+        if (r.status < 200 || r.status >= 300) return null;
+        const doc = new DOMParser().parseFromString(r.html, 'text/html');
+        const thumbs = Array.from(doc.querySelectorAll('span.thumb'));
+        return shown({
+            posts: thumbs.map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, words: new Set(thumbTags(t.querySelector('img') || t).trim().split(' ')), pic: thumbPicOf(t) })),
+            full: thumbs.length >= 40
+        });
+    }
+
     let followCheckRunning = false;
     async function checkFollowing(force) {
         if (!CONFIG.checkFollowing || followCheckRunning) return;
         let d = getFollowing();
         const groups = followGroups(d);
-        if (!groups.length || (!force && Date.now() - d.checkedAt < FOLLOW_CHECK_EVERY)) return;
+        const searches = getSavedSearches().filter(s => searchCountable(s.query)).length; // (saved searches: 20g)
+        if ((!groups.length && !searches) || (!force && Date.now() - d.checkedAt < FOLLOW_CHECK_EVERY)) return;
         followCheckRunning = true;
         try {
             for (let i = 0; i < groups.length; i++) {
                 if (cloudflarePaused()) break;
-                let html, status;
-                try {
-                    // (in the shared line; on its own it waits until you're not clicking around)
-                    const r = await loadPage(plainSearchUrl(groupQuery(groups[i])), force ? 'followNow' : 'follow');
-                    status = r.status;
-                    html = r.html;
-                } catch (e) { if (e.cloudflare || e.paused) break; continue; }
-                if (status < 200 || status >= 300) continue;
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const posts = Array.from(doc.querySelectorAll('span.thumb')).map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, thumb: t }));
+                // (pages go through the shared line; on its own it waits until you're not clicking around)
+                let got;
+                try { got = await postsForCounting(groupQuery(groups[i]), force); }
+                catch (e) { break; } // a Cloudflare check: the rest waits
+                if (!got) continue;
+                const posts = got.posts;
                 const pageMax = posts.reduce((m, p) => Math.max(m, p.id), 0);
                 d = getFollowing(); // fresh: something may have changed meanwhile
                 groups[i].forEach(tag => {
                     const a = findArtist(tag, d);
                     if (!a) return;
-                    const theirs = posts.filter(p => thumbArtists(p.thumb, [tag]).length);
+                    const theirs = posts.filter(p => p.words.has(tag));
                     const ids = theirs.map(p => p.id);
                     const max = ids.length ? Math.max(...ids) : 0;
                     if (!a.seen) {
@@ -9912,15 +10372,16 @@
                     } else {
                         a.count = ids.filter(id => id > a.seen).length;
                     }
-                    a.more = a.count > 0 && a.count === ids.length && posts.length >= 40;
+                    a.more = a.count > 0 && a.count === ids.length && got.full;
                     a.latest = Math.max(a.latest || 0, max);
-                    if (theirs.length) a.pic = thumbPicOf(theirs[0].thumb) || a.pic; // newest first
+                    if (theirs.length) a.pic = theirs[0].pic || a.pic; // newest first
                 });
                 saveFollowing(d);
                 renderFollowBox(d);
                 fwRefresh();
                 if (i < groups.length - 1) await pause(1500);
             }
+            if (searches && !cloudflarePaused()) await checkSavedSearches(force);
             d = getFollowing();
             d.checkedAt = Date.now();
             saveFollowing(d);
@@ -9933,6 +10394,9 @@
         const d = getFollowing();
         d.artists.forEach(a => { a.seen = Math.max(a.seen || 0, a.latest || 0); a.count = 0; a.more = false; });
         saveFollowing(d);
+        const saved = getSavedSearches();
+        saved.forEach(s => { s.seen = Math.max(s.seen || 0, s.latest || 0); s.count = 0; s.more = false; });
+        saveSavedSearches(saved);
         refreshFollowUi();
     }
 
@@ -10007,9 +10471,10 @@
                 listEl.appendChild(wrap);
             };
             group(d.artists.map(a => chip('s34-feed-artist', prettyTag(a.tag), fwKeyArtist(a.tag), plainSearchUrl(a.tag), 'Show ' + prettyTag(a.tag) + '\'s newest posts', a, () => toggleFollow(a.tag))));
-            w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA; });
-            w.body.querySelector('[data-a="open"]').hidden = !nA;
-            w.body.querySelector('[data-a="seen"]').hidden = !tot.n; // only when there is something new
+            const saved = getSavedSearches(); // (not listed here - the sidebar has them; Check now and the counts include them)
+            w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA && !saved.length; });
+            w.body.querySelector('[data-a="open"]').hidden = !nA; // (the Following window: artists)
+            w.body.querySelector('[data-a="seen"]').hidden = !tot.n && !savedTotals(saved).n; // only when there is something new
         }
         w.overlay._s34Render = render;
 
@@ -10034,8 +10499,9 @@
                 b.textContent = 'Check now';
                 b.disabled = false;
                 refreshFollowUi();
-                const t = followTotals(null, true);
-                showToast(t.n ? `${t.text} in what you follow.` : 'Nothing new right now.');
+                const t = followTotals(null, true), st = savedTotals();
+                const all = t.n + st.n;
+                showToast(all ? `${all}${/\+/.test(t.text) || st.more ? '+' : ''} new in what you follow and save.` : 'Nothing new right now.');
             }
         });
         render();
@@ -10175,7 +10641,8 @@
         try { f = getFollowing(); } catch (e) {}
         const count = o => { try { return Object.keys(o || {}).length; } catch (e) { return '?'; } };
         lines.push('Data: following ' + f.artists.length + ' artists · viewed ' + count(loadViewed()) +
-                   ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length);
+                   ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length +
+                   ' · saved searches ' + getSavedSearches().length + ' · API key ' + (hasApiKey() ? 'yes (used ' + apiStats.uses + 'x this page' + (apiStats.lastError ? ', last problem: ' + apiStats.lastError.replace(/[A-Za-z0-9]{24,}/g, '…') : '') + ')' : 'no')); // (never the key itself)
         const site = siteShapeProblems();
         lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));
         // The last Cloudflare check: what hit it, and what loaded in the 2 minutes before
@@ -10328,6 +10795,82 @@
         }
     }
 
+    function forgetFav(id) {
+        const f = getFavs();
+        delete f[id];
+        GM_setValue(FAVS_KEY, f);
+    }
+
+    // Beta 3.7: ♥ again = remove it (the site's own "Remove", from its
+    // favourites page: a plain address that removes it and shows the list)
+    async function removeFavourite(id) {
+        if (!id) return false;
+        try {
+            let r;
+            try { r = await loadPage('index.php?page=favorites&s=delete&id=' + encodeURIComponent(id) + '&return_pid=0', 'action'); }
+            catch (e) { if (e.cloudflare) { showToast('Favourite not removed – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            if (/[?&]s=login\b/.test(r.url || '') || /name=["']?pass(word)?["']?/i.test(r.html)) {
+                showToast('Log in to rule34.xxx to use favourites.');
+                return false;
+            }
+            forgetFav(id);
+            return true;
+        } catch (e) {
+            showToast('Could not remove the favourite (' + (e.message || e) + ').');
+            return false;
+        }
+    }
+
+    // Every ♥ for this post on the page (thumbnails, the popup) shows the state
+    function showFavState(id, faved) {
+        allThumbs().filter(t => String(thumbPostId(t)) === String(id)).forEach(t => {
+            styleFavButton(t.querySelector('.s34-fav-btn'), faved, false);
+            t.classList.toggle('s34-unfaved', !faved && t.classList.contains('s34-on-favpage'));
+        });
+        if (popupState && String(postIdFrom(popupState.postUrl)) === String(id)) {
+            styleFavButton(popupState.overlay.querySelector('.s34-pv-fav'), faved, true);
+        }
+    }
+
+    // One click on a ♥: favourite - or, when it already is one, remove it
+    // (with Undo, so a slip costs nothing)
+    async function toggleFavourite(id, btn) {
+        if (!id || (btn && btn.classList.contains('s34-busy'))) return;
+        const faved = isFav(id) || (btn && btn.classList.contains('s34-faved'));
+        setBusy(btn, true);
+        const ok = faved ? await removeFavourite(id) : await addFavourite(id);
+        setBusy(btn, false);
+        if (!ok) return;
+        showFavState(id, !faved);
+        if (faved) {
+            showToast('Removed from your favourites', 'Undo', async () => {
+                if (await addFavourite(id)) showFavState(id, true);
+            });
+        }
+    }
+
+    // Your own favourites page: every post there is a favourite (the site
+    // shows "Remove" only on your own list) - the ♥ is filled and removes it
+    // right there; the site's "Remove" links step aside (CSS in 06a, so
+    // there's no flash of them)
+    function setupFavouritesPage() {
+        if (!CONFIG.favButtons || params.get('page') !== 'favorites') return;
+        const removes = Array.from(document.querySelectorAll('.image-list a[onclick*="s=delete"]'));
+        removes.forEach(a => {
+            const m = (a.getAttribute('onclick') || '').match(/[?&;]id=(\d+)/);
+            const cell = a.parentElement;
+            const thumb = cell && cell.querySelector('span.thumb');
+            if (!m || !thumb) return;
+            if (!isFav(m[1])) rememberFav(m[1]);
+            thumb.classList.add('s34-on-favpage');
+            a.classList.add('s34-site-remove');
+            const br = a.previousElementSibling;
+            if (br && br.tagName === 'BR') br.classList.add('s34-site-remove');
+            styleFavButton(thumb.querySelector('.s34-fav-btn'), true, false);
+        });
+    }
+
     // Loading circle on a button while the site answers (♥ favourite, ▲ vote)
     function setBusy(btn, busy) {
         if (!btn) return;
@@ -10347,7 +10890,7 @@
         if (!btn) return;
         btn.classList.toggle('s34-faved', faved);
         btn.innerHTML = HEART_SVG + (withText ? `<span>${faved ? 'In favourites' : 'Favourite'}</span>` : '');
-        btn.title = faved ? 'In your favourites' : 'Add to your favourites';
+        btn.title = faved ? 'In your favourites – click to remove' : 'Add to your favourites';
     }
 
     function addFavButtons(thumbs) {
@@ -10361,18 +10904,10 @@
             btn.type = 'button';
             btn.className = 's34-fav-btn';
             styleFavButton(btn, !!favs[id], false);
-            btn.addEventListener('click', async e => {
+            btn.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (btn.classList.contains('s34-faved')) {
-                    showToast('Already in your favourites ♥');
-                    return;
-                }
-                if (btn.classList.contains('s34-busy')) return;
-                setBusy(btn, true);
-                const ok = await addFavourite(id);
-                setBusy(btn, false);
-                if (ok) styleFavButton(btn, true, false);
+                toggleFavourite(id, btn);
             });
             thumb.appendChild(btn);
         });
@@ -10657,6 +11192,401 @@
                 location.href = u.pathname + u.search + u.hash;
             }, 12000);
         }, 1200);
+    }
+    // =====================================================================
+    //  SAVED SEARCHES (Beta 3.7) - a search with all its filters, kept
+    //  The square disk button next to Search saves what the search box
+    //  holds right now (tags, score, size, sort, type, rating). The sidebar
+    //  lists them under Following, each with "N new" - a row is simply that
+    //  search (the normal posts page, with NEW on what's new). Not in the
+    //  Following window or on the start page (the user's call: a search is
+    //  best as the posts page itself).
+    //  "New" only makes sense for searches sorted newest first: one sorted
+    //  by score or at random gets no count and no NEW marks.
+    //  Counting: one page per saved search, in the background check of
+    //  Following (checkFollowing) - through the shared, gentle line.
+    //  Stored on this device (steamy34_saved_searches - not the old
+    //  steamy34_saved, which Beta 3.6 moved into Recent and clears).
+    // =====================================================================
+    const SAVED_SEARCH_KEY = 'steamy34_saved_searches';
+    const DISK_SVG = '<svg class="s34-disk" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h9V3"/><path d="M7 21v-7h10v7"/></svg>';
+
+    const normQuery = q => String(q || '').trim().split(/\s+/).filter(Boolean).join(' ');
+    const sameQuery = (a, b) => normQuery(a).toLowerCase() === normQuery(b).toLowerCase();
+    // Newest first (no sort, or by id): then "new" means something
+    const searchCountable = q => !/(^|\s)sort:(?!id(:desc)?(\s|$))/i.test(' ' + q + ' ');
+
+    function getSavedSearches() {
+        let v = [];
+        try { v = GM_getValue(SAVED_SEARCH_KEY, []); } catch (e) {}
+        return (Array.isArray(v) ? v : []).filter(s => s && typeof s.query === 'string' && normQuery(s.query))
+            .map(s => Object.assign({ added: 0, seen: 0, latest: 0, count: 0, more: false, pic: '' }, s, { query: normQuery(s.query) }));
+    }
+    function saveSavedSearches(list) { GM_setValue(SAVED_SEARCH_KEY, list); }
+    function findSavedSearch(q, list) { return (list || getSavedSearches()).find(s => sameQuery(s.query, q)) || null; }
+    const isSavedSearch = (q, list) => !!findSavedSearch(q, list);
+
+    function savedTotals(list) {
+        list = list || getSavedSearches();
+        const n = list.reduce((s, x) => s + (x.count || 0), 0);
+        return { n, more: list.some(x => x.more) };
+    }
+
+    // Save / remove (with Undo)
+    function toggleSavedSearch(q) {
+        q = normQuery(q);
+        if (!q) { showToast('Add a tag or a filter first – then save the search.'); return false; }
+        const list = getSavedSearches();
+        const i = list.findIndex(s => sameQuery(s.query, q));
+        if (i >= 0) {
+            const removed = list.splice(i, 1)[0];
+            saveSavedSearches(list);
+            showToast('Removed "' + searchLabel(removed) + '" from your saved searches.', 'Undo', () => {
+                const again = getSavedSearches();
+                if (!isSavedSearch(q, again)) { again.splice(Math.min(i, again.length), 0, removed); saveSavedSearches(again); }
+                refreshSavedUi();
+            });
+        } else {
+            list.push({ query: q, added: Date.now(), seen: 0, latest: 0, count: 0, more: false, pic: '' });
+            saveSavedSearches(list);
+            // counting starts with the next check (it sets where "new" begins)
+            const d = getFollowing(); d.checkedAt = 0; saveFollowing(d);
+            showToast('Saved "' + searchLabel({ query: q }) + '" – it shows up under Saved searches' + (searchCountable(q) ? ', with its new posts.' : '.'));
+        }
+        refreshSavedUi();
+        return i < 0;
+    }
+
+    // Everything that shows saved searches, after a change
+    function refreshSavedUi() {
+        renderSavedBox();
+        document.querySelectorAll('.s34-sb-save').forEach(b => { if (b._s34Update) b._s34Update(); });
+        const win = document.querySelector('.s34-follow-win');
+        if (win && win._s34Render) win._s34Render();
+        fwRefresh();
+        updateTabBadge();
+    }
+
+    // ---- The disk button next to Search (made by the search box, 16) ----
+    // getQuery: the search right now; beforeSave: take along what's still typed
+    function makeSaveSearchButton(getQuery, beforeSave) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 's34-sb-save';
+        b.innerHTML = DISK_SVG;
+        b._s34Update = () => {
+            const q = normQuery(getQuery());
+            const on = !!q && isSavedSearch(q);
+            b.classList.toggle('s34-on', on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            b.title = !q ? 'Save this search – add a tag or a filter first'
+                : on ? 'Saved – click to remove it from your saved searches'
+                : 'Save this search (with its filters) – it shows up under Saved searches' + (searchCountable(q) ? ', with its new posts' : '');
+            b.setAttribute('aria-label', b.title);
+        };
+        b.addEventListener('click', e => {
+            e.preventDefault();
+            if (beforeSave) beforeSave();
+            toggleSavedSearch(getQuery());
+        });
+        b._s34Update();
+        return b;
+    }
+
+    // ---- Sidebar: "Saved searches" under Following ----
+    function addSavedBox() {
+        if (document.querySelector('.s34-saved-box')) return;
+        const follow = document.querySelector('.s34-follow-box');
+        if (!follow) return;
+        const box = document.createElement('div');
+        box.className = 's34-follow-box s34-saved-box';
+        // (a row is a plain link to its search; ✕ removes it, with Undo;
+        // Manage opens the Manage window)
+        box.addEventListener('click', e => {
+            const x = e.target.closest('[data-ss-x]');
+            if (x) { e.preventDefault(); toggleSavedSearch(x.dataset.ssX); return; }
+            const t = e.target.closest('[data-fb="manage"]');
+            if (!t) return;
+            e.preventDefault();
+            openFollowingWindow();
+        });
+        follow.after(box);
+        renderSavedBox();
+    }
+
+    function renderSavedBox() {
+        const box = document.querySelector('.s34-saved-box');
+        if (!box) return;
+        const list = getSavedSearches();
+        box.hidden = !list.length; // (appears with the first saved search)
+        if (!list.length) { box.innerHTML = ''; return; }
+        const here = isPostView ? '' : normQuery(tagsFromUrl(location.href)); // (the search you're on)
+        box.innerHTML = `<div class="s34-follow-head">${DISK_SVG}<b>Saved searches</b><a href="#" data-fb="manage">Manage</a></div>` +
+            list.map(s => {
+                const badge = s.count ? `<small class="s34-has-new">${s.count}${s.more ? '+' : ''} new</small>` : '';
+                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${here && sameQuery(here, s.query) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)}"><span>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
+                    `<button type="button" class="s34-saved-x" data-ss-x="${escapeHtml(s.query)}" title="Remove from your saved searches" aria-label="Remove ${escapeHtml(searchLabel(s))} from your saved searches">✕</button></div>`;
+            }).join('');
+    }
+
+    // ---- Background: new posts per saved search (part of checkFollowing) ----
+    async function checkSavedSearches(force) {
+        const queries = getSavedSearches().filter(s => searchCountable(s.query)).map(s => s.query);
+        for (let i = 0; i < queries.length; i++) {
+            if (cloudflarePaused()) break;
+            // (through the API with a key - else the normal page; see postsForCounting in 20c)
+            let got;
+            try { got = await postsForCounting(queries[i], force); }
+            catch (e) { break; } // a Cloudflare check: the rest waits
+            if (!got) continue;
+            const ids = got.posts.map(p => p.id).filter(Boolean);
+            const max = ids.length ? Math.max(...ids) : 0;
+            const list = getSavedSearches(); // fresh
+            const s = findSavedSearch(queries[i], list);
+            if (!s) continue;
+            if (!s.seen) { s.seen = max; s.count = 0; } // first look: "new" starts after what's there now
+            else s.count = ids.filter(id => id > s.seen).length;
+            s.more = s.count > 0 && s.count === ids.length && got.full;
+            s.latest = Math.max(s.latest || 0, max);
+            if (got.posts.length) s.pic = got.posts[0].pic || s.pic;
+            saveSavedSearches(list);
+            renderSavedBox();
+            if (i < queries.length - 1) await pause(1500);
+        }
+        fwRefresh();
+        updateTabBadge();
+    }
+
+    // A normal search that is a saved one (first page): NEW on what came
+    // out since last time, then its newest post is "seen"
+    function setupSavedSearchPage() {
+        if (isPostView || !onFirstResultsPage()) return;
+        const q = normQuery(tagsFromUrl(location.href));
+        if (!q || !searchCountable(q)) return;
+        const list = getSavedSearches();
+        const s = findSavedSearch(q, list);
+        if (!s) return;
+        const seenBefore = s.seen || 0;
+        const thumbs = allThumbs();
+        let n = 0;
+        if (seenBefore) thumbs.forEach(t => {
+            if ((parseInt(thumbPostId(t), 10) || 0) > seenBefore && !t.querySelector('.s34-new-badge')) {
+                const b = document.createElement('span');
+                b.className = 's34-new-badge';
+                b.textContent = 'NEW';
+                t.appendChild(b);
+                n++;
+            }
+        });
+        const max = pageMaxPostId();
+        if (max) { s.seen = Math.max(s.seen || 0, max); s.latest = Math.max(s.latest || 0, max); }
+        s.count = 0; s.more = false;
+        saveSavedSearches(list);
+        renderSavedBox();
+        updateTabBadge();
+        if (n) showToast(`${n} new post${n === 1 ? '' : 's'} in "${searchLabel(s)}" since your last visit (marked NEW).`);
+    }
+    // =====================================================================
+    //  YOUR rule34 API KEY - strictly optional (Beta 3.7)
+    //  rule34's API answers searches with plain data instead of whole web
+    //  pages. With a key the person pasted in Settings → API key themselves,
+    //  Steamy34 uses it for background work: new-post counts (Following,
+    //  saved searches) and hover previews (finding the file). Anything that
+    //  fails falls back to the normal pages. (Batch downloads still read
+    //  each post page - the file name needs its tag types.)
+    //  The promises (each one is checked by the test suite):
+    //   - the key only ever goes to rule34's own API (api.rule34.xxx), in
+    //     that address - nowhere else (apiGet is the only place it's used);
+    //     those requests carry no login cookies (anonymous)
+    //   - it's stored on its own (steamy34_api), NOT in the settings - so it
+    //     is never in a backup or in "Copy info for a bug report"
+    //   - Steamy34 never reads it from rule34's Options page
+    //   - "Remove key" deletes it at once
+    //  Without a key nothing changes - everything works as it always did.
+    //  rule34's API terms: one key per person, no ads / paywalls (none here).
+    // =====================================================================
+    const API_KEY_STORE = 'steamy34_api';
+    const API_URL = 'https://api.rule34.xxx/index.php';
+    const API_PER_MINUTE = 50; // (rule34 allows 60 a minute)
+
+    function getApiKey() {
+        let v = null;
+        try { v = GM_getValue(API_KEY_STORE, null); } catch (e) {}
+        return v && /^\d{1,12}$/.test(String(v.user_id)) && /^[A-Za-z0-9]{16,200}$/.test(String(v.api_key)) ? v : null;
+    }
+    const hasApiKey = () => !!getApiKey();
+
+    // What rule34 shows under "API Access Credentials": "&api_key=…&user_id=…"
+    function parseApiKeyText(text) {
+        const s = String(text || '').trim();
+        const k = s.match(/api_key=([A-Za-z0-9]{16,200})/i);
+        const u = s.match(/user_id=(\d{1,12})/i);
+        return k && u ? { api_key: k[1], user_id: u[1] } : null;
+    }
+    function setApiKey(v) { GM_setValue(API_KEY_STORE, { api_key: v.api_key, user_id: v.user_id, added: Date.now() }); }
+    function removeApiKey() {
+        try { GM_deleteValue(API_KEY_STORE); } catch (e) { GM_setValue(API_KEY_STORE, null); }
+        apiStats.uses = 0;
+    }
+
+    // Kept under rule34's limit: at most API_PER_MINUTE requests a minute -
+    // past that, the normal pages take over until the minute is through
+    const apiTimes = [];
+    const apiStats = { uses: 0, lastError: '' };
+    function apiRoom() {
+        const now = Date.now();
+        while (apiTimes.length && now - apiTimes[0] > 60000) apiTimes.shift();
+        return apiTimes.length < API_PER_MINUTE;
+    }
+
+    // One API request. The ONLY place the key is used: it goes into this
+    // address on api.rule34.xxx and nowhere else.
+    function apiGet(params) {
+        const key = getApiKey();
+        if (!key) return Promise.reject(Object.assign(new Error('no key'), { noKey: true }));
+        if (!apiRoom()) return Promise.reject(Object.assign(new Error('a minute\'s worth of requests used - the normal pages take over for now'), { limit: true }));
+        apiTimes.push(Date.now());
+        const q = new URLSearchParams(Object.assign({ page: 'dapi', q: 'index' }, params, { json: '1', api_key: key.api_key, user_id: key.user_id }));
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: API_URL + '?' + q.toString(),
+                anonymous: true, // (no rule34 login cookies with it)
+                timeout: 15000,
+                onload: r => {
+                    if (r.status < 200 || r.status >= 300) { apiStats.lastError = 'HTTP ' + r.status; reject(new Error('HTTP ' + r.status)); return; }
+                    const text = (r.responseText || '').trim();
+                    if (!text) { apiStats.uses++; resolve([]); return; } // (nothing found)
+                    let data;
+                    try { data = JSON.parse(text); } catch (e) {
+                        apiStats.lastError = text.slice(0, 120);
+                        reject(Object.assign(new Error('rule34 answered: ' + text.slice(0, 120)), { answer: text.slice(0, 120) }));
+                        return;
+                    }
+                    // Only a list of posts (or { post: [...] }) is an answer - anything
+                    // else (a message like "Missing authentication") counts as a no
+                    if (!Array.isArray(data) && !(data && Array.isArray(data.post))) {
+                        apiStats.lastError = String(data && typeof data === 'object' ? data.message || 'not accepted' : data).slice(0, 120);
+                        reject(new Error('rule34 answered: ' + apiStats.lastError));
+                        return;
+                    }
+                    apiStats.uses++;
+                    resolve(data);
+                },
+                onerror: () => { apiStats.lastError = 'no connection'; reject(new Error('no connection')); },
+                ontimeout: () => { apiStats.lastError = 'no answer'; reject(new Error('no answer')); }
+            });
+        });
+    }
+
+    // Posts for a search, newest first (as rule34 sorts them, filters included)
+    async function apiPosts(tags, limit = 100, pid = 0) {
+        const data = await apiGet({ s: 'post', tags: tags || '', limit: String(limit), pid: String(pid) });
+        const list = Array.isArray(data) ? data : data && Array.isArray(data.post) ? data.post : [];
+        return list.map(p => ({
+            id: parseInt(p.id, 10) || 0,
+            tags: String(p.tags || '').toLowerCase().trim(),
+            rating: String(p.rating || '').toLowerCase().trim(), // (a field of its own here - pages have it among the tags)
+            preview: String(p.preview_url || ''),
+            sample: String(p.sample_url || ''),
+            file: String(p.file_url || '')
+        })).filter(p => p.id);
+    }
+
+    // The file of one post (hover previews) - null: use the page
+    async function apiPostMedia(postUrl) {
+        if (!hasApiKey()) return null;
+        let id = '';
+        try { id = new URL(postUrl, location.href).searchParams.get('id') || ''; } catch (e) {}
+        if (!/^\d+$/.test(id)) return null;
+        try {
+            const data = await apiGet({ s: 'post', id });
+            const raw = (Array.isArray(data) ? data : data && Array.isArray(data.post) ? data.post : [])[0];
+            const p = raw && { file: String(raw.file_url || '') };
+            if (!p || !p.file) return null;
+            const isVideo = /\.(mp4|webm)(\?|$)/i.test(p.file);
+            return isVideo ? { video: p.file, image: null } : { video: null, image: p.file };
+        } catch (e) { return null; }
+    }
+
+    // ---- Settings → API key: the page that explains it, and the box ----
+    const KEY_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2"/></svg>';
+    function buildApiSection() {
+        const wrap = document.createElement('div');
+        wrap.className = 's34-set-card s34-set-plain s34-api';
+        wrap.innerHTML = `
+            <div class="s34-api-hero">
+                <div class="s34-api-icon">${KEY_SVG}</div>
+                <div><b>Optional.</b> Steamy34 works fully without it – nothing is missing if you leave this empty.</div>
+            </div>
+            <div class="s34-set-cardhead">What it's for</div>
+            <p>rule34 offers an API: the same posts as plain data instead of whole web pages. With your key, Steamy34 uses it for the work it does in the background:</p>
+            <ul class="s34-api-list">
+                <li>counting new posts of the artists you follow and your saved searches</li>
+                <li>finding the file for hover previews</li>
+            </ul>
+            <p>That's far less for rule34 to send – so Cloudflare checks come less often, and these things get quicker. Anything that doesn't work through the API simply uses the normal pages.</p>
+            <div class="s34-set-cardhead">What Steamy34 promises</div>
+            <ul class="s34-api-promises">
+                <li>Your key is only ever sent to rule34's own API (api.rule34.xxx) – nowhere else. Steamy34 has no server of its own.</li>
+                <li>It stays in this browser: it isn't in backups and isn't in "Copy info for a bug report".</li>
+                <li>Steamy34 never reads it from your Options page – it's only here if you paste it here yourself.</li>
+                <li>"Remove key" deletes it right away, and everything works as before.</li>
+            </ul>
+            <p class="s34-api-ask">Not sure about it? Ask steamycorner on the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – happy to explain.</p>
+            <div class="s34-set-cardhead">Your key</div>
+            <p>On rule34: <b>My Account → Options → API access</b> (Steamy34 folds it away there – click "Unfold"). Copy the whole line – it starts with <code>&amp;api_key=</code> – and paste it here.</p>
+            <div class="s34-api-row">
+                <input type="password" class="s34-api-input" placeholder="&amp;api_key=…&amp;user_id=…" autocomplete="off" spellcheck="false" aria-label="Your rule34 API key line">
+                <button type="button" class="s34-set-btn s34-set-primary" data-api="save">Save key</button>
+            </div>
+            <div class="s34-api-status" role="status"></div>
+            <div class="s34-set-actions">
+                <button type="button" class="s34-set-btn" data-api="test">Test the key</button>
+                <button type="button" class="s34-set-btn s34-set-danger" data-api="remove">Remove key</button>
+            </div>
+            <p class="s34-api-terms">rule34's API rules: one key per person, and no ads or paywalls with its content – Steamy34 has neither.</p>`;
+        const input = wrap.querySelector('.s34-api-input');
+        const status = wrap.querySelector('.s34-api-status');
+        const say = (text, kind) => { status.textContent = text; status.className = 's34-api-status' + (kind ? ' s34-api-' + kind : ''); };
+        const draw = () => {
+            const on = hasApiKey();
+            wrap.classList.toggle('s34-api-on', on);
+            wrap.querySelector('[data-api="test"]').disabled = !on;
+            wrap.querySelector('[data-api="remove"]').disabled = !on;
+            if (on) say('✓ A key is saved in this browser. In use for new-post counts and hover previews.', 'ok');
+            else say('No key – Steamy34 uses the normal pages, as always.', '');
+        };
+        wrap.addEventListener('click', async e => {
+            const b = e.target.closest('[data-api]');
+            if (!b || b.disabled) return;
+            const what = b.dataset.api;
+            if (what === 'save') {
+                const v = parseApiKeyText(input.value);
+                if (!v) { say('That doesn\'t look like the API line – copy the whole line from Options (it has api_key= and user_id= in it).', 'bad'); return; }
+                setApiKey(v);
+                input.value = ''; // (not left in the box)
+                draw();
+                say('✓ Saved in this browser. "Test the key" checks it with rule34.', 'ok');
+            } else if (what === 'remove') {
+                removeApiKey();
+                draw();
+                say('Key removed. Steamy34 uses the normal pages again.', '');
+            } else if (what === 'test') {
+                b.disabled = true;
+                say('Asking rule34…', '');
+                try {
+                    const posts = await apiPosts('', 1);
+                    say(posts.length ? '✓ It works – rule34 answered.' : '✓ rule34 answered (with nothing – unusual, but the key was accepted).', 'ok');
+                } catch (err) {
+                    say(err.limit ? err.message : 'rule34 didn\'t accept it (' + (err.message || err) + '). Copy the line from Options again – or remove the key.', 'bad');
+                }
+                b.disabled = !hasApiKey();
+            }
+        });
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); wrap.querySelector('[data-api="save"]').click(); } });
+        draw();
+        return wrap;
     }
     // ---- Batch download: select posts, then download them one by one ----
     let selectMode = false;
@@ -10966,7 +11896,8 @@
             blacklist: readBlocklist(),
             blacklistDates: getBlTimes(),
             tagTypes: Object.fromEntries(tagTypes),
-            following: getFollowing()
+            following: getFollowing(),
+            savedSearches: getSavedSearches()
         };
         const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         saveBlob(blob, 'Steamy34_backup_' + new Date().toISOString().slice(0, 10) + '.json');
@@ -11069,6 +12000,12 @@
                 });
                 saveFollowing(fol);
             }
+            // Saved searches (Beta 3.7): add the ones you don't have yet
+            const savedNow = getSavedSearches();
+            arr(d.savedSearches).forEach(s => {
+                if (s && typeof s.query === 'string' && normQuery(s.query) && !isSavedSearch(s.query, savedNow)) savedNow.push(Object.assign({}, s, { query: normQuery(s.query), count: 0, more: false }));
+            });
+            saveSavedSearches(savedNow);
             arr(d.following && d.following.searches).concat(arr(d.saved))
                 .map(s => s && typeof s.query === 'string' ? s.query : '').filter(Boolean).reverse().forEach(addToHistory);
             reloadWithMessage('Backup imported – your settings, searches, collections and marks are back.');
@@ -11082,6 +12019,8 @@
         ['steamy34_settings', 'Settings', 'Your choices in this menu and the sidebar switches', {}],
         ['steamy34_following', 'Following', 'Artists you follow, and the newest post you\'ve seen from each', {}],
         ['steamy34_history', 'Recent searches', 'Your last searches', []],
+        ['steamy34_api', 'Your rule34 API key', 'Only if you added one (Settings → API key) – sent to rule34\'s own API only, never in a backup', {}],
+        ['steamy34_saved_searches', 'Saved searches', 'Searches you saved with the disk button, and the newest post seen in each', []],
         ['steamy34_resume', 'Where you left off', 'The page you were on per search, for "Continue at page N" (kept 24 hours)', {}],
         ['steamy34_favtags', 'Favourite tags', 'Tags in the ★ Favourite tags area', []],
         ['steamy34_pinned', 'Pinned filters', 'Search filters kept for every new search', {}],
@@ -11091,6 +12030,8 @@
         ['steamy34_viewed', 'Viewed posts', 'Post numbers you opened (for the eye mark)', {}],
         ['steamy34_favs', 'Favourite marks', 'Posts you added to favourites (the ♥ stays filled)', {}],
         ['steamy34_votes', 'Votes', 'Posts you voted for (the ▲ stays green)', {}],
+        ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
+        ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],
         ['steamy34_auto', 'Auto next timer', 'Seconds per post for "Auto next"', {}],
@@ -11105,7 +12046,7 @@
     ];
     // Everything that's shown together as "Small preferences"
     const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_fw_big', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
-        'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen'];
+        'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen', 'steamy34_vserver_applied'];
 
     function storedCount(v) {
         if (Array.isArray(v)) return v.length;
@@ -11143,8 +12084,10 @@
             <div class="s34-privacy-note">
                 The script only talks to rule34.xxx itself (loading pages, pictures and tag
                 suggestions – just like browsing), and only sends something to your account when you
-                use ♥ Favourite or ▲ Vote. Your blacklist is the site's own list, kept in a rule34.xxx
-                cookie – manage it with the Blacklist button.
+                use ♥ Favourite or ▲ Vote. Your blacklist is kept here in full and, as far as it fits,
+                in rule34's own cookie; your account gets a copy when you save it in Options. Steamy34 also
+                sets a few of rule34's own preferences the way its Options page does (theme, video server,
+                its suggestion list) – see Settings.
             </div>
             <div class="s34-privacy-head">
                 <span>Stored on this computer</span>
@@ -11178,7 +12121,7 @@
                 }, 0);
                 total += size;
                 const count = ['steamy34_sbmenu_open', 'steamy34_video', 'steamy34_settings', 'steamy34_lastsearch'].includes(key)
-                    ? null : storedCount(v);
+                    ? null : key === 'steamy34_api' ? null : key === 'steamy34_bl_account' ? (v && Array.isArray(v.tags) ? v.tags.length : 0) : storedCount(v);
 
                 const row = document.createElement('div');
                 row.className = 's34-privacy-row' + (size ? '' : ' s34-privacy-empty');
@@ -12372,6 +13315,8 @@
         const follow = document.querySelector('.s34-follow-box');
         const view = document.querySelector('.s34-quick');
         if (follow && view && follow.parentElement === view.parentElement) view.before(follow);
+        const saved = document.querySelector('.s34-saved-box'); // saved searches right under Following
+        if (saved && follow) follow.after(saved);
     }
 
     // Single post page: "📁 Collection" button under Download
@@ -12518,7 +13463,8 @@
             [`${k('×')} on a tag bubble`, 'Remove it from the search'],
             [`${k('Pin')} next to a filter`, 'Keep that filter (Score, Size, Sort, Type, Rating) for every new search'],
             [`${k('★ Tags')}`, 'Your favourite tags – one tap puts one in the search'],
-            [`${k('Recent')}`, 'Run your earlier searches again']
+            [`${k('Recent')}`, 'Run your earlier searches again'],
+            [`${k(DISK_SVG.replace('width="16" height="16"', 'width="13" height="13"'))} next to Search`, 'Save the search with its filters – it shows up under Saved searches, with its new posts']
         ]];
         const sidebarGroup = ['Sidebar', SLIDERS, [
             [`${k('White')} ${k('Dark')} ${k('OLED')}`, 'Colour mode – in Settings → Look (OLED is true black)'],
@@ -12540,7 +13486,7 @@
                     [CONFIG.browseKeys === 'wasd' ? `${k('A')} ${k('D')}` : CONFIG.browseKeys === 'both' ? `${k('←')} ${k('→')} / ${k('A')} ${k('D')}` : `${k('←')} ${k('→')}`,
                         `${nu}Previous / next post – arrow keys or WASD in Settings → Viewing posts`],
                     [`${k(key)}`, 'Download the original in maximum resolution'],
-                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, 'Favourite · add to a collection · theater mode (keys changeable in Settings → Viewing posts)'],
+                    [`${k(keyLabel(CONFIG.favKey))} ${k(keyLabel(CONFIG.collectKey))} ${k(keyLabel(CONFIG.theaterKey))}`, 'Favourite (again: remove) · add to a collection · theater mode (keys changeable in Settings → Viewing posts)'],
                     [`${k(keyLabel(CONFIG.followKey))}`, `${nu}Follow (or unfollow) the post's artist`],
                     ...(CONFIG.browseKeys !== 'arrows' ? [[`${k('W')} ${k('S')}`, `${nu}Scroll to the comments and back`]] : []),
                     [`${k('Click')} the picture`, 'Full size – drag to move around, click again to fit'],
@@ -12691,13 +13637,20 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
-        { v: 'Beta 3.6.3', date: '2026-11-21', items: [
-            'The Cloudflare check can\'t be missed any more: a big notice at the bottom of the screen that keeps pulsing until it\'s solved. The ? on it explains why it matters – without the check, rule34 loads nothing new.',
-            'Bigger thumbnails on phones: they have their own size now (about two posts to a row). The Size slider in the ☰ Menu changes it.',
-            'Phone menu: tapping an artist under Following now closes the menu and opens the Following window.'
-        ] },
-        { v: 'Beta 3.6.1', date: '2026-11-21', items: [
-            'The little tip bubbles are gone – the welcome tour and the quick tips (?) still explain everything when you want them.'
+        { v: 'Beta 3.7', date: '2026-11-21', notify: true, items: [
+            'My Account in Steamy34\'s look: rule34\'s own links as clean tiles – its pages on top, password, two-factor and e-mail below.',
+            'Blacklists as long as you like: rule34 keeps the blacklist in one browser cookie, which holds about 4,000 characters – longer lists used to get lost in the browser. Steamy34 now keeps the whole list and hides the tags that don\'t fit itself, everywhere.',
+            'Options is sorted into four groups with a small menu: Filtering, Display, Video server, Account & API.',
+            'One blacklist: the Blacklist window and the Filtering part of Options are the same panel (types, sorting, filter, recent tags) and edit the same list – changes apply right away. Your account keeps a copy: tags not on it yet get a dashed amber outline, and Save on Options puts the list there (the window links to it). Opening Options takes over every tag already on your account.',
+            'Video server ("Preferred CDN location") is now also in Steamy34 Settings → Viewing posts – for when videos stall or won\'t start.',
+            'rule34\'s own theme now follows Steamy34\'s colour mode, so pages don\'t flash white while they load. rule34\'s own tag suggestion list is off (Steamy34\'s search box has its own) – both can be changed in Settings.',
+            'Saved searches are back – with filters: the square disk button next to Search saves what the search box holds (tags, score, size, sort, type, rating). They sit under Following in the sidebar, each with its new posts – a click opens that search, with NEW on what came out since your last visit. Click the disk again to remove one.',
+            'Optional: your rule34 API key (Settings → API key). rule34\'s API sends plain data instead of whole pages – with your key, Steamy34 uses it for new-post counts and hover previews, so Cloudflare checks come less often. The page explains what it does and what Steamy34 promises: the key only goes to rule34\'s own API, stays in this browser, isn\'t in backups. Without it, everything works as before.',
+            'White and OLED have depth now: in White, cards and panels sit lighter on a soft grey page, with darker borders and real shadows; in OLED the page stays true black while panels keep visible steps above it. (Dark stays as it was.)',
+            'Fixed: "N new" for followed artists also counted posts with blacklisted tags – which the Following window (rightly) hides. The counts now match the NEW marks.',
+            'Favourites both ways: ♥ (or F in the popup) on a post that\'s already a favourite removes it – with Undo. On your favourites page every ♥ is filled and removes the post right there, and the posts sit in the normal grid.',
+            'On pages without the sidebar (your favourites, My Account, Options…), Steamy34 is an item in rule34\'s top menu now, instead of a button in the corner. And a list that fits on one page no longer shows a lone page number.',
+            'The API key field in Options stays folded away – Steamy34 never reads it.'
         ] },
         { v: 'Beta 3.6', date: '2026-11-21', notify: true, items: [
             'New Following window: everything you follow in one window on top of the page you\'re on. Your artists sit in a row of circles at the top (a coloured ring = new posts), their newest posts in a grid below, with NEW on the ones since your last visit.',
@@ -12710,7 +13663,10 @@
             'Following is for artists only now – "All artists" means exactly that. Searches you followed moved into your Recent searches, so none is lost.',
             'Followed artists are always newest first now: the score and type filters per artist are gone. "Open as a search" in the window takes you to the normal search, with every filter and sort.',
             'Sidebar: Recent and Tags open as small menus right next to the sidebar, instead of long lists inside it – on phones as a sheet that slides up from the bottom (swipe it down, tap the page or press Back to close). And when the sidebar is taller than the window, it scrolls on its own with the mouse wheel – Settings and the tips below it are always in reach.',
-            'With an ad blocker on, the empty ad space above "Page 1" folds away too, like the right column. Without an ad blocker every ad stays exactly as rule34 shows it.'
+            'With an ad blocker on, the empty ad space above "Page 1" folds away too, like the right column. Without an ad blocker every ad stays exactly as rule34 shows it.',
+            'The Cloudflare check can\'t be missed any more (3.6.3): a big notice at the bottom of the screen that keeps pulsing until it\'s solved. The ? on it explains why it matters – without the check, rule34 loads nothing new.',
+            'Phones (3.6.3): bigger thumbnails with their own size (about two posts to a row – the Size slider in the ☰ Menu changes it), and tapping an artist under Following in the menu closes the menu and opens the Following window.',
+            'The little tip bubbles are gone (3.6.1) – the welcome tour and the quick tips (?) still explain everything when you want them.'
         ] },
         { v: 'Beta 3.5.1', date: '2026-11-21', items: [
             'The popup no longer stops at the last loaded post: → loads the next page and goes on (it already starts loading 3 posts before the end).',
@@ -13402,49 +14358,78 @@
         return n === 1 ? '1 tag' : n + ' tags';
     }
 
-    function openBlacklistManager() {
-        if (document.querySelector('.s34-blm-overlay')) return;
+    // ---- The account's copy (Beta 3.7) ----
+    // One blacklist: the one in this browser (Steamy34's full list - see
+    // readBlocklist). The account holds a copy, saved with rule34's Options
+    // form. Steamy34 remembers what the account had the last time Options
+    // was open (or saved), so the panel can say what isn't on it yet.
+    const BL_ACCOUNT_KEY = 'steamy34_bl_account';
+    const BL_OPTIONS_URL = '/index.php?page=account&s=options#s34-blacklist';
+
+    function getAccountBlacklist() {
+        try {
+            const v = GM_getValue(BL_ACCOUNT_KEY, null);
+            return v && Array.isArray(v.tags) ? v : null;
+        } catch (e) { return null; }
+    }
+    function setAccountBlacklist(tags) {
+        try { GM_setValue(BL_ACCOUNT_KEY, { tags: tags.map(unescapeHtml), at: Date.now() }); } catch (e) {}
+    }
+    // { add: tags here but not on the account, gone: on the account but not here } - null: not known
+    function accountDiff(list) {
+        const acc = getAccountBlacklist();
+        if (!acc) return null;
+        const here = new Set(list.map(t => t.toLowerCase()));
+        const there = new Set(acc.tags.map(t => t.toLowerCase()));
+        return { add: list.filter(t => !there.has(t.toLowerCase())), gone: acc.tags.filter(t => !here.has(t.toLowerCase())) };
+    }
+
+    // ---- The blacklist panel ----
+    // The same editor everywhere: as a window (sidebar button, My Account)
+    // and inline on rule34's Options page (opts.inline). Every change goes
+    // into this browser's list right away; opts.onChange hears about it.
+    function buildBlacklistPanel(box, opts = {}) {
         let sort = GM_getValue(BL_SORT_KEY, 'newest');
         if (!BL_SORTS.some(s => s[0] === sort)) sort = 'newest';
         let filter = '';
 
-        const overlay = document.createElement('div');
-        overlay.className = 's34-overlay s34-blm-overlay';
-        overlay.innerHTML = `
-            <div class="s34-blm" role="dialog" aria-modal="true">
-                <div class="s34-blm-head">
-                    <div class="s34-blm-icon">${BLOCK_SVG}</div>
-                    <div class="s34-blm-heading">
-                        <div class="s34-blm-title">Blacklist</div>
-                        <div class="s34-blm-sub"></div>
-                    </div>
-                    <button type="button" class="s34-blm-close" title="Close (Esc)">✕</button>
+        box.classList.add('s34-blm');
+        if (opts.inline) box.classList.add('s34-blm-inline');
+        box.innerHTML = `
+            <div class="s34-blm-head">
+                <div class="s34-blm-icon">${BLOCK_SVG}</div>
+                <div class="s34-blm-heading">
+                    <div class="s34-blm-title">Blacklist</div>
+                    <div class="s34-blm-sub"></div>
                 </div>
-                <div class="s34-blm-add">
-                    <input type="text" class="s34-blm-input" placeholder="Blacklist a tag…" autocomplete="off" spellcheck="false">
-                    <button type="button" class="s34-blm-addbtn">Add</button>
-                </div>
-                <div class="s34-blm-recent-box">
-                    <div class="s34-blm-label">Recently blacklisted</div>
-                    <div class="s34-blm-recent"></div>
-                </div>
-                <div class="s34-blm-tools">
-                    <input type="search" class="s34-blm-filter" placeholder="Filter…" autocomplete="off" spellcheck="false">
-                    <div class="s34-blm-sort" role="tablist"></div>
-                </div>
-                <div class="s34-blm-status" hidden></div>
-                <div class="s34-blm-list"></div>
-                <div class="s34-blm-foot">
-                    <div class="s34-blm-dates" hidden></div>
-                    <div>Uses rule34.xxx's own blacklist (the same list as My Account → Options).</div>
-                </div>
+                ${opts.inline ? '' : '<button type="button" class="s34-blm-close" title="Close (Esc)">✕</button>'}
+            </div>
+            <div class="s34-blm-account" hidden></div>
+            <div class="s34-blm-add">
+                <input type="text" class="s34-blm-input" placeholder="Blacklist a tag…" autocomplete="off" spellcheck="false">
+                <button type="button" class="s34-blm-addbtn">Add</button>
+            </div>
+            <div class="s34-blm-recent-box">
+                <div class="s34-blm-label">Recently blacklisted</div>
+                <div class="s34-blm-recent"></div>
+            </div>
+            <div class="s34-blm-tools">
+                <input type="search" class="s34-blm-filter" placeholder="Filter…" autocomplete="off" spellcheck="false">
+                <div class="s34-blm-sort" role="tablist"></div>
+            </div>
+            <div class="s34-blm-status" hidden></div>
+            <div class="s34-blm-list"></div>
+            <div class="s34-blm-foot">
+                <div class="s34-blm-dates" hidden></div>
+                <div class="s34-blm-room"></div>
             </div>`;
 
-        const $ = sel => overlay.querySelector(sel);
+        const $ = sel => box.querySelector(sel);
         const listEl = $('.s34-blm-list');
         const recentEl = $('.s34-blm-recent');
         const sortEl = $('.s34-blm-sort');
         const addInput = $('.s34-blm-input');
+        const changed = () => { refreshBlockStates(); render(); if (opts.onChange) opts.onChange(); };
 
         BL_SORTS.forEach(([key, label]) => {
             const b = document.createElement('button');
@@ -13463,13 +14448,12 @@
             const times = getBlTimes();
             const when = times[tag.toLowerCase()];
             writeBlocklist(readBlocklist().filter(t => t.toLowerCase() !== tag.toLowerCase()));
-            refreshBlockStates();
-            render();
+            changed();
             showToast(`Removed "${prettyTag(tag)}" from the blacklist`, 'Undo', () => {
                 writeBlocklist(readBlocklist().concat(tag));
                 if (when) { const t = getBlTimes(); t[tag.toLowerCase()] = when; GM_setValue(BL_TIMES_KEY, t); }
                 refreshBlockStates();
-                if (overlay.isConnected) render();
+                if (box.isConnected) { render(); if (opts.onChange) opts.onChange(); }
             });
         }
 
@@ -13482,15 +14466,14 @@
             });
             if (!added.length) return;
             writeBlocklist(list);
-            refreshBlockStates();
-            render();
+            changed();
             showToast('Blacklisted ' + added.map(prettyTag).join(', '));
             if (!lookingUp) lookupUnknownTypes(); // find out what kind of tags they are
         }
 
-        function chipFor(tag) {
+        function chipFor(tag, unsaved) {
             const chip = document.createElement('span');
-            chip.className = 's34-blm-chip s34-blm-' + blType(tag);
+            chip.className = 's34-blm-chip s34-blm-' + blType(tag) + (unsaved ? ' s34-blm-unsaved' : '');
             const name = document.createElement('span');
             name.className = 's34-blm-name';
             name.textContent = prettyTag(tag);
@@ -13520,7 +14503,6 @@
                 });
                 menu.appendChild(b);
             });
-            const box = overlay.querySelector('.s34-blm');
             box.appendChild(menu);
             const r = chip.getBoundingClientRect();
             const br = box.getBoundingClientRect();
@@ -13531,22 +14513,22 @@
             menu.style.top = (below + menu.offsetHeight > br.height - 8 && above > 8 ? above : below) + 'px';
         }
         function closeTypeMenu() {
-            const m = overlay.querySelector('.s34-blm-typemenu');
+            const m = box.querySelector('.s34-blm-typemenu');
             if (m) m.remove();
         }
-        overlay.addEventListener('mousedown', e => {
+        box.addEventListener('mousedown', e => {
             if (!e.target.closest('.s34-blm-typemenu, .s34-blm-name')) closeTypeMenu();
         });
 
         // One compact chip per tag: name + ×; type and date in the tooltip.
         // Clicking the name sets its type.
-        function makeChip(tag, when) {
-            const chip = chipFor(tag);
+        function makeChip(tag, when, unsaved) {
+            const chip = chipFor(tag, unsaved);
             chip.classList.add('s34-blm-item');
             const type = blType(tag);
             const typeName = type !== 'other' ? (type === 'metadata' ? 'Meta' : type.charAt(0).toUpperCase() + type.slice(1)) : 'Type not known yet';
-            chip.title = [typeName, when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates']
-                .join(' · ') + '\nClick to set its type';
+            chip.title = [typeName, when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates', unsaved ? 'not on your account yet' : '']
+                .filter(Boolean).join(' · ') + '\nClick to set its type';
             chip.querySelector('.s34-blm-name').addEventListener('click', () => openTypeMenu(chip, tag));
             const x = document.createElement('button');
             x.type = 'button';
@@ -13558,13 +14540,45 @@
             return chip;
         }
 
+        // Where the list stands with the account (one line)
+        function renderAccount(list) {
+            const el = $('.s34-blm-account');
+            const diff = accountDiff(list);
+            const n = diff ? diff.add.length + diff.gone.length : 0;
+            el.classList.toggle('s34-blm-account-diff', n > 0);
+            if (!diff) { el.hidden = true; return; }
+            el.hidden = false;
+            if (!n) { el.textContent = '✓ The same list as on your account'; return; }
+            const parts = [];
+            if (diff.add.length) parts.push(`${diff.add.length} ${diff.add.length === 1 ? 'tag' : 'tags'} not on your account yet`);
+            if (diff.gone.length) parts.push(`${diff.gone.length} removed here`);
+            el.innerHTML = '<span></span>';
+            el.querySelector('span').textContent = parts.join(', ') + (opts.inline ? ' – Save below puts this list on your account.' : '');
+            if (!opts.inline) {
+                const a = document.createElement('a');
+                a.href = BL_OPTIONS_URL;
+                a.className = 's34-blm-account-go';
+                a.textContent = 'Save to account →';
+                el.appendChild(a);
+            }
+        }
+
         function render() {
             const list = readBlocklist();
             const times = getBlTimes();
             const when = t => times[t.toLowerCase()] || 0;
+            const diff = accountDiff(list);
+            const unsaved = new Set(diff ? diff.add.map(t => t.toLowerCase()) : []);
             $('.s34-blm-sub').textContent = list.length
                 ? `${blCountText()} · posts with these tags are hidden`
                 : 'Nothing blacklisted yet';
+            renderAccount(list);
+
+            // How much of it rule34 holds itself (its cookie) - Steamy34 hides the rest
+            const fit = blCookieFit(list).length;
+            $('.s34-blm-room').textContent = !list.length ? 'Uses rule34\'s own blacklist, with no limit on its length.'
+                : fit === list.length ? 'All in rule34\'s own blacklist – it hides them itself.'
+                : `rule34's own blacklist holds ${fit} of them (its cookie fits about ${BL_COOKIE_MAX.toLocaleString('en')} characters) – Steamy34 hides the other ${list.length - fit} itself.`;
 
             // Why some tags have no date
             const undated = list.filter(t => !when(t)).length;
@@ -13572,7 +14586,7 @@
             datesEl.hidden = !undated;
             datesEl.textContent = undated
                 ? `${undated === list.length ? 'These tags were' : undated + (undated === 1 ? ' tag was' : ' tags were')} ` +
-                  'blacklisted before Steamy34 started remembering dates (it only does that since it was installed), ' +
+                  'blacklisted before Steamy34 started remembering dates (or came from your account), ' +
                   'so they don\'t show under "Recently blacklisted" and sort as oldest.'
                 : '';
 
@@ -13582,7 +14596,7 @@
             recentEl.replaceChildren(...recent.map(tag => {
                 const item = document.createElement('div');
                 item.className = 's34-blm-recent-item';
-                const chip = chipFor(tag);
+                const chip = chipFor(tag, unsaved.has(tag.toLowerCase()));
                 chip.title = 'Click to set its type';
                 chip.querySelector('.s34-blm-name').addEventListener('click', () => openTypeMenu(chip, tag));
                 const x = document.createElement('button');
@@ -13645,7 +14659,7 @@
                     wrap.className = 's34-blm-chips';
                     listEl.appendChild(wrap);
                 }
-                wrap.appendChild(makeChip(tag, when(tag)));
+                wrap.appendChild(makeChip(tag, when(tag), unsaved.has(tag.toLowerCase())));
             });
         }
 
@@ -13661,27 +14675,16 @@
         addInput.addEventListener('input', () => { if (/\s/.test(addInput.value)) commitAdd(false); });
         if (CONFIG.searchSuggestions) attachSuggestions(addInput);
         addInput.addEventListener('keydown', e => {
-            if (e.defaultPrevented || addInput.dataset.acOpen === '1' || e.isComposing) return;
-            if (e.key === 'Enter') { e.preventDefault(); commitAdd(true); }
+            const handled = e.defaultPrevented; // (a picked suggestion)
+            if (e.key === 'Enter') e.preventDefault(); // (inline: never sends rule34's form)
+            if (handled || addInput.dataset.acOpen === '1' || e.isComposing) return;
+            if (e.key === 'Enter') commitAdd(true);
         });
         $('.s34-blm-addbtn').addEventListener('click', () => { commitAdd(true); addInput.focus(); });
 
-        $('.s34-blm-filter').addEventListener('input', e => { filter = e.target.value.trim(); render(); });
-
-        function close() {
-            document.removeEventListener('keydown', onKey, true);
-            overlay.remove();
-        }
-        function onKey(e) {
-            if (e.key !== 'Escape') return;
-            if (addInput.dataset.acOpen === '1') return; // Esc closes the suggestions first
-            e.preventDefault();
-            e.stopPropagation();
-            close();
-        }
-        $('.s34-blm-close').addEventListener('click', close);
-        overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(); });
-        document.addEventListener('keydown', onKey, true);
+        const filterBox = $('.s34-blm-filter');
+        filterBox.addEventListener('input', () => { filter = filterBox.value.trim(); render(); });
+        filterBox.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
 
         // Types of tags Steamy34 hasn't seen yet: ask the tag-suggestion server
         let lookingUp = false;
@@ -13697,7 +14700,7 @@
             lookingUp = true;
             let done = 0;
             for (const t of unknown) {
-                if (!overlay.isConnected) break;
+                if (!box.isConnected) break;
                 setStatus(`Looking up tag types… ${done} / ${unknown.length}`);
                 try {
                     await lookupTypesViaSuggestions([t]);
@@ -13712,13 +14715,41 @@
             }
             lookingUp = false;
             setStatus('');
-            if (overlay.isConnected) render();
+            if (box.isConnected) render();
         }
 
         render();
+        return { render, input: addInput, lookup: lookupUnknownTypes };
+    }
+
+    function openBlacklistManager() {
+        if (document.querySelector('.s34-blm-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 's34-overlay s34-blm-overlay';
+        const box = document.createElement('div');
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-modal', 'true');
+        overlay.appendChild(box);
+        const panel = buildBlacklistPanel(box);
+
+        function close() {
+            document.removeEventListener('keydown', onKey, true);
+            overlay.remove();
+        }
+        function onKey(e) {
+            if (e.key !== 'Escape') return;
+            if (panel.input.dataset.acOpen === '1') return; // Esc closes the suggestions first
+            e.preventDefault();
+            e.stopPropagation();
+            close();
+        }
+        box.querySelector('.s34-blm-close').addEventListener('click', close);
+        overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(); });
+        document.addEventListener('keydown', onKey, true);
+
         document.body.appendChild(overlay);
-        addInput.focus();
-        lookupUnknownTypes();
+        panel.input.focus();
+        panel.lookup();
     }
 
     // Sidebar button that opens it (posts page and single posts),
@@ -13817,8 +14848,7 @@
     function fwSeen(k) {
         const st = fwState;
         if (!(k in st.seen)) {
-            const d = getFollowing();
-            const it = findArtist(k.slice(2), d);
+            const it = findArtist(k.slice(2), getFollowing());
             st.seen[k] = it ? it.seen || 0 : 0;
         }
         return st.seen[k];
@@ -14198,6 +15228,9 @@
         });
         setThumbRatios(tiles); // each tile in its picture's shape (--r)
         removeTagTooltips(tiles);
+        // hover: the full-quality picture / the video playing, like on the posts page
+        if (CONFIG.hoverPreview || CONFIG.hoverHighRes) setupHoverPreview(tiles);
+        setupHoverInfo(tiles);
         if (CONFIG.thumbBadges) addThumbBadges(tiles);
         tiles.forEach(t => {
             if (!fwIsNew(view, t)) return;
@@ -14517,6 +15550,8 @@
         grid.replaceChildren(...tiles);
         setThumbRatios(tiles);
         removeTagTooltips(tiles);
+        if (CONFIG.hoverPreview || CONFIG.hoverHighRes) setupHoverPreview(tiles); // (as on the posts page)
+        setupHoverInfo(tiles);
         if (CONFIG.thumbBadges) addThumbBadges(tiles);
         tiles.forEach((t, i) => {
             const who = thumbArtists(t, tags);
@@ -14534,6 +15569,543 @@
             }
         });
         showDownloadedState(tiles);
+    }
+    // =====================================================================
+    //  MY ACCOUNT & OPTIONS in Steamy34's look (Beta 3.7)
+    //  My Account: only a redesign - the site's own links as tiles, rule34's
+    //  pages on top, password / two-factor / e-mail below (no Steamy34 extras
+    //  there: the user's wish - it's rule34's page).
+    //  Options: the site's form, sorted into four groups with a small menu:
+    //  Filtering (Steamy34's Blacklist panel, inline - see 25), Display, Video
+    //  server, Account & API. The site's own fields are MOVED into the new
+    //  layout (never copied), so its Save button sends exactly what it always
+    //  did. Anything the site adds later lands in "More" as it is.
+    //  The API key field stays folded away: Steamy34 never reads it.
+    //  Setting accountPages (Look & feel); off = the site's own pages.
+    //
+    //  Also here, on every page: rule34's own theme cookie follows the colour
+    //  mode (matchSiteTheme), the video server (videoServer, same cookies as
+    //  the site's "Preferred CDN location") and the site's own suggestion
+    //  list on / off (siteSuggestions - it's kept in the site's localStorage).
+    // =====================================================================
+    const ACC_SVG = {
+        user: '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M4.5 20.5c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/>',
+        mail: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/>',
+        heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>',
+        sliders: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+        key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2"/>',
+        shield: '<path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.2-7.5 9.5-4.3-1.3-7.5-4.9-7.5-9.5V6z"/><path d="M9 12l2 2 4-4"/>',
+        at: '<circle cx="12" cy="12" r="3.5"/><path d="M15.5 12v1.5a2.5 2.5 0 0 0 5 0V12a8.5 8.5 0 1 0-3.4 6.8"/>',
+        out: '<path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14"/><path d="M10 16l-4-4 4-4M6 12h10"/>',
+        link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+        lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
+    };
+    const accIcon = name => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACC_SVG[name] || ACC_SVG.link}</svg>`;
+
+    // ---- rule34's own cookies, written the way the site writes them ----
+    function readSiteCookie(name) {
+        const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+        if (!m) return null;
+        try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+    }
+    function writeSiteCookie(name, value) {
+        const until = new Date(Date.now() + 365 * 20 * 864e5).toUTCString(); // (the site's own: about 20 years)
+        document.cookie = `${name}=${value}; expires=${until}; path=/`;
+    }
+    function removeSiteCookie(name) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    }
+
+    // "Preferred CDN location": the same four cookies the site's Options set
+    const VIDEO_SERVERS = {
+        default: { label: 'Default' },
+        eu:   { label: 'EU', loc: 'EU', vid: 'https://ws-cdn-video.rule34.xxx/', img: 'https://wimg.rule34.xxx/', thumb: 'https://wimg.rule34.xxx/' },
+        cusa: { label: 'Central USA', loc: 'Central USA', vid: 'https://uswebm.rule34.xxx/', img: 'https://wimg.rule34.xxx/', thumb: 'https://us.rule34.xxx/' },
+        eusa: { label: 'East USA', loc: 'East USA', vid: 'https://nymp4.rule34.xxx/', img: 'https://wimg.rule34.xxx/', thumb: 'https://us.rule34.xxx/' },
+        wusa: { label: 'West USA', loc: 'West USA', vid: 'https://ahrimp4.rule34.xxx/', img: 'https://wimg.rule34.xxx/', thumb: 'https://us.rule34.xxx/' },
+        api:  { label: 'API-CDN', loc: 'API-CDN', vid: 'https://api-cdn-mp4.rule34.xxx/', img: 'https://api-cdn.rule34.xxx/', thumb: 'https://api-cdn.rule34.xxx/' }
+    };
+    const VS_APPLIED_KEY = 'steamy34_vserver_applied'; // the server Steamy34 last put in the cookies
+
+    function videoServerFromCookie() {
+        const loc = readSiteCookie('domain_override_location');
+        return Object.keys(VIDEO_SERVERS).find(k => loc && VIDEO_SERVERS[k].loc === loc) || 'default';
+    }
+    function writeVideoServer(key) {
+        const s = VIDEO_SERVERS[key] || VIDEO_SERVERS.default;
+        if (!s.loc) ['vid_domain_override', 'img_domain_override', 'domain_override_location', 'thumb_domain_override'].forEach(removeSiteCookie);
+        else {
+            writeSiteCookie('vid_domain_override', s.vid);
+            writeSiteCookie('img_domain_override', s.img);
+            writeSiteCookie('domain_override_location', s.loc);
+            writeSiteCookie('thumb_domain_override', s.thumb);
+        }
+        try { GM_setValue(VS_APPLIED_KEY, key); } catch (e) {}
+    }
+    // Changed in Steamy34's settings -> into the cookies. Changed on the site
+    // (its Options) -> Steamy34's setting follows. The first time, Steamy34
+    // takes over whatever the site has.
+    function syncVideoServer() {
+        let applied;
+        try { applied = GM_getValue(VS_APPLIED_KEY, null); } catch (e) { return; }
+        const site = videoServerFromCookie();
+        if (applied === null || (applied === CONFIG.videoServer && site !== applied)) {
+            try { GM_setValue(VS_APPLIED_KEY, site); } catch (e) {}
+            if (CONFIG.videoServer !== site) saveSettingsNow({ videoServer: site });
+            return;
+        }
+        if (applied !== CONFIG.videoServer) writeVideoServer(CONFIG.videoServer);
+    }
+
+    function syncSiteSwitches() {
+        // rule34's theme cookie follows the colour mode (pages arrive dark - no white flash)
+        if (CONFIG.matchSiteTheme) {
+            const want = CONFIG.theme === 'white' ? 'light' : 'dark';
+            if (readSiteCookie('theme') !== want) writeSiteCookie('theme', want);
+        }
+        // the site's own suggestion list (it reads this itself)
+        try {
+            const want = CONFIG.siteSuggestions ? 'true' : 'false';
+            if (localStorage.getItem('doAutocomplete') !== want) localStorage.setItem('doAutocomplete', want);
+        } catch (e) {}
+        syncVideoServer();
+    }
+    try { syncSiteSwitches(); } catch (e) { console.warn('[Steamy34] Site settings:', e); }
+
+    // =====================================================================
+    //  My Account
+    // =====================================================================
+    function setupAccountHome() {
+        if (!CONFIG.accountPages) return;
+        const box = document.getElementById('user-index');
+        if (!box || box.querySelector('.s34-acc')) return;
+
+        // The site's entries: <h4> with a link (or the Logout button) + a <p>
+        const entries = Array.from(box.querySelectorAll('h4')).map(h4 => {
+            const a = h4.querySelector('a[href]');
+            const btn = h4.querySelector('button, input[type="submit"]');
+            const holder = h4.closest('form') && box.contains(h4.closest('form')) ? h4.closest('form') : h4;
+            const p = holder.nextElementSibling && holder.nextElementSibling.tagName === 'P' ? holder.nextElementSibling : null;
+            return { a, btn, title: h4.textContent.replace(/^[\s»>]+/, '').trim(), text: p ? p.textContent.trim() : '' };
+        }).filter(e => e.title && (e.a || e.btn));
+        if (!entries.length) return;
+
+        const KINDS = [
+            { re: /s=profile/, kind: 'profile' },
+            { re: /page=gmail/, kind: 'rule34', icon: 'mail', title: 'My Mail', text: 'Read and answer your messages' },
+            { re: /page=favorites/, kind: 'rule34', icon: 'heart', title: 'My Favorites', text: 'Everything you\'ve favourited' },
+            { re: /s=options/, kind: 'rule34', icon: 'sliders', title: 'Options', text: 'Blacklist, thresholds, theme, video server' },
+            { re: /change_password/, kind: 'security', icon: 'key', title: 'Change Password', text: 'A new password for your account' },
+            { re: /s=security/, kind: 'security', icon: 'shield', title: 'Two-factor authentication', text: 'A code from an authenticator app at login' },
+            { re: /change_email/, kind: 'security', icon: 'at', title: 'Change E-Mail', text: 'The address that proves the account is yours' }
+        ];
+        let profile = null, logout = null;
+        const groups = { rule34: [], security: [] };
+        entries.forEach(e => {
+            if (e.btn && !e.a) { logout = e.btn; return; }
+            const href = e.a.getAttribute('href') || '';
+            const k = KINDS.find(x => x.re.test(href));
+            if (k && k.kind === 'profile') { profile = e.a; return; }
+            // (anything the site adds later: its own words, with the rule34 links)
+            groups[k ? k.kind : 'rule34'].push({ href: e.a.href, icon: k ? k.icon : 'link', title: k ? k.title : e.title, text: k ? k.text : e.text });
+        });
+
+        const acc = document.createElement('div');
+        acc.className = 's34-acc';
+        acc.innerHTML = `
+            <div class="s34-acc-head">
+                <span class="s34-acc-avatar">${accIcon('user')}</span>
+                <div class="s34-acc-name"><b>My Account</b><small>rule34.xxx · signed in</small></div>
+                <div class="s34-acc-headbtns"></div>
+            </div>`;
+        const headBtns = acc.querySelector('.s34-acc-headbtns');
+        if (profile) {
+            const a = document.createElement('a');
+            a.className = 's34-acc-btn';
+            a.href = profile.href;
+            a.innerHTML = accIcon('user') + '<span>My Profile</span>';
+            headBtns.appendChild(a);
+        }
+        if (logout) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 's34-acc-btn';
+            b.innerHTML = accIcon('out') + '<span>Log out</span>';
+            b.addEventListener('click', () => logout.click()); // the site's own form
+            headBtns.appendChild(b);
+        }
+
+        const section = (label, tiles, cls = '') => {
+            if (!tiles.length) return;
+            const h = document.createElement('div');
+            h.className = 's34-acc-label';
+            h.innerHTML = '<span></span>';
+            h.querySelector('span').textContent = label;
+            const grid = document.createElement('div');
+            grid.className = 's34-acc-grid ' + cls;
+            tiles.forEach(t => {
+                const el = document.createElement('a');
+                el.href = t.href;
+                el.className = 's34-acc-tile';
+                el.innerHTML = `<span class="s34-acc-ico">${accIcon(t.icon)}</span><span class="s34-acc-txt"><b></b><small></small></span>`;
+                el.querySelector('b').textContent = t.title;
+                el.querySelector('small').textContent = t.text;
+                grid.appendChild(el);
+            });
+            acc.append(h, grid);
+        };
+
+        section('rule34', groups.rule34);
+        section('Security', groups.security, 's34-acc-quiet');
+
+        box.prepend(acc);
+        box.classList.add('s34-acc-on'); // the site's list stays in the page, hidden
+    }
+
+    // =====================================================================
+    //  Options
+    // =====================================================================
+    // The account's list comes HTML-escaped from the site (dandy&#039;s_world),
+    // the browser's cookie is read unescaped (dandy's_world): compare and show
+    // them by the real tag, but leave the site's own spelling in its field.
+    const tagKey = t => unescapeHtml(t).toLowerCase();
+    const splitTags = text => {
+        const seen = new Set();
+        return String(text || '').split(/\s+/).filter(t => {
+            const k = tagKey(t);
+            if (!t || seen.has(k)) return false;
+            seen.add(k);
+            return true;
+        });
+    };
+    // rule34's Options page says "Max limit 100 tags", but longer lists are
+    // saved on the account. What limits the browser: one cookie of about
+    // 4,000 characters - so Steamy34 keeps the full list and hides what
+    // doesn't fit itself (see readBlocklist / blCookieFit in 14-tag-buttons).
+
+    function setupOptionsPage() {
+        if (!CONFIG.accountPages) return;
+        const wrap = document.getElementById('user-edit');
+        const form = wrap && wrap.querySelector('form');
+        const tagsBox = form && form.querySelector('textarea#tags, textarea[name="tags"]');
+        const table = form && form.querySelector('table');
+        if (!tagsBox || !table || wrap.querySelector('.s34-opt')) return;
+
+        // The site's rows: [label cell, control cell]
+        const rows = Array.from(table.querySelectorAll('tr')).filter(tr => tr.cells.length === 2 && tr.cells[0].querySelector('label'));
+        const used = new Set();
+        const rowOf = sel => rows.find(tr => !used.has(tr) && tr.querySelector(sel));
+        const labelOf = tr => (tr.cells[0].querySelector('label') || tr.cells[0]).textContent.replace(/\?\s*$/, '').trim();
+        const hintOf = tr => { const p = tr.cells[0].querySelector('p'); return p ? p.textContent.replace(/\s+/g, ' ').trim() : ''; };
+
+        const opt = document.createElement('div');
+        opt.className = 's34-opt';
+        opt.innerHTML = `
+            <nav class="s34-opt-nav" aria-label="Sections"></nav>
+            <div class="s34-opt-main"></div>`;
+        const nav = opt.querySelector('.s34-opt-nav');
+        const main = opt.querySelector('.s34-opt-main');
+
+        const cards = {};
+        const card = (id, title) => {
+            const c = document.createElement('section');
+            c.className = 's34-opt-card';
+            c.id = 's34-opt-' + id;
+            c.innerHTML = '<h2 class="s34-opt-h"></h2>';
+            c.querySelector('h2').textContent = title;
+            cards[id] = c;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.dataset.sec = id;
+            b.textContent = title;
+            b.addEventListener('click', () => {
+                nav.querySelectorAll('button').forEach(x => x.classList.toggle('s34-on', x === b));
+                c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            nav.appendChild(b);
+            main.appendChild(c);
+            return c;
+        };
+        // One row: title + hint on the left, the control on the right (or below: wide)
+        const row = (into, title, hint, ctl, wide) => {
+            const r = document.createElement('div');
+            r.className = 's34-opt-row' + (wide ? ' s34-opt-wide' : '');
+            r.innerHTML = '<div class="s34-opt-txt"><b></b><small></small></div><div class="s34-opt-ctl"></div>';
+            r.querySelector('b').textContent = title;
+            r.querySelector('small').textContent = hint || '';
+            if (!hint) r.querySelector('small').remove();
+            if (ctl) r.querySelector('.s34-opt-ctl').append(...[].concat(ctl));
+            into.appendChild(r);
+            return r;
+        };
+        // A row of buttons that click the site's own radio buttons (their
+        // onclick sets the site's cookies) or set its <select>
+        const segment = (choices, current, pick) => {
+            const seg = document.createElement('div');
+            seg.className = 's34-opt-seg';
+            seg.setAttribute('role', 'group');
+            const draw = on => seg.querySelectorAll('button').forEach(b => b.classList.toggle('s34-on', b.dataset.v === on));
+            choices.forEach(([v, text]) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.dataset.v = v;
+                b.textContent = text;
+                b.addEventListener('click', () => { if (pick(v) !== false) draw(v); });
+                seg.appendChild(b);
+            });
+            draw(current);
+            seg.s34Draw = draw;
+            return seg;
+        };
+        const radioSegment = (radios, names) => {
+            const list = radios.map(r => {
+                const lab = r.id && form.querySelector(`label[for="${CSS.escape(r.id)}"]`);
+                return [r.id || r.value, names[r.id] || (lab ? lab.textContent.replace(/[:\s]+$/, '').trim() : r.value), r];
+            });
+            const on = list.find(x => x[2].checked);
+            return segment(list.map(x => [x[0], x[1]]), on ? on[0] : '', v => { const x = list.find(y => y[0] === v); if (x) x[2].click(); });
+        };
+
+        // ---- Filtering ----
+        const filter = card('filter', 'Filtering');
+        const blRow = rowOf('#tags, textarea[name="tags"]');
+        used.add(blRow);
+        const blCtl = document.createElement('div');
+        blCtl.className = 's34-opt-bl';
+        blCtl.id = 's34-blacklist'; // (the window's "Save to account" lands here)
+        filter.appendChild(blCtl);
+        buildBlacklistEditor(blCtl, tagsBox);
+
+        const scoreRow = (sel, title, hint) => {
+            const tr = rowOf(sel);
+            if (!tr) return;
+            used.add(tr);
+            const input = tr.querySelector(sel);
+            input.classList.add('s34-opt-num');
+            input.inputMode = 'numeric';
+            row(filter, title, hint, input);
+        };
+        scoreRow('input[name="pthreshold"]', 'Hide posts below a score', 'Posts with a lower score are left out of every list');
+        scoreRow('input[name="cthreshold"]', 'Hide comments below a score', 'Comments with a lower score are left out');
+
+        // ---- Display ----
+        const display = card('display', 'Display');
+        {
+            const tr = rowOf('input[name="theme"]');
+            if (tr) {
+                used.add(tr);
+                const seg = radioSegment(Array.from(tr.querySelectorAll('input[name="theme"]')), { radThemeLight: 'Light', radThemeDark: 'Dark' });
+                const hint = CONFIG.matchSiteTheme
+                    ? 'Steamy34 keeps this in step with its colour mode, so pages don\'t flash white while loading (Steamy34 Settings → Look & feel → advanced)'
+                    : 'rule34\'s own colours, under Steamy34\'s';
+                const r = row(display, 'rule34\'s theme', hint, seg);
+                if (CONFIG.matchSiteTheme) {
+                    r.classList.add('s34-opt-auto');
+                    // (the page was made before Steamy34 set the cookie - show what it is now)
+                    seg.s34Draw(readSiteCookie('theme') === 'dark' ? 'radThemeDark' : 'radThemeLight');
+                    seg.querySelectorAll('button').forEach(b => { b.disabled = true; });
+                }
+            }
+        }
+        {
+            const tr = rowOf('select[name="mobile_layout"]');
+            if (tr) {
+                used.add(tr);
+                const sel = tr.querySelector('select');
+                const names = ['Automatic', 'Always', 'Never'];
+                const choices = Array.from(sel.options).map((o, i) => [o.value, names[i] || o.textContent.trim()]);
+                const seg = segment(choices, sel.value, v => { sel.value = v; sel.dispatchEvent(new Event('change', { bubbles: true })); });
+                row(display, 'rule34\'s phone layout', 'When the site uses its own phone pages', seg);
+            }
+        }
+        {
+            const tr = rowOf('input[name="origimage"]');
+            if (tr) {
+                used.add(tr);
+                const seg = radioSegment(Array.from(tr.querySelectorAll('input[name="origimage"]')), { radResizeDefault: 'Ask', radResizeAlwaysOriginal: 'Always original', radResizeDisable: 'No note' });
+                row(display, 'Original pictures', 'On single post pages: the note "this image has been resized" – or always the full-size picture', seg);
+            }
+        }
+        {
+            const tr = rowOf('#showAutocomplete');
+            if (tr) {
+                used.add(tr);
+                const box = tr.querySelector('#showAutocomplete');
+                box.checked = !!CONFIG.siteSuggestions;
+                box.onchange = null; // (the site's own handler; Steamy34 keeps the setting)
+                box.addEventListener('change', () => {
+                    saveSettingsNow({ siteSuggestions: box.checked });
+                    try { localStorage.setItem('doAutocomplete', box.checked ? 'true' : 'false'); } catch (e) {}
+                });
+                const sw = document.createElement('label');
+                sw.className = 's34-sw';
+                sw.append(box, Object.assign(document.createElement('span'), { className: 's34-sw-track' }));
+                row(display, 'rule34\'s own tag suggestions', 'The site\'s list under tag boxes, e.g. when you edit a post. Steamy34\'s search box has its own', sw);
+            }
+        }
+
+        // ---- Video server ----
+        {
+            const tr = rowOf('input[name="domain"]');
+            if (tr) {
+                used.add(tr);
+                const vs = card('video', 'Video server');
+                const radios = Array.from(tr.querySelectorAll('input[name="domain"]'));
+                const keyOf = r => { const lab = r.id && form.querySelector(`label[for="${CSS.escape(r.id)}"]`); const t = lab ? lab.textContent.trim() : ''; return Object.keys(VIDEO_SERVERS).find(k => VIDEO_SERVERS[k].label === t) || null; };
+                const known = radios.map(r => [keyOf(r), r]).filter(x => x[0]);
+                known.sort((a, b) => (a[0] === 'default' ? -1 : b[0] === 'default' ? 1 : 0));
+                const on = known.find(x => x[1].checked);
+                const seg = segment(known.map(([k]) => [k, VIDEO_SERVERS[k].label]), on ? on[0] : 'default', k => {
+                    const x = known.find(y => y[0] === k);
+                    if (x) x[1].click(); // the site's own cookies
+                    writeVideoServer(k);   // (the same - and Steamy34 remembers it)
+                    saveSettingsNow({ videoServer: k });
+                });
+                row(vs, 'Where videos load from', 'Videos stall or won\'t start? Try another server – it applies right away, no need to save. Also in Steamy34 Settings → Viewing posts', seg, true);
+                if (known.length < radios.length) { // a server Steamy34 doesn't know yet: the site's own choice as well
+                    const extra = document.createElement('div');
+                    extra.className = 's34-opt-site';
+                    extra.append(...Array.from(tr.cells[1].childNodes));
+                    row(vs, 'All servers', '', extra, true);
+                }
+            }
+        }
+
+        // ---- Account & API ----
+        const account = card('account', 'Account & API');
+        {
+            const tr = rowOf('textarea[name="my_tags"]');
+            if (tr) {
+                used.add(tr);
+                const ta = tr.querySelector('textarea[name="my_tags"]');
+                const holder = ta.closest('.awesomplete') || ta;
+                ta.classList.add('s34-opt-text');
+                row(account, 'My Tags', 'Offered when you add or edit a post', holder, true);
+            }
+        }
+        // Supporter e-mail and "Disable ads": the site's own, folded
+        {
+            const trs = [rowOf('input[name="patreon_email"]'), rows.find(tr => !used.has(tr) && /disable ads/i.test(labelOf(tr)))].filter(Boolean);
+            if (trs.length) {
+                const fold = document.createElement('div');
+                fold.className = 's34-opt-fold';
+                fold.hidden = true;
+                trs.forEach(tr => {
+                    used.add(tr);
+                    row(fold, labelOf(tr), hintOf(tr), Array.from(tr.cells[1].childNodes), true);
+                });
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 's34-opt-btn';
+                btn.textContent = 'Show';
+                btn.addEventListener('click', () => { fold.hidden = !fold.hidden; btn.textContent = fold.hidden ? 'Show' : 'Hide'; });
+                row(account, 'Supporter e-mail · Disable ads', 'rule34\'s supporter options, as the site has them', btn);
+                account.appendChild(fold);
+            }
+        }
+        // API access: folded away, never read
+        {
+            const tr = rows.find(tr => !used.has(tr) && (/api/i.test(labelOf(tr)) || tr.querySelector('input[name="generate_api_key"]')));
+            if (tr) {
+                used.add(tr);
+                const fold = document.createElement('div');
+                fold.className = 's34-opt-fold s34-opt-api';
+                fold.hidden = true;
+                fold.append(...Array.from(tr.cells[1].childNodes)); // moved, not read
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 's34-opt-btn';
+                btn.textContent = 'Unfold';
+                btn.addEventListener('click', () => { fold.hidden = !fold.hidden; btn.textContent = fold.hidden ? 'Unfold' : 'Fold'; });
+                const r = row(account, 'API access', 'For your own scripts and apps. Folded away – Steamy34 never reads this field. (If you like, you can give Steamy34 your key yourself, for fewer Cloudflare checks: Steamy34 Settings → API key.)', btn);
+                const why = document.createElement('button');
+                why.type = 'button';
+                why.className = 's34-opt-btn';
+                why.textContent = 'Steamy34 & the API';
+                why.title = 'What Steamy34 can do with a key – optional';
+                why.addEventListener('click', () => { try { sessionStorage.setItem(SETTINGS_TAB_KEY, 'api'); } catch (e) {} openSettings(); });
+                btn.after(why);
+                r.classList.add('s34-opt-locked');
+                r.querySelector('.s34-opt-txt').insertAdjacentHTML('afterbegin', `<span class="s34-opt-lock">${accIcon('lock')}</span>`);
+                account.appendChild(fold);
+            }
+        }
+
+        // ---- Anything else the site has (or adds later): as it is ----
+        const rest = rows.filter(tr => !used.has(tr));
+        if (rest.length) {
+            const more = card('more', 'More');
+            rest.forEach(tr => row(more, labelOf(tr), hintOf(tr), Array.from(tr.cells[1].childNodes), true));
+        }
+
+        // ---- Save: the site's own button ----
+        const submit = form.querySelector('input[type="submit"], button[type="submit"]');
+        const bar = document.createElement('div');
+        bar.className = 's34-opt-save';
+        bar.innerHTML = '<span class="s34-opt-dirty" hidden>Unsaved changes</span><button type="button" class="s34-opt-btn" data-act="undo">Undo changes</button>';
+        bar.querySelector('[data-act="undo"]').addEventListener('click', () => location.reload());
+        if (submit) {
+            submit.classList.add('s34-opt-submit');
+            if (submit.tagName === 'INPUT') submit.value = 'Save';
+            bar.appendChild(submit);
+        }
+        main.appendChild(bar);
+        const markDirty = () => { bar.querySelector('.s34-opt-dirty').hidden = false; };
+        form.addEventListener('input', e => { if (e.target.type !== 'radio' && e.target.type !== 'checkbox' && !e.target.classList.contains('s34-opt-add')) markDirty(); });
+        // (the site's radio buttons - theme, original pictures, video server -
+        // set their cookie right away, and the suggestions switch saves itself)
+        form.addEventListener('change', e => { if (e.target.type !== 'radio' && !e.target.closest('.s34-opt-seg, .s34-sw')) markDirty(); });
+        opt.addEventListener('s34-opt-dirty', markDirty);
+
+        form.prepend(opt);
+        wrap.classList.add('s34-opt-on'); // the site's table (and its intro line) stay, hidden
+        // The menu follows along while scrolling
+        const spy = () => {
+            let on = null;
+            Object.values(cards).forEach(c => { if (c.getBoundingClientRect().top <= 120) on = c; });
+            if (!on) on = Object.values(cards)[0];
+            if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) on = Object.values(cards).pop(); // (the bottom)
+            nav.querySelectorAll('button').forEach(b => b.classList.toggle('s34-on', on && b.dataset.sec === on.id.replace('s34-opt-', '')));
+        };
+        let spyQueued = false;
+        window.addEventListener('scroll', () => { if (!spyQueued) { spyQueued = true; requestAnimationFrame(() => { spyQueued = false; spy(); }); } }, { passive: true });
+        spy();
+    }
+
+    // The blacklist on Options: Steamy34's blacklist panel (the same as the
+    // window), inline. One list - this browser's - edited right away; the
+    // site's (hidden) field always holds it, so Save puts exactly this list
+    // on the account. Opening Options takes over the account's tags first.
+    function buildBlacklistEditor(host, tagsBox) {
+        const account = splitTags(tagsBox.value).map(unescapeHtml);
+        const before = readBlocklist();
+        const known = new Set(before.map(t => t.toLowerCase()));
+        const pickedUp = account.filter(t => !known.has(t.toLowerCase()));
+        if (pickedUp.length) writeBlocklist(before.concat(pickedUp), true); // (no "blacklisted now" dates)
+        setAccountBlacklist(account);
+
+        host.innerHTML = '<p class="s34-opt-picked" hidden></p><div class="s34-opt-blpanel"></div>';
+        if (pickedUp.length) {
+            const p = host.querySelector('.s34-opt-picked');
+            p.textContent = `✓ Took over ${pickedUp.length === 1 ? '1 tag' : pickedUp.length + ' tags'} from your account – ${pickedUp.length === 1 ? 'it\'s' : 'they\'re'} active in this browser now.`;
+            p.hidden = false;
+        }
+        const sync = () => {
+            tagsBox.value = readBlocklist().join(' ');
+            const diff = accountDiff(readBlocklist());
+            if (diff && diff.add.length + diff.gone.length) host.dispatchEvent(new CustomEvent('s34-opt-dirty', { bubbles: true }));
+        };
+        const panel = buildBlacklistPanel(host.querySelector('.s34-opt-blpanel'), { inline: true, onChange: sync });
+        if (tagsBox.form) tagsBox.form.addEventListener('submit', () => {
+            tagsBox.value = readBlocklist().join(' ');
+            setAccountBlacklist(readBlocklist()); // (what the account has after this save)
+        });
+        // after the page is put together (the dirty mark needs the save bar)
+        setTimeout(() => {
+            sync();
+            panel.lookup();
+            if (location.hash === '#s34-blacklist') host.scrollIntoView({ block: 'start' });
+        }, 0);
     }
     // =====================================================================
     //  11. POPUP VIEWER (posts page)
@@ -15018,16 +16590,8 @@
         const state = popupState;
         const id = postIdFrom(state.postUrl);
         const btn = state.overlay.querySelector('.s34-pv-fav');
-        if (isFav(id)) { showToast('Already in your favourites ♥'); return; }
-        if (!btn || btn.classList.contains('s34-busy')) return;
-        setBusy(btn, true);
-        const ok = await addFavourite(id);
-        setBusy(btn, false);
-        if (ok) {
-            styleFavButton(btn, true, true);
-            const heart = state.thumb && state.thumb.querySelector('.s34-fav-btn');
-            styleFavButton(heart, true, false);
-        }
+        if (!btn) return;
+        await toggleFavourite(id, btn); // (♥ again removes it, with Undo)
     }
 
     async function popupDownload() {
@@ -15234,7 +16798,7 @@
                 if (e.target === overlay || e.target.closest('.s34-menu-x')) { close(); return; }
                 // A tool that opens a window (or select mode): the menu steps
                 // aside so the window is on top. Switches & sliders keep it open.
-                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
+                if (e.target.closest('.s34-menu-tools .s34-gear, .s34-menu-tools .s34-blbtn, .s34-menu-tools .s34-follow-box a[data-fb]:not([data-fb="more"]), .s34-menu-tools .s34-follow-box a[data-fs], .s34-menu-tools .s34-saved-box a[data-ss], .s34-menu-tools .s34-hub button, .s34-menu-tools .s34-tipslink button, .s34-menu-tools .s34-q-select')) close();
             }, true); // (checked before the tool reacts: opening the Following window
                       // redraws the Following list, and the tapped row would be gone)
             document.addEventListener('keydown', onKey, true);
@@ -15284,12 +16848,15 @@
         setupQuickPanel();     // hide viewed / downloaded, size slider, select mode
         addBlacklistButton();  // opens the blacklist window
         addHub();              // Collections · Stats
-        addFollowBox();        // "Following": artists + searches with "N new" each (above Collections · Stats)
+        addFollowBox();        // "Following": artists with "N new" each (above Collections · Stats)
+        addSavedBox();         // "Saved searches" under it (only once something is saved)
         // an old Following page address opens the Following window; a normal
         // search for a followed artist / search counts as a visit (NEW marks)
-        if (!openFollowFromAddress()) setupFeedPage();
+        if (!openFollowFromAddress()) { setupFeedPage(); setupSavedSearchPage(); }
         if (isPostView) addFollowButtonsToRows(); // bell next to artists
         setupHome();           // rule34's start page as a small home (search, continue, recent, following)
+        setupAccountHome();    // My Account as tiles (rule34 · Steamy34 · Security)
+        setupOptionsPage();    // Options in groups, the blacklist as tag bubbles
         setTimeout(() => checkFollowing(), 6000); // quiet "N new" count
         trimDlHistory();
         addPostCollectButton(); // single posts: "Save to collection"
@@ -15311,6 +16878,7 @@
         if (isPostView) rememberView(params.get('id')); // opening a post = viewed
         showDownloadedState(); // ✓ / 👁 on posts you already downloaded / viewed
         addFavButtons();
+        setupFavouritesPage(); // your favourites page: every ♥ filled, ♥ removes (the site's Remove links step aside)
         setupHoverInfo();
         learnTagTypes(document); // remember tag types from this page's tag list
         if (isPostView) {

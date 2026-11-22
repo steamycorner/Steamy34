@@ -14,15 +14,15 @@ All parts share one scope (the script is one big function), so a part can use an
 |---|---|
 | `00-header` | Tampermonkey header (@version!), overview comment, start of the main function |
 | `01-settings` | Default settings, loading/saving them, what the settings window shows |
-| `02` – `09` | Styles: dark site look, thumbnail grid, core, buttons & tags, the big extras block (`06a`–`06j`), search box, settings window, sidebar |
+| `02` – `09` | Styles: dark site look, thumbnail grid, core, buttons & tags, the big extras block (`06a`–`06k`; `06k` = My Account / Options), search box, settings window, sidebar |
 | `10-colour-modes` | White / OLED made from the dark design, `injectStyles` (joins all styles – order matters) |
 | `11-helpers` | Small shared helpers |
 | `12-downloads` | Download key, file names, downloaded/viewed memory, own download folder |
 | `13-fit-autoplay` | Single post: fit to the window, autoplay |
-| `14-tag-buttons` | Block / add-to-search buttons next to tags |
-| `15-hover-cloudflare` | Cloudflare check handling, hover previews |
+| `14-tag-buttons` | The blacklist itself (full list in storage, rule34's cookie gets what fits), block / add-to-search buttons next to tags |
+| `15-hover-cloudflare` | Cloudflare check handling (the notice at the bottom), hover previews |
 | `16-search` | Modern search box: tag bubbles, filters, pinned filters, Recent · Tags menus, suggestions |
-| `17-infinite-scroll` | Infinite scrolling, page dividers |
+| `17-infinite-scroll` | Infinite scrolling, page dividers, hiding blacklisted posts rule34 doesn't hide |
 | `18-tag-bar` | Artist / character tags on thumbnails, tag types, blocking with Undo |
 | `19-settings-window` | The settings window (incl. search, Help, Privacy) |
 | `20-extras` | Favourites, hover info, sidebar "View" switches |
@@ -34,10 +34,11 @@ All parts share one scope (the script is one big function), so a part can use an
 | `22-popup-info` | Popup: post info, comments, auto next |
 | `23-collections-stats` | Theater mode, windows, collections, stats, sidebar order, preloading, full-size view |
 | `24-tips-tour` | Quick tips, **CHANGELOG**, phone guide, welcome tour |
-| `25-blacklist-window` | Blacklist window and sidebar button |
+| `25-blacklist-window` | The Blacklist panel (window and inline on Options), the account's copy, the sidebar button |
 | `26-popup` | The popup viewer itself |
 | `26b-following-popup` | The Following window: circles, header, grid of the newest posts (G) |
 | `26c-home` | Home: rule34's start page in two columns (search, continue, recent, following) |
+| `26d-account` | My Account as tiles, Options in groups; rule34's theme / video server / suggestion settings |
 | `27-phone-start` | Phone menu, start-up (`init`), the logo, end of the main function |
 
 Version bump: `@version` in `00-header.js` + a new entry at the top of `CHANGELOG` in `24-tips-tour.js`, then build.

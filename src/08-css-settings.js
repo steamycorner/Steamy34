@@ -17,6 +17,39 @@
             pointer-events: none;
         }
         .s34-gear:hover { opacity: 1; transform: scale(1.08); }
+        /* Settings → API key (optional, Beta 3.7) */
+        .s34-api-hero { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 6px; border-radius: 12px; border: 1px solid rgba(95,208,138,0.35) !important; background: rgba(95,208,138,0.08) !important; color: #cfeedd !important; }
+        .s34-api-hero b { color: #9fe3b8 !important; }
+        .s34-api-icon { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; }
+        .s34-api-icon svg * { color: inherit !important; }
+        .s34-api ul { margin: 4px 0 10px; padding-left: 20px; }
+        .s34-api li { margin: 3px 0; line-height: 1.45; }
+        .s34-api-promises { list-style: none; padding-left: 0 !important; }
+        .s34-api-promises li { position: relative; padding-left: 24px; }
+        .s34-api-promises li::before { content: '✓'; position: absolute; left: 4px; top: 0; font-weight: 800; color: #5fd08a !important; }
+        .s34-api code { padding: 1px 5px; border-radius: 4px; background: #24242a !important; font-size: 12px; }
+        .s34-api-row { display: flex; gap: 8px; margin: 6px 0 8px; }
+        .s34-api .s34-api-input { flex: 1; min-width: 0; height: 34px; box-sizing: border-box; padding: 0 10px !important; border-radius: 8px; border: 1px solid #3a3a44 !important; background: #0d0d10 !important; color: #e8e8ee !important; font: 13px ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .s34-api .s34-api-input:focus { outline: none; border-color: #8b3dff !important; }
+        .s34-api-status { min-height: 18px; margin: 2px 0 8px; font-size: 12.5px; color: #a9a9b3 !important; }
+        .s34-api-status.s34-api-ok { color: #5fd08a !important; }
+        .s34-api-status.s34-api-bad { color: #ff8a8a !important; }
+        .s34-api-ask { color: #b9b9c3 !important; }
+        .s34-api-terms { margin-top: 10px !important; font-size: 11.5px; color: #8e8e9a !important; }
+        /* Pages without the sidebar (favourites, My Account, Options…): an item
+           at the end of rule34's own menu at the top, instead of the corner */
+        #navbar li.s34-nav-steamy { display: inline-block; }
+        .s34-gear.s34-gear-nav {
+            position: static; z-index: auto; opacity: 1; filter: none;
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 5px 14px 5px 10px; border-radius: 999px;
+            border: 1px solid transparent !important; background-color: transparent !important; /* (beats the general box look) */
+            font-weight: 600; color: var(--s34-fg) !important;
+            transition: background-color .15s ease, border-color .15s ease;
+        }
+        .s34-gear.s34-gear-nav img { height: 20px; border-radius: 5px; }
+        .s34-gear.s34-gear-nav span { color: inherit !important; }
+        .s34-gear.s34-gear-nav:hover { transform: none; background-color: var(--s34-panel-2) !important; border-color: var(--s34-border) !important; color: #fff !important; }
 
         /* Download button (single post pages), sits above the logo button */
         .s34-dl-btn {

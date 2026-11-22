@@ -19,7 +19,9 @@ Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewe
 - Open posts (popup), browse with ← / →, download with **B**
 - The search box: tags as bubbles, filters, pinning a filter
 - The bell next to an artist in a post → "Following" in the sidebar, G opens the Following window
-- White / Dark / OLED, thumbnail styles (Settings → Look)
+- White / Dark / OLED, thumbnail styles (Settings → Look & feel)
+- The Blacklist button in the sidebar, and My Account → Options – the same panel in both places; a long blacklist should hide every tag on it
+- My Account (now tiles) and rule34's start page (now a small home)
 - **X** = Censored mode (blurs every picture and comment – handy for sending me screenshots)
 - On a phone: swipe left / right in a post, swipe down to close
 
@@ -28,7 +30,7 @@ Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewe
 Post in **#feedback** on the Discord (https://discord.com/invite/Udg9sNTBHb) – ideas go in **#new-ideas** – or write in the **Feedback** tab of the script page (https://sleazyfork.org/en/scripts/606445-steamy34/feedback). Tell me:
 - what you did, what you expected, and what happened instead
 - your browser (and phone or computer)
-- the version (bottom of the sidebar, e.g. "Beta 3.4") – or simply use **Settings → Help → Copy info for a bug report**, which collects all of that for you
+- the version (bottom of the sidebar, e.g. "Beta 3.7") – or simply use **Settings → Help → Copy info for a bug report**, which collects all of that for you
 
 Screenshots are very welcome – press **X** first so all pictures are blurred.
 

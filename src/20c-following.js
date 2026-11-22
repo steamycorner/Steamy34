@@ -226,6 +226,7 @@
         const d = getFollowing();
         document.querySelectorAll('[data-follow-tag]').forEach(b => styleFollowButton(b, isFollowed(b.dataset.followTag, d)));
         renderFollowBox(d);
+        renderSavedBox();
         const win = document.querySelector('.s34-follow-win');
         if (win && win._s34Render) win._s34Render();
         fwRefresh(); // the Following window, if open
@@ -280,8 +281,9 @@
             try {
                 d = d || getFollowing();
                 const t = followTotals(d, true);
-                n = t.n;
-                more = /\+/.test(t.text);
+                const s = savedTotals();
+                n = t.n + s.n;
+                more = /\+/.test(t.text) || s.more;
             } catch (e) {}
         }
         const base = document.title.replace(/^(\(\d+\+?\)\s*)+/, ''); // our own count, however often it got there
@@ -401,32 +403,57 @@
         const src = img && (img.getAttribute('src') || img.dataset.s34Src || '');
         try { return src ? new URL(src, location.href).href : ''; } catch (e) { return ''; }
     }
+    // The newest posts of a search, for counting: [{ id, words, pic }] -
+    // through rule34's API when there's a key (20h; plain data, up to 100),
+    // else the normal page (42). null: skip this one; throws when Cloudflare
+    // wants a check (then the whole round stops)
+    // Posts with a blacklisted tag don't count: the pages and the Following
+    // window hide them, so a count with them would promise posts nobody sees
+    // (Beta 3.7 - "7 new", but 3 NEW marks)
+    async function postsForCounting(query, force) {
+        const blocked = new Set(readBlocklist().map(t => t.toLowerCase()));
+        const shown = got => Object.assign(got, { posts: got.posts.filter(p => ![...p.words].some(w => blocked.has(w))) });
+        if (hasApiKey()) {
+            try {
+                const list = await apiPosts(query, 100);
+                return shown({ posts: list.map(p => ({ id: p.id, words: new Set(p.tags.split(/\s+/).concat(p.rating ? ['rating:' + p.rating] : [])), pic: p.preview })), full: list.length >= 100 });
+            } catch (e) { /* the normal page instead */ }
+        }
+        let r;
+        try { r = await loadPage(plainSearchUrl(query), force ? 'followNow' : 'follow'); }
+        catch (e) { if (e.cloudflare || e.paused) throw e; return null; }
+        if (r.status < 200 || r.status >= 300) return null;
+        const doc = new DOMParser().parseFromString(r.html, 'text/html');
+        const thumbs = Array.from(doc.querySelectorAll('span.thumb'));
+        return shown({
+            posts: thumbs.map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, words: new Set(thumbTags(t.querySelector('img') || t).trim().split(' ')), pic: thumbPicOf(t) })),
+            full: thumbs.length >= 40
+        });
+    }
+
     let followCheckRunning = false;
     async function checkFollowing(force) {
         if (!CONFIG.checkFollowing || followCheckRunning) return;
         let d = getFollowing();
         const groups = followGroups(d);
-        if (!groups.length || (!force && Date.now() - d.checkedAt < FOLLOW_CHECK_EVERY)) return;
+        const searches = getSavedSearches().filter(s => searchCountable(s.query)).length; // (saved searches: 20g)
+        if ((!groups.length && !searches) || (!force && Date.now() - d.checkedAt < FOLLOW_CHECK_EVERY)) return;
         followCheckRunning = true;
         try {
             for (let i = 0; i < groups.length; i++) {
                 if (cloudflarePaused()) break;
-                let html, status;
-                try {
-                    // (in the shared line; on its own it waits until you're not clicking around)
-                    const r = await loadPage(plainSearchUrl(groupQuery(groups[i])), force ? 'followNow' : 'follow');
-                    status = r.status;
-                    html = r.html;
-                } catch (e) { if (e.cloudflare || e.paused) break; continue; }
-                if (status < 200 || status >= 300) continue;
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const posts = Array.from(doc.querySelectorAll('span.thumb')).map(t => ({ id: parseInt(thumbPostId(t), 10) || 0, thumb: t }));
+                // (pages go through the shared line; on its own it waits until you're not clicking around)
+                let got;
+                try { got = await postsForCounting(groupQuery(groups[i]), force); }
+                catch (e) { break; } // a Cloudflare check: the rest waits
+                if (!got) continue;
+                const posts = got.posts;
                 const pageMax = posts.reduce((m, p) => Math.max(m, p.id), 0);
                 d = getFollowing(); // fresh: something may have changed meanwhile
                 groups[i].forEach(tag => {
                     const a = findArtist(tag, d);
                     if (!a) return;
-                    const theirs = posts.filter(p => thumbArtists(p.thumb, [tag]).length);
+                    const theirs = posts.filter(p => p.words.has(tag));
                     const ids = theirs.map(p => p.id);
                     const max = ids.length ? Math.max(...ids) : 0;
                     if (!a.seen) {
@@ -436,15 +463,16 @@
                     } else {
                         a.count = ids.filter(id => id > a.seen).length;
                     }
-                    a.more = a.count > 0 && a.count === ids.length && posts.length >= 40;
+                    a.more = a.count > 0 && a.count === ids.length && got.full;
                     a.latest = Math.max(a.latest || 0, max);
-                    if (theirs.length) a.pic = thumbPicOf(theirs[0].thumb) || a.pic; // newest first
+                    if (theirs.length) a.pic = theirs[0].pic || a.pic; // newest first
                 });
                 saveFollowing(d);
                 renderFollowBox(d);
                 fwRefresh();
                 if (i < groups.length - 1) await pause(1500);
             }
+            if (searches && !cloudflarePaused()) await checkSavedSearches(force);
             d = getFollowing();
             d.checkedAt = Date.now();
             saveFollowing(d);
@@ -457,6 +485,9 @@
         const d = getFollowing();
         d.artists.forEach(a => { a.seen = Math.max(a.seen || 0, a.latest || 0); a.count = 0; a.more = false; });
         saveFollowing(d);
+        const saved = getSavedSearches();
+        saved.forEach(s => { s.seen = Math.max(s.seen || 0, s.latest || 0); s.count = 0; s.more = false; });
+        saveSavedSearches(saved);
         refreshFollowUi();
     }
 
@@ -531,9 +562,10 @@
                 listEl.appendChild(wrap);
             };
             group(d.artists.map(a => chip('s34-feed-artist', prettyTag(a.tag), fwKeyArtist(a.tag), plainSearchUrl(a.tag), 'Show ' + prettyTag(a.tag) + '\'s newest posts', a, () => toggleFollow(a.tag))));
-            w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA; });
-            w.body.querySelector('[data-a="open"]').hidden = !nA;
-            w.body.querySelector('[data-a="seen"]').hidden = !tot.n; // only when there is something new
+            const saved = getSavedSearches(); // (not listed here - the sidebar has them; Check now and the counts include them)
+            w.body.querySelectorAll('.s34-follow-act').forEach(b => { b.disabled = !nA && !saved.length; });
+            w.body.querySelector('[data-a="open"]').hidden = !nA; // (the Following window: artists)
+            w.body.querySelector('[data-a="seen"]').hidden = !tot.n && !savedTotals(saved).n; // only when there is something new
         }
         w.overlay._s34Render = render;
 
@@ -558,8 +590,9 @@
                 b.textContent = 'Check now';
                 b.disabled = false;
                 refreshFollowUi();
-                const t = followTotals(null, true);
-                showToast(t.n ? `${t.text} in what you follow.` : 'Nothing new right now.');
+                const t = followTotals(null, true), st = savedTotals();
+                const all = t.n + st.n;
+                showToast(all ? `${all}${/\+/.test(t.text) || st.more ? '+' : ''} new in what you follow and save.` : 'Nothing new right now.');
             }
         });
         render();

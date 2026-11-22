@@ -306,7 +306,8 @@
             blacklist: readBlocklist(),
             blacklistDates: getBlTimes(),
             tagTypes: Object.fromEntries(tagTypes),
-            following: getFollowing()
+            following: getFollowing(),
+            savedSearches: getSavedSearches()
         };
         const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         saveBlob(blob, 'Steamy34_backup_' + new Date().toISOString().slice(0, 10) + '.json');
@@ -409,6 +410,12 @@
                 });
                 saveFollowing(fol);
             }
+            // Saved searches (Beta 3.7): add the ones you don't have yet
+            const savedNow = getSavedSearches();
+            arr(d.savedSearches).forEach(s => {
+                if (s && typeof s.query === 'string' && normQuery(s.query) && !isSavedSearch(s.query, savedNow)) savedNow.push(Object.assign({}, s, { query: normQuery(s.query), count: 0, more: false }));
+            });
+            saveSavedSearches(savedNow);
             arr(d.following && d.following.searches).concat(arr(d.saved))
                 .map(s => s && typeof s.query === 'string' ? s.query : '').filter(Boolean).reverse().forEach(addToHistory);
             reloadWithMessage('Backup imported – your settings, searches, collections and marks are back.');
@@ -422,6 +429,8 @@
         ['steamy34_settings', 'Settings', 'Your choices in this menu and the sidebar switches', {}],
         ['steamy34_following', 'Following', 'Artists you follow, and the newest post you\'ve seen from each', {}],
         ['steamy34_history', 'Recent searches', 'Your last searches', []],
+        ['steamy34_api', 'Your rule34 API key', 'Only if you added one (Settings → API key) – sent to rule34\'s own API only, never in a backup', {}],
+        ['steamy34_saved_searches', 'Saved searches', 'Searches you saved with the disk button, and the newest post seen in each', []],
         ['steamy34_resume', 'Where you left off', 'The page you were on per search, for "Continue at page N" (kept 24 hours)', {}],
         ['steamy34_favtags', 'Favourite tags', 'Tags in the ★ Favourite tags area', []],
         ['steamy34_pinned', 'Pinned filters', 'Search filters kept for every new search', {}],
@@ -431,6 +440,8 @@
         ['steamy34_viewed', 'Viewed posts', 'Post numbers you opened (for the eye mark)', {}],
         ['steamy34_favs', 'Favourite marks', 'Posts you added to favourites (the ♥ stays filled)', {}],
         ['steamy34_votes', 'Votes', 'Posts you voted for (the ▲ stays green)', {}],
+        ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
+        ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],
         ['steamy34_auto', 'Auto next timer', 'Seconds per post for "Auto next"', {}],
@@ -445,7 +456,7 @@
     ];
     // Everything that's shown together as "Small preferences"
     const SMALL_PREF_KEYS = ['steamy34_sbmenu_open', 'steamy34_sb_panel', 'steamy34_fw_big', 'steamy34_sfw', 'steamy34_first_seen', 'steamy34_rate_asked', 'steamy34_sitecheck_warned', 'steamy34_blsort', 'steamy34_adblock_seen',
-        'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen'];
+        'steamy34_tips_seen', 'steamy34_changelog_seen', 'steamy34_mobile_seen', 'steamy34_marks_rev', 'steamy34_welcome_seen', 'steamy34_hints_seen', 'steamy34_vserver_applied'];
 
     function storedCount(v) {
         if (Array.isArray(v)) return v.length;
@@ -483,8 +494,10 @@
             <div class="s34-privacy-note">
                 The script only talks to rule34.xxx itself (loading pages, pictures and tag
                 suggestions – just like browsing), and only sends something to your account when you
-                use ♥ Favourite or ▲ Vote. Your blacklist is the site's own list, kept in a rule34.xxx
-                cookie – manage it with the Blacklist button.
+                use ♥ Favourite or ▲ Vote. Your blacklist is kept here in full and, as far as it fits,
+                in rule34's own cookie; your account gets a copy when you save it in Options. Steamy34 also
+                sets a few of rule34's own preferences the way its Options page does (theme, video server,
+                its suggestion list) – see Settings.
             </div>
             <div class="s34-privacy-head">
                 <span>Stored on this computer</span>
@@ -518,7 +531,7 @@
                 }, 0);
                 total += size;
                 const count = ['steamy34_sbmenu_open', 'steamy34_video', 'steamy34_settings', 'steamy34_lastsearch'].includes(key)
-                    ? null : storedCount(v);
+                    ? null : key === 'steamy34_api' ? null : key === 'steamy34_bl_account' ? (v && Array.isArray(v.tags) ? v.tags.length : 0) : storedCount(v);
 
                 const row = document.createElement('div');
                 row.className = 's34-privacy-row' + (size ? '' : ' s34-privacy-empty');

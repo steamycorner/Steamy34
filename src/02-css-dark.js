@@ -128,5 +128,11 @@
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: var(--s34-bg); }
         ::-webkit-scrollbar-thumb { background: #3a3a42; border-radius: 5px; }
+
+        /* rule34's own dark theme (Steamy34 switches it on with the colour mode -
+           matchSiteTheme) draws halos around the header links and a black glow on
+           every link while hovered - not wanted under Steamy34's colours */
+        #header a, #header li a { text-shadow: none !important; }
+        html body a:hover { text-shadow: none; }
     `;
 

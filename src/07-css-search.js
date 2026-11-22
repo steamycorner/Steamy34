@@ -240,6 +240,20 @@
             cursor: pointer;
         }
         .s34-sb .s34-sb-submit:hover { background-color: #3a6fd4 !important; }
+        /* Search + the square disk button: save this search (Beta 3.7) */
+        .s34-sb-gorow { display: flex; gap: 6px; }
+        .s34-sb .s34-sb-gorow .s34-sb-submit { flex: 1; min-width: 0; width: auto !important; }
+        .s34-sb .s34-sb-save {
+            flex: none; width: 30px; height: 30px; box-sizing: border-box; padding: 0 !important; margin: 0;
+            display: grid; place-items: center; cursor: pointer; border-radius: 8px;
+            border: 1px solid #3a3a44 !important; background-color: #1c1c22 !important; color: #b9b9c3 !important;
+        }
+        .s34-sb .s34-sb-save svg { display: block; pointer-events: none; }
+        .s34-sb .s34-sb-save svg * { color: inherit !important; }
+        .s34-sb .s34-sb-save:hover { border-color: #8ab4f8 !important; color: #fff !important; }
+        .s34-sb .s34-sb-save.s34-on { border-color: rgba(138,180,248,0.65) !important; background-color: rgba(138,180,248,0.14) !important; color: #8ab4f8 !important; }
+        .s34-sb .s34-sb-save.s34-on svg path:first-child { fill: currentColor; fill-opacity: .3; }
+        .s34-sb .s34-sb-save:focus-visible { outline: 2px solid #8ab4f8; outline-offset: 2px; }
 
         /* 🕘 Recent · ★ Tags · 🔔 (follow this search) - one list opens below */
         .s34-sb-tools {

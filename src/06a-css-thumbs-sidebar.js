@@ -25,6 +25,15 @@
         span.thumb:hover .s34-fav-btn { opacity: .9; }
         .s34-fav-btn:hover { opacity: 1 !important; transform: scale(1.12); color: #ff6b7a !important; }
         .s34-fav-btn.s34-faved { opacity: 1; color: #ff6b7a !important; }
+        /* Favourites pages: rule34 wraps each thumbnail in an extra box (with
+           "Remove" under it on your own list) - the box steps aside so the
+           thumbnails join the normal grid, and the ♥ does the removing */
+        ${CONFIG.favButtons ? `
+        .image-list > span:has(> span.thumb) { display: contents !important; }
+        .image-list > span:has(> span.thumb) > :is(br, a[onclick*="s=delete"]) { display: none !important; }` : ''}
+        .image-list .s34-site-remove { display: none !important; }
+        .image-list span.thumb.s34-unfaved { opacity: .35; filter: grayscale(1); transition: opacity .2s ease; }
+        .image-list span.thumb.s34-unfaved:hover { opacity: .7; }
 
         /* Thumbnail extras only while hovering (the picture stays clean).
            visibility too, so hidden chips can't catch taps on phones.

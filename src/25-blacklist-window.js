@@ -49,49 +49,78 @@
         return n === 1 ? '1 tag' : n + ' tags';
     }
 
-    function openBlacklistManager() {
-        if (document.querySelector('.s34-blm-overlay')) return;
+    // ---- The account's copy (Beta 3.7) ----
+    // One blacklist: the one in this browser (Steamy34's full list - see
+    // readBlocklist). The account holds a copy, saved with rule34's Options
+    // form. Steamy34 remembers what the account had the last time Options
+    // was open (or saved), so the panel can say what isn't on it yet.
+    const BL_ACCOUNT_KEY = 'steamy34_bl_account';
+    const BL_OPTIONS_URL = '/index.php?page=account&s=options#s34-blacklist';
+
+    function getAccountBlacklist() {
+        try {
+            const v = GM_getValue(BL_ACCOUNT_KEY, null);
+            return v && Array.isArray(v.tags) ? v : null;
+        } catch (e) { return null; }
+    }
+    function setAccountBlacklist(tags) {
+        try { GM_setValue(BL_ACCOUNT_KEY, { tags: tags.map(unescapeHtml), at: Date.now() }); } catch (e) {}
+    }
+    // { add: tags here but not on the account, gone: on the account but not here } - null: not known
+    function accountDiff(list) {
+        const acc = getAccountBlacklist();
+        if (!acc) return null;
+        const here = new Set(list.map(t => t.toLowerCase()));
+        const there = new Set(acc.tags.map(t => t.toLowerCase()));
+        return { add: list.filter(t => !there.has(t.toLowerCase())), gone: acc.tags.filter(t => !here.has(t.toLowerCase())) };
+    }
+
+    // ---- The blacklist panel ----
+    // The same editor everywhere: as a window (sidebar button, My Account)
+    // and inline on rule34's Options page (opts.inline). Every change goes
+    // into this browser's list right away; opts.onChange hears about it.
+    function buildBlacklistPanel(box, opts = {}) {
         let sort = GM_getValue(BL_SORT_KEY, 'newest');
         if (!BL_SORTS.some(s => s[0] === sort)) sort = 'newest';
         let filter = '';
 
-        const overlay = document.createElement('div');
-        overlay.className = 's34-overlay s34-blm-overlay';
-        overlay.innerHTML = `
-            <div class="s34-blm" role="dialog" aria-modal="true">
-                <div class="s34-blm-head">
-                    <div class="s34-blm-icon">${BLOCK_SVG}</div>
-                    <div class="s34-blm-heading">
-                        <div class="s34-blm-title">Blacklist</div>
-                        <div class="s34-blm-sub"></div>
-                    </div>
-                    <button type="button" class="s34-blm-close" title="Close (Esc)">✕</button>
+        box.classList.add('s34-blm');
+        if (opts.inline) box.classList.add('s34-blm-inline');
+        box.innerHTML = `
+            <div class="s34-blm-head">
+                <div class="s34-blm-icon">${BLOCK_SVG}</div>
+                <div class="s34-blm-heading">
+                    <div class="s34-blm-title">Blacklist</div>
+                    <div class="s34-blm-sub"></div>
                 </div>
-                <div class="s34-blm-add">
-                    <input type="text" class="s34-blm-input" placeholder="Blacklist a tag…" autocomplete="off" spellcheck="false">
-                    <button type="button" class="s34-blm-addbtn">Add</button>
-                </div>
-                <div class="s34-blm-recent-box">
-                    <div class="s34-blm-label">Recently blacklisted</div>
-                    <div class="s34-blm-recent"></div>
-                </div>
-                <div class="s34-blm-tools">
-                    <input type="search" class="s34-blm-filter" placeholder="Filter…" autocomplete="off" spellcheck="false">
-                    <div class="s34-blm-sort" role="tablist"></div>
-                </div>
-                <div class="s34-blm-status" hidden></div>
-                <div class="s34-blm-list"></div>
-                <div class="s34-blm-foot">
-                    <div class="s34-blm-dates" hidden></div>
-                    <div>Uses rule34.xxx's own blacklist (the same list as My Account → Options).</div>
-                </div>
+                ${opts.inline ? '' : '<button type="button" class="s34-blm-close" title="Close (Esc)">✕</button>'}
+            </div>
+            <div class="s34-blm-account" hidden></div>
+            <div class="s34-blm-add">
+                <input type="text" class="s34-blm-input" placeholder="Blacklist a tag…" autocomplete="off" spellcheck="false">
+                <button type="button" class="s34-blm-addbtn">Add</button>
+            </div>
+            <div class="s34-blm-recent-box">
+                <div class="s34-blm-label">Recently blacklisted</div>
+                <div class="s34-blm-recent"></div>
+            </div>
+            <div class="s34-blm-tools">
+                <input type="search" class="s34-blm-filter" placeholder="Filter…" autocomplete="off" spellcheck="false">
+                <div class="s34-blm-sort" role="tablist"></div>
+            </div>
+            <div class="s34-blm-status" hidden></div>
+            <div class="s34-blm-list"></div>
+            <div class="s34-blm-foot">
+                <div class="s34-blm-dates" hidden></div>
+                <div class="s34-blm-room"></div>
             </div>`;
 
-        const $ = sel => overlay.querySelector(sel);
+        const $ = sel => box.querySelector(sel);
         const listEl = $('.s34-blm-list');
         const recentEl = $('.s34-blm-recent');
         const sortEl = $('.s34-blm-sort');
         const addInput = $('.s34-blm-input');
+        const changed = () => { refreshBlockStates(); render(); if (opts.onChange) opts.onChange(); };
 
         BL_SORTS.forEach(([key, label]) => {
             const b = document.createElement('button');
@@ -110,13 +139,12 @@
             const times = getBlTimes();
             const when = times[tag.toLowerCase()];
             writeBlocklist(readBlocklist().filter(t => t.toLowerCase() !== tag.toLowerCase()));
-            refreshBlockStates();
-            render();
+            changed();
             showToast(`Removed "${prettyTag(tag)}" from the blacklist`, 'Undo', () => {
                 writeBlocklist(readBlocklist().concat(tag));
                 if (when) { const t = getBlTimes(); t[tag.toLowerCase()] = when; GM_setValue(BL_TIMES_KEY, t); }
                 refreshBlockStates();
-                if (overlay.isConnected) render();
+                if (box.isConnected) { render(); if (opts.onChange) opts.onChange(); }
             });
         }
 
@@ -129,15 +157,14 @@
             });
             if (!added.length) return;
             writeBlocklist(list);
-            refreshBlockStates();
-            render();
+            changed();
             showToast('Blacklisted ' + added.map(prettyTag).join(', '));
             if (!lookingUp) lookupUnknownTypes(); // find out what kind of tags they are
         }
 
-        function chipFor(tag) {
+        function chipFor(tag, unsaved) {
             const chip = document.createElement('span');
-            chip.className = 's34-blm-chip s34-blm-' + blType(tag);
+            chip.className = 's34-blm-chip s34-blm-' + blType(tag) + (unsaved ? ' s34-blm-unsaved' : '');
             const name = document.createElement('span');
             name.className = 's34-blm-name';
             name.textContent = prettyTag(tag);
@@ -167,7 +194,6 @@
                 });
                 menu.appendChild(b);
             });
-            const box = overlay.querySelector('.s34-blm');
             box.appendChild(menu);
             const r = chip.getBoundingClientRect();
             const br = box.getBoundingClientRect();
@@ -178,22 +204,22 @@
             menu.style.top = (below + menu.offsetHeight > br.height - 8 && above > 8 ? above : below) + 'px';
         }
         function closeTypeMenu() {
-            const m = overlay.querySelector('.s34-blm-typemenu');
+            const m = box.querySelector('.s34-blm-typemenu');
             if (m) m.remove();
         }
-        overlay.addEventListener('mousedown', e => {
+        box.addEventListener('mousedown', e => {
             if (!e.target.closest('.s34-blm-typemenu, .s34-blm-name')) closeTypeMenu();
         });
 
         // One compact chip per tag: name + ×; type and date in the tooltip.
         // Clicking the name sets its type.
-        function makeChip(tag, when) {
-            const chip = chipFor(tag);
+        function makeChip(tag, when, unsaved) {
+            const chip = chipFor(tag, unsaved);
             chip.classList.add('s34-blm-item');
             const type = blType(tag);
             const typeName = type !== 'other' ? (type === 'metadata' ? 'Meta' : type.charAt(0).toUpperCase() + type.slice(1)) : 'Type not known yet';
-            chip.title = [typeName, when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates']
-                .join(' · ') + '\nClick to set its type';
+            chip.title = [typeName, when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates', unsaved ? 'not on your account yet' : '']
+                .filter(Boolean).join(' · ') + '\nClick to set its type';
             chip.querySelector('.s34-blm-name').addEventListener('click', () => openTypeMenu(chip, tag));
             const x = document.createElement('button');
             x.type = 'button';
@@ -205,13 +231,45 @@
             return chip;
         }
 
+        // Where the list stands with the account (one line)
+        function renderAccount(list) {
+            const el = $('.s34-blm-account');
+            const diff = accountDiff(list);
+            const n = diff ? diff.add.length + diff.gone.length : 0;
+            el.classList.toggle('s34-blm-account-diff', n > 0);
+            if (!diff) { el.hidden = true; return; }
+            el.hidden = false;
+            if (!n) { el.textContent = '✓ The same list as on your account'; return; }
+            const parts = [];
+            if (diff.add.length) parts.push(`${diff.add.length} ${diff.add.length === 1 ? 'tag' : 'tags'} not on your account yet`);
+            if (diff.gone.length) parts.push(`${diff.gone.length} removed here`);
+            el.innerHTML = '<span></span>';
+            el.querySelector('span').textContent = parts.join(', ') + (opts.inline ? ' – Save below puts this list on your account.' : '');
+            if (!opts.inline) {
+                const a = document.createElement('a');
+                a.href = BL_OPTIONS_URL;
+                a.className = 's34-blm-account-go';
+                a.textContent = 'Save to account →';
+                el.appendChild(a);
+            }
+        }
+
         function render() {
             const list = readBlocklist();
             const times = getBlTimes();
             const when = t => times[t.toLowerCase()] || 0;
+            const diff = accountDiff(list);
+            const unsaved = new Set(diff ? diff.add.map(t => t.toLowerCase()) : []);
             $('.s34-blm-sub').textContent = list.length
                 ? `${blCountText()} · posts with these tags are hidden`
                 : 'Nothing blacklisted yet';
+            renderAccount(list);
+
+            // How much of it rule34 holds itself (its cookie) - Steamy34 hides the rest
+            const fit = blCookieFit(list).length;
+            $('.s34-blm-room').textContent = !list.length ? 'Uses rule34\'s own blacklist, with no limit on its length.'
+                : fit === list.length ? 'All in rule34\'s own blacklist – it hides them itself.'
+                : `rule34's own blacklist holds ${fit} of them (its cookie fits about ${BL_COOKIE_MAX.toLocaleString('en')} characters) – Steamy34 hides the other ${list.length - fit} itself.`;
 
             // Why some tags have no date
             const undated = list.filter(t => !when(t)).length;
@@ -219,7 +277,7 @@
             datesEl.hidden = !undated;
             datesEl.textContent = undated
                 ? `${undated === list.length ? 'These tags were' : undated + (undated === 1 ? ' tag was' : ' tags were')} ` +
-                  'blacklisted before Steamy34 started remembering dates (it only does that since it was installed), ' +
+                  'blacklisted before Steamy34 started remembering dates (or came from your account), ' +
                   'so they don\'t show under "Recently blacklisted" and sort as oldest.'
                 : '';
 
@@ -229,7 +287,7 @@
             recentEl.replaceChildren(...recent.map(tag => {
                 const item = document.createElement('div');
                 item.className = 's34-blm-recent-item';
-                const chip = chipFor(tag);
+                const chip = chipFor(tag, unsaved.has(tag.toLowerCase()));
                 chip.title = 'Click to set its type';
                 chip.querySelector('.s34-blm-name').addEventListener('click', () => openTypeMenu(chip, tag));
                 const x = document.createElement('button');
@@ -292,7 +350,7 @@
                     wrap.className = 's34-blm-chips';
                     listEl.appendChild(wrap);
                 }
-                wrap.appendChild(makeChip(tag, when(tag)));
+                wrap.appendChild(makeChip(tag, when(tag), unsaved.has(tag.toLowerCase())));
             });
         }
 
@@ -308,27 +366,16 @@
         addInput.addEventListener('input', () => { if (/\s/.test(addInput.value)) commitAdd(false); });
         if (CONFIG.searchSuggestions) attachSuggestions(addInput);
         addInput.addEventListener('keydown', e => {
-            if (e.defaultPrevented || addInput.dataset.acOpen === '1' || e.isComposing) return;
-            if (e.key === 'Enter') { e.preventDefault(); commitAdd(true); }
+            const handled = e.defaultPrevented; // (a picked suggestion)
+            if (e.key === 'Enter') e.preventDefault(); // (inline: never sends rule34's form)
+            if (handled || addInput.dataset.acOpen === '1' || e.isComposing) return;
+            if (e.key === 'Enter') commitAdd(true);
         });
         $('.s34-blm-addbtn').addEventListener('click', () => { commitAdd(true); addInput.focus(); });
 
-        $('.s34-blm-filter').addEventListener('input', e => { filter = e.target.value.trim(); render(); });
-
-        function close() {
-            document.removeEventListener('keydown', onKey, true);
-            overlay.remove();
-        }
-        function onKey(e) {
-            if (e.key !== 'Escape') return;
-            if (addInput.dataset.acOpen === '1') return; // Esc closes the suggestions first
-            e.preventDefault();
-            e.stopPropagation();
-            close();
-        }
-        $('.s34-blm-close').addEventListener('click', close);
-        overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(); });
-        document.addEventListener('keydown', onKey, true);
+        const filterBox = $('.s34-blm-filter');
+        filterBox.addEventListener('input', () => { filter = filterBox.value.trim(); render(); });
+        filterBox.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
 
         // Types of tags Steamy34 hasn't seen yet: ask the tag-suggestion server
         let lookingUp = false;
@@ -344,7 +391,7 @@
             lookingUp = true;
             let done = 0;
             for (const t of unknown) {
-                if (!overlay.isConnected) break;
+                if (!box.isConnected) break;
                 setStatus(`Looking up tag types… ${done} / ${unknown.length}`);
                 try {
                     await lookupTypesViaSuggestions([t]);
@@ -359,13 +406,41 @@
             }
             lookingUp = false;
             setStatus('');
-            if (overlay.isConnected) render();
+            if (box.isConnected) render();
         }
 
         render();
+        return { render, input: addInput, lookup: lookupUnknownTypes };
+    }
+
+    function openBlacklistManager() {
+        if (document.querySelector('.s34-blm-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 's34-overlay s34-blm-overlay';
+        const box = document.createElement('div');
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-modal', 'true');
+        overlay.appendChild(box);
+        const panel = buildBlacklistPanel(box);
+
+        function close() {
+            document.removeEventListener('keydown', onKey, true);
+            overlay.remove();
+        }
+        function onKey(e) {
+            if (e.key !== 'Escape') return;
+            if (panel.input.dataset.acOpen === '1') return; // Esc closes the suggestions first
+            e.preventDefault();
+            e.stopPropagation();
+            close();
+        }
+        box.querySelector('.s34-blm-close').addEventListener('click', close);
+        overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(); });
+        document.addEventListener('keydown', onKey, true);
+
         document.body.appendChild(overlay);
-        addInput.focus();
-        lookupUnknownTypes();
+        panel.input.focus();
+        panel.lookup();
     }
 
     // Sidebar button that opens it (posts page and single posts),

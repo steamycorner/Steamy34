@@ -547,6 +547,8 @@
             showFilters();
             renderFavTags();
             if (typeof refreshSearchButtons === 'function') refreshSearchButtons();
+            const save = root.parentElement && root.parentElement.querySelector('.s34-sb-save');
+            if (save && save._s34Update) save._s34Update(); // filled when this search is saved
         }
 
         function addTerms(words) {
@@ -835,7 +837,11 @@
         }
         if (!root.contains(submitBtn)) {
             submitBtn.classList.add('s34-sb-submit');
-            filtersEl.after(submitBtn);
+            // Search + a square disk button: save this search (20g) - Beta 3.7
+            const goRow = document.createElement('div');
+            goRow.className = 's34-sb-gorow';
+            filtersEl.after(goRow);
+            goRow.append(submitBtn, makeSaveSearchButton(query, () => commitField(true)));
         }
 
         // The site's own Search button: take along what's still typed
