@@ -338,6 +338,7 @@
             rememberMediaHost(isVideo ? 'video' : 'image', popupState.mediaUrl);
             el.classList.remove('s34-pv-loading');
             placeholder.remove();
+            if (!isVideo) fitLongStrip(el);
             preloadNeighbours(thumb); // next / previous ready before you get there
         });
         el.addEventListener('error', tryNext);

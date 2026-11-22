@@ -51,7 +51,19 @@
                 const act = e.target.closest('[data-act]');
                 if (!act) return;
                 const a = act.dataset.act;
-                if (a === 'all') {
+                if (a === 'every') {
+                    allThumbs().filter(t => t.offsetParent !== null).forEach(t => toggleSelected(t, true));
+                } else if (a === 'unfav') {
+                    // two clicks, so a slip can't unfavourite a whole page
+                    if (!act.classList.contains('s34-armed')) {
+                        act.classList.add('s34-armed');
+                        act.textContent = `Click again to unfavourite ${selected.size}`;
+                        setTimeout(() => { if (act.isConnected) renderBatchBar(); }, 4000);
+                        return;
+                    }
+                    const list = allThumbs().filter(t => selected.has(t));
+                    if (list.length) batchUnfavourite(list);
+                } else if (a === 'all') {
                     allThumbs().filter(t => t.offsetParent !== null && !t.classList.contains('s34-was-downloaded'))
                         .forEach(t => toggleSelected(t, true));
                 } else if (a === 'none') {
@@ -74,24 +86,27 @@
             document.body.appendChild(bar);
         }
         const n = selected.size;
+        const favPage = onOwnFavourites();
         bar.innerHTML = batchRunning
             ? `<span class="s34-batch-status"></span>
                <button type="button" data-act="stop">Stop</button>`
             : `<span class="s34-batch-status"><b>${n}</b> selected</span>
+               ${favPage ? '<button type="button" data-act="every" title="Select every loaded post">Select all</button>' : ''}
                <button type="button" data-act="all" title="Select every loaded post you haven't downloaded yet">Select all new</button>
                <button type="button" data-act="none">Clear</button>
                <button type="button" data-act="collect" ${n ? '' : 'disabled'} title="Save the selected posts in a collection" class="s34-batch-icon">${FOLDER_SVG} Add to collection</button>
+               ${favPage ? `<button type="button" data-act="unfav" ${n ? '' : 'disabled'} title="Take the selected posts out of your favourites">♥ Unfavourite</button>` : ''}
                <button type="button" data-act="go" class="s34-batch-go" ${n ? '' : 'disabled'}>⬇ Download ${n || ''}</button>
                <button type="button" data-act="done" title="Leave select mode">✕</button>`;
         if (batchRunning) bar.querySelector('.s34-batch-status').textContent = batchStatus;
     }
 
-    async function downloadThumb(thumb) {
+    async function downloadThumb(thumb, kind = 'batch') {
         const a = thumb.querySelector('a[href]');
         if (!a) return false;
-        const doc = await fetchPostDoc(a.href, 'batch');
+        const doc = await fetchPostDoc(a.href, kind);
         if (!doc) return false;
-        const media = await getPostMedia(a.href, 'batch');
+        const media = await getPostMedia(a.href, kind);
         const url = media && (media.video || media.image);
         if (!url) return false;
         const g = readPostTags(doc);

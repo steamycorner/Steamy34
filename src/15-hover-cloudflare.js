@@ -304,6 +304,10 @@
                 once the check is passed, and Steamy34 continues where it stopped.
             </div>
             <iframe class="s34-cf-frame" referrerpolicy="same-origin"></iframe>
+            ${hasApiKey() ? '' : `<div class="s34-cf-api">
+                <span><b>Fewer checks?</b> With your own rule34 API key, Steamy34 gets new-post counts and hover previews from rule34's API instead of its pages, so these checks come up less often. Optional: Steamy34 works fine without it.</span>
+                <button class="s34-btn" data-act="api">About the API key</button>
+            </div>`}
             <div class="s34-panel-foot">
                 <button class="s34-btn s34-link" data-act="tab">Open in new tab instead</button>
                 <button class="s34-btn" data-act="reload">Reload page</button>
@@ -342,6 +346,7 @@
         panel.addEventListener('click', e => {
             const act = e.target.dataset && e.target.dataset.act;
             if (e.target.classList.contains('s34-close')) close();
+            else if (act === 'api') { close(); try { sessionStorage.setItem(SETTINGS_TAB_KEY, 'api'); } catch (err) {} openSettings(); } // (the check waits - the notice stays)
             else if (act === 'tab') window.open(cfCheckUrl, '_blank', 'noopener');
             else if (act === 'reload') location.reload();
             else if (act === 'done') { close(); cloudflarePassed(); }

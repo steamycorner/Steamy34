@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.7.2-beta
+// @version      3.8-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
 // @supportURL   https://sleazyfork.org/en/scripts/606445-steamy34/feedback
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjVmOGYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjNkZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNSIgZmlsbD0idXJsKCNnKSIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIzLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iLjk1Ij48cGF0aCBkPSJNMjIgMjZjLTMuMi0zIDMuMi01LjYgMC04LjZzMy4yLTUuNiAwLTguNCIvPjxwYXRoIGQ9Ik0zMSAyNmMtMy4yLTMgMy4yLTUuNiAwLTguNnMzLjItNS42IDAtOC40Ii8+PHBhdGggZD0iTTQwIDI2Yy0zLjItMyAzLjItNS42IDAtOC42czMuMi01LjYgMC04LjQiLz48L2c+PHBhdGggZD0iTTE0IDMxaDM0djdhMTMgMTMgMCAwIDEtMTMgMTNoLThhMTMgMTMgMCAwIDEtMTMtMTN6IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTQ3LjUgMzQuNWgyLjVhNS41IDUuNSAwIDAgMSAwIDExaC00IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIxMSIgeT0iNTMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzLjQiIHJ4PSIxLjciIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii45Ii8+PC9zdmc+
-// @description  All-in-one rule34.xxx upgrade: dark / OLED mode, popup viewer, easy tag search with filters, follow artists and save searches, with new-post counts and their own grid window, downloads named after the tags (press B), batch downloads, collections, blacklists of any length, infinite scroll, tidy My Account and Options pages and a phone layout. Designed by steamycorner, written with AI. A free fan-made hobby project, never monetized.
+// @description  All-in-one rule34.xxx upgrade: dark / OLED mode, popup viewer, easy tag search with filters, follow artists and save searches with new-post counts, downloads named after the tags (press B), batch downloads, collections on all your devices, download and viewed buttons on thumbnails, blacklists of any length, infinite scroll and a phone layout. Designed by steamycorner, written with AI. A free fan-made hobby project, never monetized.
 // @match        https://rule34.xxx/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -144,6 +144,11 @@
         hideViewed: false,       // posts page: hide posts you already viewed (sidebar switch)
         hideDownloaded: false,   // posts page: hide posts you already downloaded (sidebar switch)
         hoverInfo: true,         // score and resolution on thumbnails while hovering
+        collectionsSync: false,  // collections on all devices: their posts are favourited too (opt-in)
+        thumbHeart: true,        // the ♥ on thumbnails (favButtons switches all ♥ - popup too)
+        thumbDlButton: true,     // download button on thumbnails (hover)
+        thumbSeenButton: true,   // "viewed" button on thumbnails (hover)
+        thumbMarks: true,        // viewed / downloaded marks on thumbnails (tracking goes on either way)
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
         popupPreload: true,      // popup: load the next post in advance (once you stay on a post for a moment)
 
@@ -294,6 +299,10 @@
             ['hoverInfo', 'Score & resolution on hover'],
             ['thumbTagBar', 'Artist & character tags on thumbnails'],
             ['favButtons', '♥ Favourite buttons', { hint: 'On thumbnails and in the popup – needs a rule34 login' }],
+            ['thumbHeart', '♥ on thumbnails', { hint: 'Your favourites page keeps it – it\'s how posts are removed there' }],
+            ['thumbDlButton', 'Download button on thumbnails', { hint: 'While hovering, next to the ♥. Computers only' }],
+            ['thumbSeenButton', '"Viewed" button on thumbnails', { hint: 'While hovering: mark a post as viewed / not viewed. Computers only' }],
+            ['thumbMarks', 'Show viewed / downloaded without hovering', { hint: 'The green download and blue eye stay on thumbnails you downloaded or viewed (on phones: a small corner icon). Off: only while hovering. Steamy34 keeps remembering either way' }],
             ['infiniteScroll', 'Infinite scrolling', { hint: 'The next page loads when you reach the bottom' }],
             ['resumeOffer', 'Offer to continue where you left off', { hint: 'Back on a search you had scrolled deep into? A small "Continue at page N" button takes you back there' }],
             ['pageDividers', '"Page N" dividers'],
@@ -343,6 +352,7 @@
             ['trackDownloads', 'Remember downloaded posts', { hint: 'Download mark on thumbnails, green Download button' }],
             ['trackViewed', 'Remember viewed posts', { hint: 'Small eye on thumbnails' }],
             ['confirmRedownload', 'Ask before downloading a post again'],
+            ['collectionsSync', 'Collections on all your devices', { hint: 'Posts you put into a collection are favourited too, so they\'re on your phone as well (favourites page). Un-favourite one anywhere and it leaves its collections. Needs a rule34 login' }],
             ['fileNameStyle', 'File names', { options: { brackets: '[character] [series] [artist]', classic: 'Character_Series_Artist_Resolution' }, hint: 'Readable names with spaces – handy for sorting in picture libraries' }],
             ['fileNamePostId', 'Add the post number to file names', { hint: 'e.g. "[tracer] [overwatch] [someartist] #1234567.jpg" – so you can always find the post again. Bracket style only' }],
             ['batchDelay', 'Pause between batch downloads', { min: 300, max: 10000, unit: 'ms', adv: true }],
@@ -1073,6 +1083,10 @@
         }
         .s34-cf-panel .s34-close:hover { background-color: rgba(255,255,255,0.12) !important; }
         .s34-cf-note { padding: 0 20px 12px; font-size: 13px; opacity: .75; }
+        .s34-cf-api { display: flex; align-items: center; gap: 14px; margin: 12px 20px 0; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); font-size: 12.5px; line-height: 1.45; }
+        .s34-cf-api span { opacity: .85; }
+        .s34-cf-api .s34-btn { flex: none; white-space: nowrap; }
+        @media (max-width: 700px) { .s34-cf-api { flex-direction: column; align-items: stretch; } }
         .s34-cf-panel .s34-cf-frame { margin: 0 20px; width: calc(100% - 40px); border-radius: 12px; }
         .s34-cf-panel .s34-panel-foot { padding: 14px 20px 18px; border-top: none !important; gap: 8px; }
         .s34-cf-panel .s34-btn {
@@ -1344,6 +1358,52 @@
         span.thumb:hover .s34-fav-btn { opacity: .9; }
         .s34-fav-btn:hover { opacity: 1 !important; transform: scale(1.12); color: #ff6b7a !important; }
         .s34-fav-btn.s34-faved { opacity: 1; color: #ff6b7a !important; }
+        /* (Beta 3.7.4 / 3.8) Download and viewed buttons in a column under the ♥ -
+           never under the score pill, fits narrow (tall) thumbnails. While
+           hovering all of them; otherwise only the ones that are on (green =
+           downloaded, blue = viewed), like a favourited ♥ */
+        .s34-tbtns { position: absolute; top: 34px; right: 6px; z-index: 5; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+        span.thumb:not(:has(.s34-fav-btn)):not(:has(.s34-dl-mark)) .s34-tbtns { top: 6px; }
+        html.s34-tx-below span.thumb .s34-tbtns { top: 6px; }
+        /* not hovering and no ♥ showing: the green / blue ones move up into the corner */
+        span.thumb:not(:hover):not(:has(.s34-fav-btn.s34-faved)):not(:has(.s34-dl-mark)) .s34-tbtns { top: 6px; }
+        .s34-tbtn {
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            padding: 0 !important; border-radius: 50% !important; border: none !important;
+            background-color: rgba(20,20,24,0.8) !important; box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+            color: #fff !important; cursor: pointer; pointer-events: auto; opacity: .9;
+            transition: transform .15s;
+        }
+        .s34-tbtn:not(.s34-on):not(.s34-busy) { display: none; }
+        span.thumb:hover .s34-tbtn { display: flex; }
+        /* the eye and its strip: one item in the column (none while it's hidden) */
+        .s34-tseen-wrap { position: relative; display: flex; pointer-events: auto; }
+        span.thumb:not(:hover) .s34-tseen-wrap:not(:has(.s34-tseen.s34-on)) { display: none; }
+        ${CONFIG.thumbMarks ? '' : 'span.thumb:not(:hover) .s34-tseen-wrap { display: none; }'}
+        .s34-tseen-fly { position: absolute; right: 100%; top: 0; z-index: 6; display: none; gap: 4px; padding-right: 4px; white-space: nowrap; }
+        .s34-tseen-wrap:hover .s34-tseen-fly { display: flex; }
+        .s34-tseen-fly button {
+            display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px !important;
+            border-radius: 12px !important; border: none !important; background-color: rgba(20,20,24,0.9) !important;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.45); color: #fff !important; font: 600 11px/1 system-ui, -apple-system, Segoe UI, sans-serif; cursor: pointer;
+        }
+        .s34-tseen-fly button svg { width: 12px; height: 12px; flex: none; pointer-events: none; }
+        .s34-tseen-fly button span { pointer-events: none; }
+        .s34-tseen-fly button:hover { filter: brightness(1.25); }
+        .s34-tseen-fly button[data-m="viewed"].s34-on { background-color: rgba(52,98,196,0.95) !important; }
+        .s34-tseen-fly button[data-m="dl"].s34-on { background-color: rgba(31,122,62,0.95) !important; }
+        .s34-tseen-fly button.s34-on::after { content: '✓'; margin-left: 2px; }
+        ${CONFIG.thumbMarks ? '' : 'span.thumb:not(:hover) .s34-tbtn.s34-on:not(.s34-busy) { display: none; }'}
+        .s34-tbtn:hover { opacity: 1 !important; transform: scale(1.12); }
+        .s34-tdl.s34-on { background-color: rgba(31,122,62,0.92) !important; }
+        .s34-tseen.s34-on { background-color: rgba(52,98,196,0.92) !important; }
+        .s34-tdl:not(.s34-on):hover { color: #6ee7a8 !important; }
+        .s34-tseen:not(.s34-on):hover { color: #8ab4f8 !important; }
+        .s34-tbtn svg { display: block; pointer-events: none; }
+        .s34-tbtn.s34-busy { opacity: 1 !important; }
+        .s34-tbtn.s34-busy svg { display: none; }
+        .s34-tbtn .s34-spin { margin: 0; width: 12px; height: 12px; }
+        @media (hover: none), (max-width: 760px), (pointer: coarse) and (max-width: 1000px) { .s34-tbtns { display: none !important; } }
         /* Favourites pages: rule34 wraps each thumbnail in an extra box (with
            "Remove" under it on your own list) - the box steps aside so the
            thumbnails join the normal grid, and the ♥ does the removing */
@@ -1395,6 +1455,10 @@
             transition: opacity .15s;
         }
         span.thumb:hover .s34-info { opacity: 1; }
+        /* narrow thumbnails: the pill stops before the ♥ / corner mark (cut off with …) */
+        .s34-info { max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; }
+        span.thumb:has(.s34-fav-btn) .s34-info, span.thumb:has(.s34-dl-mark) .s34-info { max-width: calc(100% - 46px); }
+        span.thumb:has(.s34-fav-btn):has(.s34-dl-mark) .s34-info { max-width: calc(100% - 74px); }
         /* The pill takes the labels' place while hovering, so nothing
            overlaps (a hovered video plays anyway). In "Below" the labels sit
            in the strip, out of the pill's way, and stay. */
@@ -3049,6 +3113,37 @@
         .s34-hub b { font-size: 10.5px; letter-spacing: -.1px; }
         .s34-hub small { font-size: 9.5px; opacity: .55; }
 
+        /* (Beta 3.8) Collections on all devices: the one-time choice, the
+           favourites page bar and the folder chips on its thumbnails */
+        .s34-collsync-card { margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; background: rgba(255,95,143,.08); border: 1px solid rgba(255,95,143,.35); }
+        .s34-collsync-card b { display: block; font-size: 15px; margin-bottom: 4px; }
+        .s34-collsync-card p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; opacity: .9; }
+        .s34-collsync-card .s34-collsync-small { font-size: 12px; opacity: .65; }
+        .s34-collsync-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+        .s34-favcoll-bar { margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; background: var(--s34-panel, rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.08); }
+        .s34-favcoll-bar h2 { margin: 0; font-size: 20px; }
+        .s34-win-more { display: block; margin: 14px auto 4px; padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+        .s34-win-more:hover { border-color: #ff5f8f; }
+        .s34-favcoll-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+        .s34-favcoll-acts { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+        .s34-favcoll-acts button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .s34-favcoll-acts button:hover { border-color: #ff5f8f; }
+        .s34-favcoll-acts button svg { width: 14px; height: 14px; }
+        .s34-favcoll-acts .s34-favcoll-primary { background: #ff5f8f !important; border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-batch button.s34-armed { background: #c0392b !important; color: #fff !important; }
+        .s34-favcoll-bar p { margin: 0 0 10px; opacity: .7; font-size: 13px; }
+        .s34-favcoll-list { display: flex; flex-wrap: wrap; gap: 6px; }
+        .s34-favcoll-list button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+        .s34-favcoll-list button:hover { border-color: #ff5f8f; }
+        .s34-favcoll-list small { opacity: .6; }
+        .s34-cchip { position: absolute; left: 6px; top: 6px; z-index: 4; transition: opacity .15s; max-width: calc(100% - 12px); display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 6px; background-color: rgba(20,20,24,0.85) !important; color: #fff !important; font: 600 11px/1.4 system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+        .s34-cchip svg { flex: none; width: 12px; height: 12px; }
+        /* top left like the VID / GIF label - under it when there is one; the
+           score pill takes its place while hovering */
+        span.thumb:has(.s34-badge, .s34-new-badge) .s34-cchip { top: 30px; }
+        html.s34-tx-below span.thumb .s34-cchip { top: 6px; }
+        span.thumb:hover:has(.s34-info) .s34-cchip { opacity: 0; }
+
     `;
 
     const POPUP_INFO_CSS = `
@@ -3287,6 +3382,8 @@
             cursor: grab;
         }
         .s34-pv-stage.s34-pv-dragging img.s34-pv-media { cursor: grabbing !important; }
+        .s34-pv-stage.s34-pv-strip { overflow-x: hidden; overflow-y: auto; }
+        .s34-pv-stage.s34-pv-strip img.s34-pv-media { cursor: zoom-out; }
 
     `;
 
@@ -3960,6 +4057,13 @@
         .s34-dock { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 12px 0; }
         .s34-tools .s34-dock, .s34-menu-tools .s34-dock { margin: 0; }
         .s34-dock .s34-hub { display: contents; }
+        /* (Beta 3.8) Collections · Stats / Blacklist · Downloads (· Settings on phones) */
+        .s34-dock .s34-hub [data-hub="coll"] { order: 1; }
+        .s34-dock .s34-hub [data-hub="stats"] { order: 2; }
+        .s34-dock .s34-blbtn { order: 3; }
+        .s34-dock .s34-hub [data-hub="dl"] { order: 4; }
+        .s34-dock .s34-gear { order: 5; }
+        .s34-gear.s34-inline.s34-gear-in-nav { display: none !important; }
         .s34-dock .s34-hub button, .s34-dock .s34-blbtn, .s34-dock .s34-gear.s34-inline {
             display: flex !important;
             flex-direction: row !important;
@@ -5202,7 +5306,9 @@
             pointer-events: none;
             transition: opacity .12s;
         }
-        .s34-dl-mark:hover::after { opacity: 1; }
+        /* (Beta 3.8) The label floated over the ♥ next to it - the browser's own
+           tooltip (title) says it now, so nothing covers anything */
+        .s34-dl-mark::after { display: none !important; }
         .s34-dl-btn kbd {
             display: inline-block;
             margin-left: 6px;
@@ -5802,6 +5908,12 @@
         return result;
     }
 
+    // (Beta 3.7.3) Pictures this many times taller than wide are long strips
+    // (comics): they're fitted to the width and read from the top instead of
+    // being shrunk until the whole strip fits - far too small to read.
+    const LONG_STRIP_RATIO = 2.5;
+    const isLongStrip = (w, h) => !!w && h / w >= LONG_STRIP_RATIO;
+
     function getOriginalUrl() {
         const link = Array.from(document.querySelectorAll('a'))
             .find(a => /original\s*image/i.test(a.textContent));
@@ -5991,6 +6103,7 @@
         if (id) touchedNow.add(id);
         if (!id || !CONFIG.trackDownloads) return;
         addDlHistory(id, info);
+        if (info && info.thumb) rememberDlThumb(id, info.thumb); // (the Downloads window shows it)
         loadDownloaded(); // fresh copy (another tab may have added some)
         downloaded[id] = Date.now();
         const ids = Object.keys(downloaded);
@@ -6060,9 +6173,45 @@
     const viewedPending = {};
     let viewedSaveTimer = null;
 
+    // (Beta 3.8) "Mark all as downloaded" on the favourites page: only the
+    // mark, no file and no Stats entry. Resolves the ids that were new.
+    function markDownloadedOnly(ids) {
+        if (!CONFIG.trackDownloads) return [];
+        loadDownloaded();
+        const fresh = ids.filter(id => id && !downloaded[id]);
+        fresh.forEach(id => { downloaded[id] = Date.now(); touchedNow.add(id); });
+        if (fresh.length && !downloadedUnreadable) { GM_setValue(DOWNLOADED_KEY, downloaded); bumpMarksRev(); }
+        return fresh;
+    }
+    function unmarkDownloaded(ids) {
+        loadDownloaded();
+        ids.forEach(id => delete downloaded[id]);
+        if (!downloadedUnreadable) { GM_setValue(DOWNLOADED_KEY, downloaded); bumpMarksRev(); }
+    }
+
+    // Downloaded posts count as viewed - unless you switch their eye off
+    // (Beta 3.8): those few are kept here
+    const UNSEEN_KEY = 'steamy34_unseen';
+    function getUnseen() { try { const v = GM_getValue(UNSEEN_KEY, {}); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; } }
+    function setUnseen(id, on) {
+        const u = getUnseen();
+        if (!!u[id] === on) return;
+        if (on) u[id] = Date.now(); else delete u[id];
+        GM_setValue(UNSEEN_KEY, u);
+    }
+    function isSeen(id, done) { return isViewed(id) || (done && !getUnseen()[id]); }
+
+    // The eye on thumbnails: viewed on / off (also for downloaded posts)
+    function setThumbViewed(id, on) {
+        if (!id) return;
+        if (on) { setUnseen(id, false); rememberView(id); saveViewed(); }
+        else { forgetView(id); if (isDownloaded(id)) setUnseen(id, true); }
+    }
+
     function rememberView(id) {
         if (id) touchedNow.add(id);
         if (!id || !CONFIG.trackViewed) return;
+        if (getUnseen()[id]) setUnseen(id, false);
         if (!viewed) loadViewed();
         viewed[id] = viewedPending[id] = Date.now();
         clearTimeout(viewedSaveTimer);
@@ -6084,6 +6233,17 @@
         if (!viewedUnreadable) GM_setValue(VIEWED_KEY, viewed);
         bumpMarksRev();
     }
+    // (Beta 3.7.4) The eye button on thumbnails: "not viewed after all"
+    function forgetView(id) {
+        if (!id) return;
+        delete viewedPending[id];
+        loadViewed();
+        Object.assign(viewed, viewedPending);
+        delete viewed[id];
+        if (!viewedUnreadable) GM_setValue(VIEWED_KEY, viewed);
+        bumpMarksRev();
+    }
+
     // Don't lose the last few when the page is left
     window.addEventListener('pagehide', () => { if (viewedSaveTimer) { clearTimeout(viewedSaveTimer); saveViewed(); } });
 
@@ -6096,19 +6256,43 @@
             if (!thumb) return;
             const id = thumb._s34Id || (thumb._s34Id = thumbPostId(thumb));
             const done = CONFIG.trackDownloads && isDownloaded(id);
-            const seen = CONFIG.trackViewed && (done || isViewed(id));
+            const seen = CONFIG.trackViewed && isSeen(id, done);
             thumb.classList.toggle('s34-was-downloaded', done);
             thumb.classList.toggle('s34-was-viewed', seen);
             thumb.classList.toggle('s34-touched-now', touchedNow.has(id));
-            const want = done ? 'dl' : seen ? 'seen' : '';
+            // (Beta 3.8) The ⬇ and 👁 buttons show the state themselves (green /
+            // blue, and they stay while not hovering) - the corner mark is only
+            // drawn for what has no button (switched off, or phones: no hover)
+            const dlBtn = thumb.querySelector('.s34-tdl'), eyeBtn = thumb.querySelector('.s34-tseen');
+            styleSeenButton(eyeBtn, seen);
+            styleDlThumbButton(dlBtn, done);
+            const fly = thumb.querySelector('.s34-tseen-fly');
+            if (fly) {
+                fly.querySelector('[data-m="viewed"]').classList.toggle('s34-on', seen);
+                const fd = fly.querySelector('[data-m="dl"]');
+                if (fd) fd.classList.toggle('s34-on', done);
+            }
+            const usable = b => !!b && !thumbButtonsHidden();
+            let want = done ? 'dl' : seen ? 'seen' : '';
+            if (want === 'dl' && usable(dlBtn)) want = '';
+            if (want === 'seen' && usable(eyeBtn)) want = '';
             let mark = thumb.querySelector('.s34-dl-mark');
-            if (!want) { if (mark) mark.remove(); return; }
+            if (!want || !CONFIG.thumbMarks) { if (mark) mark.remove(); return; }
             if (!mark) {
                 mark = document.createElement('span');
-                // Clicking the icon opens the post like the thumbnail does
+                // Clicking the icon opens the post like the thumbnail does -
+                // the "viewed" eye undoes "viewed" instead (Beta 3.7.4: people
+                // clicked it to un-see a post, which opened it = viewed again)
                 mark.addEventListener('click', e => {
                     e.preventDefault();
                     e.stopPropagation();
+                    if (mark.dataset.kind === 'seen') {
+                        const pid = thumbPostId(thumb);
+                        setThumbViewed(pid, false);
+                        showDownloadedState([thumb]);
+                        showToast('Marked as not viewed', 'Undo', () => { setThumbViewed(pid, true); showDownloadedState([thumb]); });
+                        return;
+                    }
                     const a = thumb.querySelector('a[href]');
                     if (a) a.click();
                 });
@@ -6121,7 +6305,8 @@
                 mark.innerHTML = want === 'dl'
                     ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>'
                     : '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-                mark.dataset.label = want === 'dl' ? 'Downloaded' : 'Viewed';
+                mark.dataset.label = want === 'dl' ? 'Downloaded' : 'Viewed – click to undo';
+                mark.title = want === 'dl' ? 'Downloaded – click to open' : 'Viewed – click to mark as not viewed';
             }
         });
         if (!CONFIG.trackDownloads) return;
@@ -6563,6 +6748,8 @@
             const availH = window.innerHeight - CONFIG.padding * 2;
 
             let scale = Math.min(availW / w, availH / h);
+            // long strips (comics): fit the width only, the page scrolls
+            if (img && !video && isLongStrip(w, h)) scale = availW / w;
             if (!CONFIG.allowUpscale) scale = Math.min(scale, 1);
 
             const newW = Math.floor(w * scale);
@@ -7290,6 +7477,10 @@
                 once the check is passed, and Steamy34 continues where it stopped.
             </div>
             <iframe class="s34-cf-frame" referrerpolicy="same-origin"></iframe>
+            ${hasApiKey() ? '' : `<div class="s34-cf-api">
+                <span><b>Fewer checks?</b> With your own rule34 API key, Steamy34 gets new-post counts and hover previews from rule34's API instead of its pages, so these checks come up less often. Optional: Steamy34 works fine without it.</span>
+                <button class="s34-btn" data-act="api">About the API key</button>
+            </div>`}
             <div class="s34-panel-foot">
                 <button class="s34-btn s34-link" data-act="tab">Open in new tab instead</button>
                 <button class="s34-btn" data-act="reload">Reload page</button>
@@ -7328,6 +7519,7 @@
         panel.addEventListener('click', e => {
             const act = e.target.dataset && e.target.dataset.act;
             if (e.target.classList.contains('s34-close')) close();
+            else if (act === 'api') { close(); try { sessionStorage.setItem(SETTINGS_TAB_KEY, 'api'); } catch (err) {} openSettings(); } // (the check waits - the notice stays)
             else if (act === 'tab') window.open(cfCheckUrl, '_blank', 'noopener');
             else if (act === 'reload') location.reload();
             else if (act === 'done') { close(); cloudflarePassed(); }
@@ -8737,6 +8929,7 @@
         if (CONFIG.thumbTagBar) setupTagBars(thumbs);
         showDownloadedState(thumbs);
         addFavButtons(thumbs);
+        showCollectionChips(thumbs);
         setupHoverInfo(thumbs);
         markFeedNew(thumbs); // Following feed: NEW on later pages too
     }
@@ -9289,7 +9482,13 @@
 
         const cleanupObserver = CONFIG.cleanupFarPages
             ? new IntersectionObserver(entries => {
-                entries.forEach(e => e.isIntersecting ? unpark(e.target) : park(e.target));
+                // Only pages you've been near are unloaded (the ones far behind
+                // you). A freshly loaded page further down is never put away
+                // before you reach it - the popup steps into it (Beta 3.8 fix).
+                entries.forEach(e => {
+                    if (e.isIntersecting) { e.target.dataset.s34Near = '1'; unpark(e.target); }
+                    else if (e.target.dataset.s34Near) park(e.target);
+                });
             }, { rootMargin: `${CONFIG.cleanupDistance}px 0px ${CONFIG.cleanupDistance}px 0px` })
             : null;
 
@@ -9839,6 +10038,10 @@
     const GEAR_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 
     function addSettingsButton() {
+        // (Beta 3.8) In rule34's top menu on every page: "Steamy34 Settings".
+        // The sidebar button is still made (other parts are placed next to
+        // it) but stays hidden while the top menu has it.
+        const inNav = addNavSettings();
         const gear = document.createElement('div');
         gear.className = 's34-gear';
         gear.title = 'Steamy34 Settings · ' + CURRENT_VERSION;
@@ -9866,23 +10069,18 @@
         const slot = isPostView ? getPostSidebarSlot() : null;
         if (!isPostView && CONFIG.hideListTags && tagList) {
             makeInline();
+            if (inNav) gear.classList.add('s34-gear-in-nav');
             tagList.after(gear); // sticks together with the sidebar
         } else if (slot) {
             // Single post: in the sidebar, under the Download button
             makeInline();
+            if (inNav) gear.classList.add('s34-gear-in-nav');
             slot.appendChild(gear);
-        } else if (!isPhoneLayout() && document.querySelector('#navbar')) {
-            // Pages without the sidebar (favourites, My Account, Options…): at
-            // the end of rule34's own menu at the top. (On phones that menu folds
-            // into the ☰ Menu, so there it stays in the corner.)
-            gear.classList.add('s34-gear-nav');
-            const label = document.createElement('span');
-            label.textContent = 'Steamy34';
-            gear.appendChild(label);
-            const li = document.createElement('li');
-            li.className = 's34-nav-steamy';
-            li.appendChild(gear);
-            document.querySelector('#navbar').appendChild(li);
+        } else if (inNav) {
+            // Pages without the sidebar (favourites, My Account, Options…): the
+            // top menu has it. (On phones that menu folds into the ☰ Menu, so
+            // there it stays in the corner.)
+            return;
         } else {
             document.body.appendChild(gear);
         }
@@ -10797,11 +10995,12 @@
         GM_setValue(FAVS_KEY, f);
     }
 
-    async function addFavourite(id) {
+    // opts: { quiet: no "Added" message, kind: page-queue kind (collections use 'batch') }
+    async function addFavourite(id, opts = {}) {
         if (!id) return false;
         try {
             let r;
-            try { r = await loadPage('public/addfav.php?id=' + encodeURIComponent(id), 'action'); }
+            try { r = await loadPage('public/addfav.php?id=' + encodeURIComponent(id), opts.kind || 'action'); }
             catch (e) { if (e.cloudflare) { showToast('Favourite not saved – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
             const text = r.html.trim();
             if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -10810,7 +11009,7 @@
                 return false;
             }
             rememberFav(id);
-            showToast(text === '1' ? 'Already in your favourites ♥' : 'Added to your favourites ♥');
+            if (!opts.quiet) showToast(text === '1' ? 'Already in your favourites ♥' : 'Added to your favourites ♥');
             return true;
         } catch (e) {
             showToast('Could not add to favourites (' + (e.message || e) + ').');
@@ -10826,11 +11025,11 @@
 
     // Beta 3.7: ♥ again = remove it (the site's own "Remove", from its
     // favourites page: a plain address that removes it and shows the list)
-    async function removeFavourite(id) {
+    async function removeFavourite(id, opts = {}) {
         if (!id) return false;
         try {
             let r;
-            try { r = await loadPage('index.php?page=favorites&s=delete&id=' + encodeURIComponent(id) + '&return_pid=0', 'action'); }
+            try { r = await loadPage('index.php?page=favorites&s=delete&id=' + encodeURIComponent(id) + '&return_pid=0', opts.kind || 'action'); }
             catch (e) { if (e.cloudflare) { showToast('Favourite not removed – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
             if (!r.ok) throw new Error('HTTP ' + r.status);
             if (/[?&]s=login\b/.test(r.url || '') || /name=["']?pass(word)?["']?/i.test(r.html)) {
@@ -10867,8 +11066,14 @@
         if (!ok) return;
         showFavState(id, !faved);
         if (faved) {
-            showToast('Removed from your favourites', 'Undo', async () => {
-                if (await addFavourite(id)) showFavState(id, true);
+            const gone = unfavouritedHere(id); // collections on all devices: out of its collections too
+            const names = Array.from(new Set(gone.map(g => g.name)));
+            showCollectionChips();
+            showToast(names.length ? `Removed from your favourites and from ${namesText(names)}` : 'Removed from your favourites', 'Undo', async () => {
+                if (await addFavourite(id, { quiet: !!gone.length })) {
+                    showFavState(id, true);
+                    if (gone.length) { restoreToCollections(gone); showCollectionChips(); showToast('Back in your favourites and collections ♥'); }
+                }
             });
         }
     }
@@ -10916,8 +11121,117 @@
         btn.title = faved ? 'In your favourites – click to remove' : 'Add to your favourites';
     }
 
+    // ---- (Beta 3.7.4) Download and viewed buttons next to the ♥ on thumbnails ----
+    const TB_DL_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>';
+    const TB_EYE_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+    // On = blue and always there; off = only while hovering
+    function styleSeenButton(btn, seen) {
+        if (!btn || btn.dataset.seen === String(seen)) return;
+        btn.dataset.seen = String(seen);
+        btn.classList.toggle('s34-on', seen);
+        if (!btn.firstChild) btn.innerHTML = TB_EYE_SVG;
+        // (no tooltip: the strip next to it says it - a tooltip covered it)
+        btn.setAttribute('aria-label', seen ? 'Viewed – click to mark as not viewed' : 'Mark as viewed');
+    }
+
+    // On = green and always there
+    function styleDlThumbButton(btn, done) {
+        if (!btn || btn.dataset.done === String(done)) return;
+        btn.dataset.done = String(done);
+        btn.classList.toggle('s34-on', done);
+        btn.title = done ? 'Downloaded – click to download it again' : 'Download';
+        btn.setAttribute('aria-label', btn.title);
+    }
+
+    // The buttons need a mouse: phones (and very narrow windows) keep the corner marks
+    const THUMB_NO_HOVER = '(hover: none), (max-width: 760px), (pointer: coarse) and (max-width: 1000px)';
+    function thumbButtonsHidden() { try { return window.matchMedia(THUMB_NO_HOVER).matches; } catch (e) { return false; } }
+
+    async function thumbDownload(thumb, btn) {
+        if (btn.classList.contains('s34-busy')) return;
+        const id = thumbPostId(thumb);
+        if (CONFIG.confirmRedownload && CONFIG.trackDownloads && isDownloaded(id) && !(await confirmRedownload())) return;
+        // Ask for the download folder now, while the click still counts
+        const folder = await getFolderHandle().catch(() => null);
+        if (folder) await folderAllowed(folder, true);
+        setBusy(btn, true);
+        let ok = false;
+        try { ok = await downloadThumb(thumb, 'popup'); } catch (e) { console.warn('[Steamy34] Thumbnail download failed:', e); }
+        setBusy(btn, false);
+        showDownloadedState([thumb]);
+        showToast(ok ? 'Downloaded' : 'The download didn\'t work – try it in the popup.');
+    }
+
+    function addThumbButtons(thumbs) {
+        const wantDl = CONFIG.thumbDlButton, wantSeen = CONFIG.thumbSeenButton && CONFIG.trackViewed;
+        if (!wantDl && !wantSeen) return;
+        const made = [];
+        thumbs.forEach(thumb => {
+            if (thumb.querySelector('.s34-tbtns')) return;
+            const id = thumbPostId(thumb);
+            if (!id) return;
+            const box = document.createElement('span');
+            box.className = 's34-tbtns';
+            const dl = document.createElement('button');
+            dl.type = 'button';
+            dl.className = 's34-tbtn s34-tdl';
+            dl.innerHTML = TB_DL_SVG;
+            styleDlThumbButton(dl, !!(CONFIG.trackDownloads && isDownloaded(id)));
+            dl.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); thumbDownload(thumb, dl); });
+            if (wantDl) box.appendChild(dl);
+            if (wantSeen) {
+                // (Beta 3.8) The eye opens a small strip to its left while
+                // hovering: "Viewed" and "Downloaded" - the second only marks
+                // the post (nothing is downloaded). A click on the eye itself
+                // switches "viewed" as before.
+                const wrap = document.createElement('span');
+                wrap.className = 's34-tseen-wrap';
+                const fly = document.createElement('span');
+                fly.className = 's34-tseen-fly';
+                fly.innerHTML = `<button type="button" data-m="viewed">${TB_EYE_SVG}<span>Viewed</span></button>`
+                    + (CONFIG.trackDownloads ? `<button type="button" data-m="dl" title="Only the mark – nothing is downloaded">${TB_DL_SVG}<span>Downloaded</span></button>` : '');
+                fly.addEventListener('click', e => {
+                    const b = e.target.closest('[data-m]');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!b) return;
+                    if (b.dataset.m === 'viewed') {
+                        setThumbViewed(id, !b.classList.contains('s34-on'));
+                    } else if (b.classList.contains('s34-on')) {
+                        unmarkDownloaded([id]);
+                        showToast('No longer marked as downloaded.');
+                    } else {
+                        markDownloadedOnly([id]);
+                        showToast('Marked as downloaded – nothing was downloaded.');
+                    }
+                    showDownloadedState([thumb]);
+                    if (typeof updateDownloadsCount === 'function') updateDownloadsCount();
+                });
+                const seen = document.createElement('button');
+                seen.type = 'button';
+                seen.className = 's34-tbtn s34-tseen';
+                styleSeenButton(seen, !!(CONFIG.trackViewed && isSeen(id, CONFIG.trackDownloads && isDownloaded(id))));
+                seen.addEventListener('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setThumbViewed(id, seen.dataset.seen !== 'true');
+                    showDownloadedState([thumb]);
+                });
+                wrap.append(fly, seen);
+                box.prepend(wrap);
+            }
+            thumb.appendChild(box);
+            made.push(thumb);
+        });
+        // the marks were drawn before the buttons existed - the buttons show it now
+        if (made.length) showDownloadedState(made);
+    }
+
     function addFavButtons(thumbs) {
-        if (!CONFIG.favButtons) return;
+        addThumbButtons(thumbs || allThumbs());
+        // (your own favourites page keeps the ♥ - it's how posts are removed there)
+        if (!CONFIG.favButtons || (!CONFIG.thumbHeart && params.get('page') !== 'favorites')) return;
         const favs = getFavs();
         (thumbs || allThumbs()).forEach(thumb => {
             if (thumb.querySelector('.s34-fav-btn')) return;
@@ -11547,6 +11861,7 @@
             <ul class="s34-api-list">
                 <li>counting new posts of the artists you follow and your saved searches</li>
                 <li>finding the file for hover previews</li>
+                <li>pictures for older downloads in your Downloads window</li>
             </ul>
             <p>That's far less for rule34 to send – so Cloudflare checks come less often, and these things get quicker. Anything that doesn't work through the API simply uses the normal pages.</p>
             <div class="s34-set-cardhead">What Steamy34 promises</div>
@@ -11664,7 +11979,19 @@
                 const act = e.target.closest('[data-act]');
                 if (!act) return;
                 const a = act.dataset.act;
-                if (a === 'all') {
+                if (a === 'every') {
+                    allThumbs().filter(t => t.offsetParent !== null).forEach(t => toggleSelected(t, true));
+                } else if (a === 'unfav') {
+                    // two clicks, so a slip can't unfavourite a whole page
+                    if (!act.classList.contains('s34-armed')) {
+                        act.classList.add('s34-armed');
+                        act.textContent = `Click again to unfavourite ${selected.size}`;
+                        setTimeout(() => { if (act.isConnected) renderBatchBar(); }, 4000);
+                        return;
+                    }
+                    const list = allThumbs().filter(t => selected.has(t));
+                    if (list.length) batchUnfavourite(list);
+                } else if (a === 'all') {
                     allThumbs().filter(t => t.offsetParent !== null && !t.classList.contains('s34-was-downloaded'))
                         .forEach(t => toggleSelected(t, true));
                 } else if (a === 'none') {
@@ -11687,24 +12014,27 @@
             document.body.appendChild(bar);
         }
         const n = selected.size;
+        const favPage = onOwnFavourites();
         bar.innerHTML = batchRunning
             ? `<span class="s34-batch-status"></span>
                <button type="button" data-act="stop">Stop</button>`
             : `<span class="s34-batch-status"><b>${n}</b> selected</span>
+               ${favPage ? '<button type="button" data-act="every" title="Select every loaded post">Select all</button>' : ''}
                <button type="button" data-act="all" title="Select every loaded post you haven't downloaded yet">Select all new</button>
                <button type="button" data-act="none">Clear</button>
                <button type="button" data-act="collect" ${n ? '' : 'disabled'} title="Save the selected posts in a collection" class="s34-batch-icon">${FOLDER_SVG} Add to collection</button>
+               ${favPage ? `<button type="button" data-act="unfav" ${n ? '' : 'disabled'} title="Take the selected posts out of your favourites">♥ Unfavourite</button>` : ''}
                <button type="button" data-act="go" class="s34-batch-go" ${n ? '' : 'disabled'}>⬇ Download ${n || ''}</button>
                <button type="button" data-act="done" title="Leave select mode">✕</button>`;
         if (batchRunning) bar.querySelector('.s34-batch-status').textContent = batchStatus;
     }
 
-    async function downloadThumb(thumb) {
+    async function downloadThumb(thumb, kind = 'batch') {
         const a = thumb.querySelector('a[href]');
         if (!a) return false;
-        const doc = await fetchPostDoc(a.href, 'batch');
+        const doc = await fetchPostDoc(a.href, kind);
         if (!doc) return false;
-        const media = await getPostMedia(a.href, 'batch');
+        const media = await getPostMedia(a.href, kind);
         const url = media && (media.video || media.image);
         if (!url) return false;
         const g = readPostTags(doc);
@@ -12741,6 +13071,563 @@
         });
     }
 
+    // =====================================================================
+    //  COLLECTIONS ON ALL DEVICES (Beta 3.8, opt-in: CONFIG.collectionsSync)
+    // =====================================================================
+    // rule34 keeps your favourites on your account - so with this on, every
+    // post you put into a collection is also favourited. On another device
+    // (phone) the posts are then there, on the favourites page ("Favourites &
+    // Collections"). The folder names stay on the device that made them.
+    // Un-favourite a post - here or anywhere else - and it leaves its
+    // collections too: here right away; from another device the next time
+    // Steamy34 reads your favourites list (at most every few hours, gently).
+    // Collection entries remember fav: true once they're known favourites -
+    // only those can be taken out when they go missing from the list.
+    const COLLSYNC_ASKED_KEY = 'steamy34_collsync_asked';
+    const COLLSYNC_LAST_KEY = 'steamy34_collsync_last';
+    const USER_ID_KEY = 'steamy34_user_id';
+    const COLLSYNC_EVERY_MS = 4 * 3600000;
+    const COLLSYNC_MAX_PAGES = 80;
+
+    // Your rule34 user number: the login cookie, the API key, or a link to
+    // "My Favorites" seen earlier (My Account, the favourites page)
+    function myUserId() {
+        const link = document.querySelector('a[href*="page=favorites"][href*="s=view"][href*="id="]');
+        const fromLink = link && postIdFrom(link.getAttribute('href'));
+        if (fromLink && /^\d{1,12}$/.test(fromLink)) { try { GM_setValue(USER_ID_KEY, fromLink); } catch (e) {} }
+        const cookie = readSiteCookie('user_id');
+        const api = typeof getApiKey === 'function' && getApiKey();
+        let stored = '';
+        try { stored = GM_getValue(USER_ID_KEY, ''); } catch (e) {}
+        const id = [cookie, fromLink, api && api.user_id, stored].find(v => v && /^\d{1,12}$/.test(String(v)));
+        return id ? String(id) : '';
+    }
+
+    function collectionNamesOf(id) {
+        return getCollections().filter(c => c.posts.some(p => String(p.id) === String(id))).map(c => c.name);
+    }
+
+    function markCollectionFavs(ids, fav) {
+        const want = new Set(ids.map(String));
+        const all = getCollections();
+        let changed = false;
+        all.forEach(c => c.posts.forEach(p => {
+            if (want.has(String(p.id)) && p.fav !== fav) { p.fav = fav; changed = true; }
+        }));
+        if (changed) saveCollections(all);
+    }
+
+    // Takes a post out of every collection; resolves what's needed to put it back
+    function dropFromCollections(id) {
+        const all = getCollections();
+        const gone = [];
+        all.forEach(c => {
+            const i = c.posts.findIndex(p => String(p.id) === String(id));
+            if (i >= 0) { gone.push({ col: c.id, name: c.name, index: i, entry: c.posts[i] }); c.posts.splice(i, 1); }
+        });
+        if (gone.length) saveCollections(all);
+        return gone;
+    }
+
+    function restoreToCollections(gone) {
+        const all = getCollections();
+        gone.forEach(g => {
+            const c = all.find(x => x.id === g.col);
+            if (c && !c.posts.some(p => String(p.id) === String(g.entry.id))) c.posts.splice(Math.min(g.index, c.posts.length), 0, g.entry);
+        });
+        saveCollections(all);
+    }
+
+    const namesText = names => names.length === 1 ? `"${names[0]}"` : names.length + ' collections';
+
+    // ---- Posts put into a collection are favourited too ----
+    let collFavRunning = false;
+    async function favouriteCollectionPosts(ids, loud) {
+        if (!CONFIG.collectionsSync || !ids.length) return;
+        const favs = getFavs();
+        const known = ids.filter(id => favs[id]);
+        if (known.length) markCollectionFavs(known, true);
+        const todo = ids.filter(id => !favs[id]);
+        if (!todo.length) return;
+        let done = 0;
+        for (const id of todo) {
+            if (!CONFIG.collectionsSync) break;
+            const ok = await addFavourite(id, { quiet: true, kind: loud ? 'action' : 'batch' });
+            if (!ok) break; // not logged in / Cloudflare check - try again later
+            markCollectionFavs([id], true);
+            done++;
+        }
+        if (loud && done) showToast(done === 1 ? 'Also added to your favourites ♥ – so it\'s on your other devices too.' : `Also added ${done} posts to your favourites ♥`);
+        return done;
+    }
+
+    // Called by the collection menu after posts were added
+    function collectionsAdded(ids) {
+        if (!CONFIG.collectionsSync) return;
+        favouriteCollectionPosts(ids.map(String), true);
+    }
+
+    // Posts that were in collections before this was turned on: favourited in
+    // the background, gently (they wait behind anything you ask for)
+    async function catchUpCollectionFavs() {
+        if (!CONFIG.collectionsSync || collFavRunning) return;
+        const favs = getFavs();
+        const ids = [];
+        getCollections().forEach(c => c.posts.forEach(p => { if (p.fav !== true && p.favTried !== true && !ids.includes(String(p.id))) ids.push(String(p.id)); }));
+        const known = ids.filter(id => favs[id]);
+        if (known.length) markCollectionFavs(known, true);
+        const todo = ids.filter(id => !favs[id]);
+        if (!todo.length) return;
+        collFavRunning = true;
+        showToast(`Adding ${todo.length} collection post${todo.length === 1 ? '' : 's'} to your favourites in the background…`);
+        let done = 0;
+        for (const id of todo) {
+            if (!CONFIG.collectionsSync) break;
+            const ok = await addFavourite(id, { quiet: true, kind: 'batch' });
+            if (!ok) break;
+            markCollectionFavs([id], true);
+            done++;
+        }
+        collFavRunning = false;
+        if (done) showToast(`${done} collection post${done === 1 ? ' is' : 's are'} in your favourites now – on all your devices.`);
+    }
+
+    // ---- Un-favourited here: out of its collections too ----
+    // Resolves the removed entries (for Undo) - none when sync is off
+    function unfavouritedHere(id) {
+        if (!CONFIG.collectionsSync) return [];
+        return dropFromCollections(id);
+    }
+
+    // ---- Un-favourited on another device: read the favourites list ----
+    // Safety first: any page that fails = nothing is changed. An empty list,
+    // or most of the collection posts missing at once, is never trusted
+    // blindly - that asks first.
+    async function readMyFavouriteIds(uid) {
+        const ids = new Set();
+        let pageSize = 0;
+        for (let n = 0; n < COLLSYNC_MAX_PAGES; n++) {
+            const pid = n * (pageSize || 50);
+            const r = await loadPage(`index.php?page=favorites&s=view&id=${uid}&pid=${pid}`, 'follow');
+            if (!r || !r.ok) throw new Error('favourites page ' + (n + 1) + ' did not load');
+            if (/[?&]s=login\b/.test(r.url || '')) throw new Error('not logged in');
+            const doc = new DOMParser().parseFromString(r.html, 'text/html');
+            const found = Array.from(doc.querySelectorAll('.image-list span.thumb, span.thumb')).map(t => thumbPostId(t)).filter(Boolean);
+            if (!n) pageSize = found.length;
+            const fresh = found.filter(id => !ids.has(id));
+            fresh.forEach(id => ids.add(id));
+            if (!found.length || !fresh.length || found.length < pageSize) return ids; // the end
+        }
+        throw new Error('too many favourites to read in one go');
+    }
+
+    let collSyncChecking = false;
+    async function checkFavouritesElsewhere(maxAgeMs = COLLSYNC_EVERY_MS) {
+        if (!CONFIG.collectionsSync || collSyncChecking) return;
+        let last = 0;
+        try { last = GM_getValue(COLLSYNC_LAST_KEY, 0); } catch (e) {}
+        if (Date.now() - last < maxAgeMs) return;
+        const watched = [];
+        getCollections().forEach(c => c.posts.forEach(p => { if (p.fav === true) watched.push(String(p.id)); }));
+        const uid = myUserId();
+        if (!uid || !watched.length) return;
+        collSyncChecking = true;
+        let ids;
+        try { ids = await readMyFavouriteIds(uid); }
+        catch (e) { console.log('[Steamy34] Favourites list not read (' + (e.message || e) + ') – collections unchanged.'); collSyncChecking = false; return; }
+        collSyncChecking = false;
+        try { GM_setValue(COLLSYNC_LAST_KEY, Date.now()); } catch (e) {}
+        if (!ids.size) return; // never trust an empty list
+        // Hearts everywhere follow the real list (favourited on your phone = ♥ here)
+        const old = getFavs();
+        const favs = {};
+        ids.forEach(id => { favs[id] = old[id] || Date.now(); });
+        GM_setValue(FAVS_KEY, favs);
+        const missing = Array.from(new Set(watched.filter(id => !ids.has(id))));
+        if (!missing.length) return;
+        const apply = () => {
+            const gone = [];
+            missing.forEach(id => gone.push(...dropFromCollections(id)));
+            const names = Array.from(new Set(gone.map(g => g.name)));
+            showToast(`${missing.length === 1 ? 'A post was' : missing.length + ' posts were'} removed from your favourites on another device – taken out of ${namesText(names)} too.`, 'Undo', async () => {
+                restoreToCollections(gone);
+                for (const id of missing) { if (await addFavourite(id, { quiet: true })) markCollectionFavs([id], true); }
+                showToast('Back in your collections and favourites.');
+            }, 15000);
+        };
+        if (missing.length > 3 && missing.length > watched.length / 2) {
+            showToast(`${missing.length} collection posts are no longer in your favourites. Take them out of your collections too?`, 'Take them out', apply, 30000);
+        } else apply();
+    }
+
+    // ---- Your favourites page: "Favourites & Collections" ----
+
+    // Your own favourites list (the site shows "Remove" only there)
+    function onOwnFavourites() {
+        return params.get('page') === 'favorites' && params.get('s') === 'view' && !!document.querySelector('.image-list a[onclick*="s=delete"], .image-list .s34-site-remove');
+    }
+
+    // (Beta 3.8) Every favourite - this page, and the other pages of the list
+    // read gently when there are more. Resolves ids (null = cancelled / failed).
+    async function allFavouriteIds() {
+        const here = allThumbs().map(t => thumbPostId(t)).filter(Boolean);
+        const more = !!document.querySelector('#paginator a');
+        const uid = params.get('id') || myUserId();
+        if (!more || !uid) return here;
+        showToast('Reading your whole favourites list…');
+        try { const all = await readMyFavouriteIds(uid); here.forEach(id => all.add(id)); return Array.from(all); }
+        catch (e) { showToast('Couldn\'t read the whole list (' + (e.message || e) + ') – only this page.'); return here; }
+    }
+
+    async function markAllFavourites(kind) {
+        const ids = await allFavouriteIds();
+        if (!ids || !ids.length) return;
+        if (kind === 'viewed') {
+            const fresh = ids.filter(id => !isViewed(id));
+            const unseen = getUnseen();
+            fresh.forEach(id => { delete unseen[id]; rememberView(id); });
+            GM_setValue(UNSEEN_KEY, unseen);
+            saveViewed(); // (one save for all of them)
+            showDownloadedState();
+            showToast(fresh.length ? `${fresh.length} favourite${fresh.length === 1 ? '' : 's'} marked as viewed.` : 'All your favourites were viewed already.', fresh.length ? 'Undo' : null, () => {
+                fresh.forEach(id => setThumbViewed(id, false)); showDownloadedState();
+            }, 10000);
+        } else {
+            const fresh = markDownloadedOnly(ids);
+            showDownloadedState();
+            showToast(fresh.length ? `${fresh.length} favourite${fresh.length === 1 ? '' : 's'} marked as downloaded (nothing was downloaded).` : 'All your favourites were marked as downloaded already.', fresh.length ? 'Undo' : null, () => {
+                unmarkDownloaded(fresh); showDownloadedState();
+            }, 10000);
+        }
+    }
+
+    function setupFavsAndCollections() {
+        if (!onOwnFavourites()) return;
+        myUserId(); // (remembers your number from this page)
+        const list = document.querySelector('.image-list');
+        if (!list || document.querySelector('.s34-favcoll-bar')) return;
+        const sync = CONFIG.collectionsSync;
+        if (sync) document.title = 'Favourites & Collections';
+        const cols = sync ? getCollections() : [];
+        const bar = document.createElement('div');
+        bar.className = 's34-favcoll-bar';
+        bar.innerHTML = `<div class="s34-favcoll-top"><h2>${sync ? 'Favourites &amp; Collections' : 'Your favourites'}</h2>
+            <div class="s34-favcoll-acts">
+                <button type="button" data-fa="viewed" title="Every favourite – also the ones on the other pages">${TB_EYE_SVG} Mark all as viewed</button>
+                <button type="button" data-fa="downloaded" title="Only marks them – nothing is downloaded">${TB_DL_SVG} Mark all as downloaded</button>
+                <button type="button" data-fa="select" class="s34-favcoll-primary" title="Tick posts, then download them, put them into a collection or unfavourite them">☐ Select…</button>
+            </div></div>
+            <p>${sync ? (cols.length
+            ? '♥ = in your favourites · the folder shows which collection a post is in. Open a collection:'
+            : 'Your favourites – and your collections, once you make some (on any device, they\'re favourited too).')
+            : 'Select posts to download them, put them into a collection or unfavourite several at once.'}</p><div class="s34-favcoll-list"></div>`;
+        bar.querySelector('.s34-favcoll-acts').addEventListener('click', e => {
+            const b = e.target.closest('[data-fa]');
+            if (!b) return;
+            if (b.dataset.fa === 'select') setSelectMode(!selectMode);
+            else markAllFavourites(b.dataset.fa);
+        });
+        const row = bar.querySelector('.s34-favcoll-list');
+        cols.forEach(c => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.innerHTML = FOLDER_SVG + '<span></span><small></small>';
+            b.querySelector('span').textContent = c.name;
+            b.querySelector('small').textContent = c.posts.length;
+            b.addEventListener('click', () => openCollectionsWindow(c.id));
+            row.appendChild(b);
+        });
+        list.before(bar);
+        showCollectionChips();
+    }
+
+    // Batch "Unfavourite" (favourites page): one after another, gently; Undo
+    // puts them back (and into their collections)
+    async function batchUnfavourite(list) {
+        batchRunning = true;
+        batchStop = false;
+        const undone = [];
+        for (let i = 0; i < list.length && !batchStop; i++) {
+            const id = thumbPostId(list[i]);
+            batchStatus = `Unfavouriting ${i + 1} / ${list.length}…`;
+            renderBatchBar();
+            if (!(await removeFavourite(id, { kind: 'batch' }))) break;
+            showFavState(id, false);
+            undone.push({ id, gone: unfavouritedHere(id) });
+            selected.delete(list[i]);
+            list[i].classList.remove('s34-selected');
+        }
+        batchRunning = false;
+        batchStatus = '';
+        setSelectMode(false);
+        showCollectionChips();
+        if (!undone.length) return;
+        showToast(`Unfavourited ${undone.length} post${undone.length === 1 ? '' : 's'}.`, 'Undo', async () => {
+            let back = 0;
+            for (const u of undone) {
+                if (!(await addFavourite(u.id, { quiet: true, kind: 'batch' }))) break;
+                showFavState(u.id, true);
+                if (u.gone.length) restoreToCollections(u.gone);
+                back++;
+            }
+            showCollectionChips();
+            showToast(`${back} post${back === 1 ? ' is' : 's are'} back in your favourites.`);
+        }, 15000);
+    }
+
+    function showCollectionChips(thumbs) {
+        if (!CONFIG.collectionsSync || params.get('page') !== 'favorites') return;
+        (thumbs || allThumbs()).forEach(t => {
+            const names = collectionNamesOf(thumbPostId(t));
+            let chip = t.querySelector('.s34-cchip');
+            if (!names.length) { if (chip) chip.remove(); return; }
+            if (!chip) { chip = document.createElement('span'); chip.className = 's34-cchip'; t.appendChild(chip); }
+            chip.innerHTML = FOLDER_SVG + '<span></span>';
+            chip.querySelector('span').textContent = names[0] + (names.length > 1 ? ' +' + (names.length - 1) : '');
+            chip.title = names.join(', ');
+        });
+    }
+
+    // ---- The choice, once: shown when you open Collections after the update ----
+    function collSyncAsked() { try { return !!GM_getValue(COLLSYNC_ASKED_KEY, false); } catch (e) { return true; } }
+
+    function buildCollSyncCard(onDone) {
+        const n = new Set();
+        getCollections().forEach(c => c.posts.forEach(p => n.add(String(p.id))));
+        const card = document.createElement('div');
+        card.className = 's34-collsync-card';
+        card.innerHTML = `
+            <b>New: your collections on all your devices</b>
+            <p>Steamy34 can also favourite every post you put into a collection – rule34 keeps favourites on your account, so they show up on your phone too, on your favourites page (then called "Favourites &amp; Collections"). Take a post out of your favourites anywhere, and it leaves its collections as well.</p>
+            <p class="s34-collsync-small">Optional – collections work just like before without it. The folder names stay on this device. ${n.size ? `Turning it on favourites the ${n.size} post${n.size === 1 ? '' : 's'} already in your collections (in the background).` : ''} Needs a rule34 login. Change it any time in Settings → Downloads.</p>
+            <div class="s34-collsync-btns">
+                <button type="button" class="s34-btn" data-a="local">Keep them on this device</button>
+                <button type="button" class="s34-btn s34-primary" data-a="sync">Use them on all devices</button>
+            </div>`;
+        card.addEventListener('click', e => {
+            const a = e.target.closest('[data-a]');
+            if (!a) return;
+            try { GM_setValue(COLLSYNC_ASKED_KEY, true); } catch (err) {}
+            if (a.dataset.a === 'sync') {
+                saveSettingsNow({ collectionsSync: true });
+                showToast('Collections are on all your devices now.');
+                catchUpCollectionFavs();
+            } else {
+                showToast('Collections stay on this device – Settings → Downloads if you change your mind.');
+            }
+            card.remove();
+            if (onDone) onDone();
+        });
+        return card;
+    }
+
+    // Runs once the page is ready
+    function setupCollectionsSync() {
+        setupFavsAndCollections();
+        if (!CONFIG.collectionsSync) return;
+        setTimeout(() => {
+            if (document.hidden) return;
+            catchUpCollectionFavs();
+            checkFavouritesElsewhere();
+        }, 6000);
+    }
+    // =====================================================================
+    //  DOWNLOADS WINDOW (Beta 3.8) - every post you downloaded, newest first
+    // =====================================================================
+    // The sidebar tile where Settings used to be (Settings moved into the top
+    // menu: "Steamy34 Settings", on every page). Pictures: kept with each new
+    // download (DLTHUMBS_KEY); older downloads didn't keep one - with an API
+    // key the picture is looked up through the API (only for tiles you can
+    // see), without one they show their number.
+    const DLTHUMBS_KEY = 'steamy34_dlthumbs';
+    const DLTHUMBS_LIMIT = 6000;
+    const DL_ICON_SVG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>';
+    const DLW_PAGE = 120;
+
+    function getDlThumbs() {
+        try { const v = GM_getValue(DLTHUMBS_KEY, {}); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; }
+    }
+
+    function rememberDlThumb(id, src) {
+        if (!id || !src || /^data:/.test(src)) return;
+        const all = getDlThumbs();
+        all[id] = src;
+        const ids = Object.keys(all);
+        if (ids.length > DLTHUMBS_LIMIT) ids.slice(0, ids.length - DLTHUMBS_LIMIT).forEach(k => delete all[k]);
+        GM_setValue(DLTHUMBS_KEY, all);
+    }
+
+    // A picture we already know from somewhere: kept, a collection, this page
+    function knownThumb(id, thumbs) {
+        if (thumbs[id]) return thumbs[id];
+        for (const c of getCollections()) { const p = c.posts.find(x => String(x.id) === String(id)); if (p && p.thumb) return p.thumb; }
+        const t = allThumbs().find(x => String(thumbPostId(x)) === String(id));
+        const img = t && t.querySelector('img');
+        return img ? img.getAttribute('src') : '';
+    }
+
+    function downloadedList() {
+        loadDownloaded();
+        return Object.keys(downloaded).map(id => ({ id, time: downloaded[id] })).sort((a, b) => b.time - a.time);
+    }
+
+    function updateDownloadsCount() {
+        const b = document.querySelector('.s34-hub [data-hub="dl"] small');
+        if (!b) return;
+        const n = CONFIG.trackDownloads ? downloadedList().length : 0;
+        b.textContent = n ? n + (n === 1 ? ' post' : ' posts') : 'none yet';
+    }
+
+    function openDownloadsWindow() {
+        if (document.querySelector('.s34-dlw-overlay')) return;
+        const w = openWindow({ cls: 's34-dlw-overlay s34-coll-overlay', icon: DL_ICON_SVG, title: 'Downloads', width: 820 });
+        let shown = DLW_PAGE;
+        let lookups = 0;
+
+        function render() {
+            const list = CONFIG.trackDownloads ? downloadedList() : [];
+            const thumbs = getDlThumbs();
+            w.setSub(list.length ? `${list.length} post${list.length === 1 ? '' : 's'} you downloaded · newest first` : 'Posts you download show up here');
+            w.body.replaceChildren();
+            if (!CONFIG.trackDownloads) {
+                const e = document.createElement('div');
+                e.className = 's34-win-empty';
+                e.textContent = '"Remember downloaded posts" is off (Settings → Downloads) – turn it on and your downloads collect here.';
+                w.body.appendChild(e);
+                return;
+            }
+            const tiles = document.createElement('div');
+            tiles.className = 's34-tiles';
+            if (!list.length) {
+                const e = document.createElement('div');
+                e.className = 's34-win-empty';
+                e.textContent = 'Nothing yet – download a post (popup, post page, or the ⬇ on a thumbnail) and it shows up here.';
+                tiles.appendChild(e);
+            }
+            const part = list.slice(0, shown);
+            // The popup gets small stand-in thumbnails, ← / → go through your downloads
+            const proxies = part.map(p => {
+                const s = document.createElement('span');
+                s.className = 'thumb';
+                s.innerHTML = '<a></a>';
+                s.firstChild.href = postPageUrl(p.id);
+                const im = new Image();
+                im.alt = '';
+                const src = knownThumb(p.id, thumbs);
+                if (src) im.src = src;
+                s.dataset.s34TypeUnknown = '1';
+                s.firstChild.appendChild(im);
+                return s;
+            });
+            const popupList = { thumbs: () => proxies, state: () => 'done', more: () => {} };
+            part.forEach((p, n) => {
+                const tile = document.createElement('div');
+                tile.className = 's34-tile';
+                tile.dataset.id = p.id;
+                const link = document.createElement('a');
+                link.href = postPageUrl(p.id);
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.title = 'Open the post (Ctrl + click: the post page in a new tab)';
+                link.addEventListener('click', e => {
+                    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+                    e.preventDefault();
+                    w.overlay.classList.add('s34-under-popup');
+                    openPopup(proxies[n], popupList);
+                });
+                const src = knownThumb(p.id, thumbs);
+                link.appendChild(thumbOrPlaceholder(src, p.id));
+                if (!src) tile.classList.add('s34-tile-nopic');
+                const cap = document.createElement('div');
+                cap.className = 's34-tile-cap';
+                cap.innerHTML = '<div class="s34-tile-title"></div><div class="s34-tile-sub"></div>';
+                cap.firstChild.textContent = '#' + p.id;
+                cap.lastChild.textContent = 'downloaded ' + timeAgo(p.time);
+                const acts = document.createElement('div');
+                acts.className = 's34-tile-acts';
+                const rm = document.createElement('button');
+                rm.type = 'button';
+                rm.textContent = '×';
+                rm.title = 'Forget this download (the file stays on your computer)';
+                rm.addEventListener('click', () => {
+                    unmarkDownloaded([p.id]);
+                    showDownloadedState();
+                    updateDownloadsCount();
+                    render();
+                    showToast('Forgotten – the file itself stays where it is.', 'Undo', () => {
+                        markDownloadedOnly([p.id]);
+                        loadDownloaded(); downloaded[p.id] = p.time; GM_setValue(DOWNLOADED_KEY, downloaded);
+                        showDownloadedState(); updateDownloadsCount(); if (w.overlay.isConnected) render();
+                    });
+                });
+                acts.appendChild(rm);
+                tile.append(link, cap, acts);
+                tiles.appendChild(tile);
+            });
+            w.body.appendChild(tiles);
+            if (list.length > shown) {
+                const more = document.createElement('button');
+                more.type = 'button';
+                more.className = 's34-win-more';
+                more.textContent = `Show more (${list.length - shown} older)`;
+                more.addEventListener('click', () => { shown += DLW_PAGE; render(); });
+                w.body.appendChild(more);
+            }
+            findMissingPictures(tiles);
+        }
+
+        // Older downloads without a picture: with an API key, look them up
+        // (only the tiles you can see, one at a time, within the API's limit)
+        function findMissingPictures(tiles) {
+            if (!hasApiKey()) return;
+            const io = new IntersectionObserver(entries => entries.forEach(async en => {
+                if (!en.isIntersecting) return;
+                io.unobserve(en.target);
+                if (lookups > 60 || !w.overlay.isConnected) return;
+                lookups++;
+                const id = en.target.dataset.id;
+                try {
+                    const data = await apiGet({ s: 'post', id });
+                    const raw = (Array.isArray(data) ? data : data && Array.isArray(data.post) ? data.post : [])[0];
+                    const src = raw && String(raw.preview_url || '');
+                    if (!src) return;
+                    rememberDlThumb(id, src);
+                    const box = en.target.querySelector('.s34-tile-img');
+                    if (box) { box.textContent = ''; const im = new Image(); im.alt = ''; im.src = src; box.appendChild(im); }
+                    en.target.classList.remove('s34-tile-nopic');
+                } catch (e) {}
+            }), { root: w.body });
+            tiles.querySelectorAll('.s34-tile-nopic').forEach(t => io.observe(t));
+        }
+
+        render();
+    }
+
+    // Settings in rule34's top menu ("Steamy34 Settings"), on every page with
+    // that menu (computers - on phones it folds into ☰, which has Settings).
+    // Resolves true when it's there.
+    function addNavSettings() {
+        if (isPhoneLayout()) return false;
+        const nav = document.querySelector('#navbar');
+        if (!nav) return false;
+        if (nav.querySelector('.s34-nav-steamy')) return true;
+        const gear = document.createElement('div');
+        gear.className = 's34-gear s34-gear-nav';
+        gear.title = 'Steamy34 Settings · ' + CURRENT_VERSION;
+        makeKeyClickable(gear, 'Steamy34 Settings');
+        const icon = new Image();
+        icon.src = logoData();
+        icon.alt = '';
+        const label = document.createElement('span');
+        label.textContent = 'Steamy34 Settings';
+        gear.append(icon, label);
+        gear.addEventListener('click', openSettings);
+        const li = document.createElement('li');
+        li.className = 's34-nav-steamy';
+        li.appendChild(gear);
+        nav.appendChild(li);
+        return true;
+    }
     // =================================================================
     //  THEATER MODE, COLLECTIONS, DOWNLOAD TAGS, STATS
     // =================================================================
@@ -13035,12 +13922,15 @@
                         showToast(`Removed from "${col.name}".`);
                     } else {
                         let added = 0;
+                        const addedIds = [];
                         posts.forEach(p => {
                             if (p.id && !col.posts.some(x => x.id === p.id)) {
                                 col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() });
                                 added++;
+                                addedIds.push(p.id);
                             }
                         });
+                        setTimeout(() => collectionsAdded(addedIds), 0); // (after saving below)
                         showToast(added ? `Saved ${added === 1 ? '' : added + ' posts '}to "${col.name}".` : `Already in "${col.name}".`);
                     }
                     saveCollections(all);
@@ -13059,6 +13949,7 @@
                 const col = all.find(x => x.id === c.id);
                 posts.forEach(p => { if (p.id) col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() }); });
                 saveCollections(all);
+                collectionsAdded(posts.map(p => p.id).filter(Boolean));
                 showToast(`Made "${col.name}" and saved ${posts.length === 1 ? 'the post' : posts.length + ' posts'}.`);
                 if (single) render(); else menu.remove();
             };
@@ -13095,13 +13986,16 @@
         const w = openWindow({ cls: 's34-coll-overlay', icon: FOLDER_SVG, title: 'Collections', width: 820 });
         let current = openId || null;
         let downloading = null; // { stop }
+        checkFavouritesElsewhere(15 * 60000); // posts un-favourited on another device leave their collections
 
         function renderList() {
             current = null;
             w.setTitle('Collections');
             const list = getCollections();
-            w.setSub(list.length ? `${list.length} collection${list.length === 1 ? '' : 's'} · only on this computer` : 'Your own folders for posts – only on this computer');
+            const where = CONFIG.collectionsSync ? 'on all your devices (as favourites)' : 'only on this device';
+            w.setSub(list.length ? `${list.length} collection${list.length === 1 ? '' : 's'} · ${where}` : 'Your own folders for posts – ' + where);
             w.body.replaceChildren();
+            if (!collSyncAsked()) w.body.appendChild(buildCollSyncCard(renderList));
             const grid = document.createElement('div');
             grid.className = 's34-coll-grid';
             list.forEach(c => {
@@ -13297,6 +14191,7 @@
         if (!hub) return;
         const n = getCollections().length;
         hub.querySelector('[data-hub="coll"] small').textContent = n ? n + (n === 1 ? ' folder' : ' folders') : 'none yet';
+        updateDownloadsCount();
     }
 
     function addHub() {
@@ -13307,11 +14202,13 @@
         hub.className = 's34-hub';
         hub.innerHTML = `
             <button type="button" data-hub="coll" title="Your own collections of posts">${FOLDER_SVG}<b>Collections</b><small></small></button>
-            <button type="button" data-hub="stats" title="Your stats">${STATS_SVG}<b>Stats</b><small>overview</small></button>`;
+            <button type="button" data-hub="stats" title="Your stats">${STATS_SVG}<b>Stats</b><small>overview</small></button>
+            <button type="button" data-hub="dl" title="Every post you downloaded">${DL_ICON_SVG}<b>Downloads</b><small></small></button>`;
         hub.addEventListener('click', e => {
             const b = e.target.closest('[data-hub]');
             if (!b) return;
             if (b.dataset.hub === 'coll') openCollectionsWindow();
+            else if (b.dataset.hub === 'dl') openDownloadsWindow();
             else openStatsWindow();
         });
         anchor.before(hub);
@@ -13334,7 +14231,8 @@
         const bl = document.querySelector('.s34-blbtn');
         if (hub) dock.appendChild(hub);   // its two buttons become two tiles
         if (bl) dock.appendChild(bl);
-        dock.appendChild(gear);
+        // (Beta 3.8) Settings is in the top menu - its tile here only on phones
+        if (!gear.classList.contains('s34-gear-in-nav')) dock.appendChild(gear);
         const follow = document.querySelector('.s34-follow-box');
         const view = document.querySelector('.s34-quick');
         if (follow && view && follow.parentElement === view.parentElement) view.before(follow);
@@ -13398,7 +14296,7 @@
 
     // ---- Popup: click an image to see it at full size, drag to move ----
     function resetZoom(stage) {
-        stage.classList.remove('s34-pv-zoomed', 's34-pv-dragging');
+        stage.classList.remove('s34-pv-zoomed', 's34-pv-dragging', 's34-pv-strip');
         stage.querySelectorAll('img.s34-pv-media').forEach(i => { i.style.width = ''; i.style.height = ''; });
     }
 
@@ -13423,6 +14321,28 @@
         img.style.height = H + 'px';
         stage.scrollLeft = fx * W - stage.clientWidth / 2;
         stage.scrollTop = fy * H - stage.clientHeight / 2;
+    }
+
+    // Long strips (comics) open fitted to the width, scrolled to the top.
+    // A click shows the whole strip, another one full size - like any picture.
+    function fitLongStrip(img) {
+        const stage = img.closest('.s34-pv-stage');
+        const nw = img.naturalWidth, nh = img.naturalHeight;
+        if (!stage || !isLongStrip(nw, nh)) return false;
+        const fittedW = Math.min(stage.clientWidth / nw, stage.clientHeight / nh) * nw;
+        stage.classList.add('s34-pv-zoomed', 's34-pv-strip');
+        const size = () => {
+            let W = stage.clientWidth; // (without the scrollbar, once there is one)
+            if (!CONFIG.allowUpscale) W = Math.min(W, nw);
+            img.style.width = W + 'px';
+            img.style.height = (W * nh / nw) + 'px';
+            return W;
+        };
+        size();
+        if (size() < fittedW * 1.3) { resetZoom(stage); return false; } // fitted is wide enough already
+        stage.scrollTop = 0;
+        stage.scrollLeft = 0;
+        return true;
     }
 
     function setupPopupZoom(overlay) {
@@ -13660,6 +14580,16 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8', date: '2026-11-22', notify: true, items: [
+            'Settings moved into rule34\'s top menu – "Steamy34 Settings", on every page. Its place in the sidebar is now Downloads: every post you downloaded, newest first (older downloads show their number – with an API key, their picture too).',
+            'Your favourites page has buttons now: mark all favourites as viewed or as downloaded (only the mark – nothing downloads), and Select… to download, put into a collection or unfavourite several at once.',
+            'Collections on all your devices (optional): Steamy34 can also favourite every post you put into a collection – rule34 keeps favourites on your account, so they\'re on your phone too. Your favourites page becomes "Favourites & Collections" and shows which collection each post is in. Take a post out of your favourites anywhere and it leaves its collections too. You\'re asked once when you open Collections; Settings → Downloads to change it.',
+            'Thumbnails: next to the ♥ there are now a download button and a "viewed" button while you hover – download a post without opening it, or mark it as viewed / not viewed. They show what you did: green = downloaded, blue = viewed – and stay there without hovering. Hover the eye for a small menu: mark a post as viewed, or as downloaded without downloading it. Settings → Posts page has a switch for each thing on a thumbnail: ♥, download, viewed, the viewed / downloaded marks and the tags.'
+        ] },
+        { v: 'Beta 3.7.3', date: '2026-11-22', items: [
+            'Long comic strips are readable now: on post pages and in the popup they fit the width and start at the top – scroll down to read. Click for the whole strip or its real size, as before.',
+            'The Cloudflare check window mentions the optional API key, which makes these checks come up less often – with a button to its page in Settings.'
+        ] },
         { v: 'Beta 3.7.2', date: '2026-11-22', items: [
             'Single post pages: click the picture to see it at its real size, click again to fit it to the window. With "Fit pictures to the screen" off (Steamy34 Settings → Viewing posts), pictures open at their real size.'
         ] },
@@ -15722,7 +16652,7 @@
         const KINDS = [
             { re: /s=profile/, kind: 'profile' },
             { re: /page=gmail/, kind: 'rule34', icon: 'mail', title: 'My Mail', text: 'Read and answer your messages' },
-            { re: /page=favorites/, kind: 'rule34', icon: 'heart', title: 'My Favorites', text: 'Everything you\'ve favourited' },
+            { re: /page=favorites/, kind: 'rule34', icon: 'heart', title: CONFIG.collectionsSync ? 'Favourites & Collections' : 'My Favorites', text: CONFIG.collectionsSync ? 'Everything you\'ve favourited – and your collections' : 'Everything you\'ve favourited' },
             { re: /s=options/, kind: 'rule34', icon: 'sliders', title: 'Options', text: 'Blacklist, thresholds, theme, video server' },
             { re: /change_password/, kind: 'security', icon: 'key', title: 'Change Password', text: 'A new password for your account' },
             { re: /s=security/, kind: 'security', icon: 'shield', title: 'Two-factor authentication', text: 'A code from an authenticator app at login' },
@@ -16476,6 +17406,7 @@
             rememberMediaHost(isVideo ? 'video' : 'image', popupState.mediaUrl);
             el.classList.remove('s34-pv-loading');
             placeholder.remove();
+            if (!isVideo) fitLongStrip(el);
             preloadNeighbours(thumb); // next / previous ready before you get there
         });
         el.addEventListener('error', tryNext);
@@ -16908,6 +17839,7 @@
         showDownloadedState(); // ✓ / 👁 on posts you already downloaded / viewed
         addFavButtons();
         setupFavouritesPage(); // your favourites page: every ♥ filled, ♥ removes (the site's Remove links step aside)
+        setupCollectionsSync(); // collections on all devices (opt-in): "Favourites & Collections", background checks
         setupHoverInfo();
         learnTagTypes(document); // remember tag types from this page's tag list
         if (isPostView) {

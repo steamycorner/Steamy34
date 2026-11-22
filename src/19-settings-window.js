@@ -429,6 +429,10 @@
     const GEAR_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 
     function addSettingsButton() {
+        // (Beta 3.8) In rule34's top menu on every page: "Steamy34 Settings".
+        // The sidebar button is still made (other parts are placed next to
+        // it) but stays hidden while the top menu has it.
+        const inNav = addNavSettings();
         const gear = document.createElement('div');
         gear.className = 's34-gear';
         gear.title = 'Steamy34 Settings · ' + CURRENT_VERSION;
@@ -456,23 +460,18 @@
         const slot = isPostView ? getPostSidebarSlot() : null;
         if (!isPostView && CONFIG.hideListTags && tagList) {
             makeInline();
+            if (inNav) gear.classList.add('s34-gear-in-nav');
             tagList.after(gear); // sticks together with the sidebar
         } else if (slot) {
             // Single post: in the sidebar, under the Download button
             makeInline();
+            if (inNav) gear.classList.add('s34-gear-in-nav');
             slot.appendChild(gear);
-        } else if (!isPhoneLayout() && document.querySelector('#navbar')) {
-            // Pages without the sidebar (favourites, My Account, Options…): at
-            // the end of rule34's own menu at the top. (On phones that menu folds
-            // into the ☰ Menu, so there it stays in the corner.)
-            gear.classList.add('s34-gear-nav');
-            const label = document.createElement('span');
-            label.textContent = 'Steamy34';
-            gear.appendChild(label);
-            const li = document.createElement('li');
-            li.className = 's34-nav-steamy';
-            li.appendChild(gear);
-            document.querySelector('#navbar').appendChild(li);
+        } else if (inNav) {
+            // Pages without the sidebar (favourites, My Account, Options…): the
+            // top menu has it. (On phones that menu folds into the ☰ Menu, so
+            // there it stays in the corner.)
+            return;
         } else {
             document.body.appendChild(gear);
         }

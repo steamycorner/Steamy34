@@ -44,6 +44,12 @@
         return result;
     }
 
+    // (Beta 3.7.3) Pictures this many times taller than wide are long strips
+    // (comics): they're fitted to the width and read from the top instead of
+    // being shrunk until the whole strip fits - far too small to read.
+    const LONG_STRIP_RATIO = 2.5;
+    const isLongStrip = (w, h) => !!w && h / w >= LONG_STRIP_RATIO;
+
     function getOriginalUrl() {
         const link = Array.from(document.querySelectorAll('a'))
             .find(a => /original\s*image/i.test(a.textContent));

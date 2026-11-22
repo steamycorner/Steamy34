@@ -121,7 +121,7 @@
         const KINDS = [
             { re: /s=profile/, kind: 'profile' },
             { re: /page=gmail/, kind: 'rule34', icon: 'mail', title: 'My Mail', text: 'Read and answer your messages' },
-            { re: /page=favorites/, kind: 'rule34', icon: 'heart', title: 'My Favorites', text: 'Everything you\'ve favourited' },
+            { re: /page=favorites/, kind: 'rule34', icon: 'heart', title: CONFIG.collectionsSync ? 'Favourites & Collections' : 'My Favorites', text: CONFIG.collectionsSync ? 'Everything you\'ve favourited – and your collections' : 'Everything you\'ve favourited' },
             { re: /s=options/, kind: 'rule34', icon: 'sliders', title: 'Options', text: 'Blacklist, thresholds, theme, video server' },
             { re: /change_password/, kind: 'security', icon: 'key', title: 'Change Password', text: 'A new password for your account' },
             { re: /s=security/, kind: 'security', icon: 'shield', title: 'Two-factor authentication', text: 'A code from an authenticator app at login' },

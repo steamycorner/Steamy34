@@ -292,12 +292,15 @@
                         showToast(`Removed from "${col.name}".`);
                     } else {
                         let added = 0;
+                        const addedIds = [];
                         posts.forEach(p => {
                             if (p.id && !col.posts.some(x => x.id === p.id)) {
                                 col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() });
                                 added++;
+                                addedIds.push(p.id);
                             }
                         });
+                        setTimeout(() => collectionsAdded(addedIds), 0); // (after saving below)
                         showToast(added ? `Saved ${added === 1 ? '' : added + ' posts '}to "${col.name}".` : `Already in "${col.name}".`);
                     }
                     saveCollections(all);
@@ -316,6 +319,7 @@
                 const col = all.find(x => x.id === c.id);
                 posts.forEach(p => { if (p.id) col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() }); });
                 saveCollections(all);
+                collectionsAdded(posts.map(p => p.id).filter(Boolean));
                 showToast(`Made "${col.name}" and saved ${posts.length === 1 ? 'the post' : posts.length + ' posts'}.`);
                 if (single) render(); else menu.remove();
             };
@@ -352,13 +356,16 @@
         const w = openWindow({ cls: 's34-coll-overlay', icon: FOLDER_SVG, title: 'Collections', width: 820 });
         let current = openId || null;
         let downloading = null; // { stop }
+        checkFavouritesElsewhere(15 * 60000); // posts un-favourited on another device leave their collections
 
         function renderList() {
             current = null;
             w.setTitle('Collections');
             const list = getCollections();
-            w.setSub(list.length ? `${list.length} collection${list.length === 1 ? '' : 's'} · only on this computer` : 'Your own folders for posts – only on this computer');
+            const where = CONFIG.collectionsSync ? 'on all your devices (as favourites)' : 'only on this device';
+            w.setSub(list.length ? `${list.length} collection${list.length === 1 ? '' : 's'} · ${where}` : 'Your own folders for posts – ' + where);
             w.body.replaceChildren();
+            if (!collSyncAsked()) w.body.appendChild(buildCollSyncCard(renderList));
             const grid = document.createElement('div');
             grid.className = 's34-coll-grid';
             list.forEach(c => {
@@ -554,6 +561,7 @@
         if (!hub) return;
         const n = getCollections().length;
         hub.querySelector('[data-hub="coll"] small').textContent = n ? n + (n === 1 ? ' folder' : ' folders') : 'none yet';
+        updateDownloadsCount();
     }
 
     function addHub() {
@@ -564,11 +572,13 @@
         hub.className = 's34-hub';
         hub.innerHTML = `
             <button type="button" data-hub="coll" title="Your own collections of posts">${FOLDER_SVG}<b>Collections</b><small></small></button>
-            <button type="button" data-hub="stats" title="Your stats">${STATS_SVG}<b>Stats</b><small>overview</small></button>`;
+            <button type="button" data-hub="stats" title="Your stats">${STATS_SVG}<b>Stats</b><small>overview</small></button>
+            <button type="button" data-hub="dl" title="Every post you downloaded">${DL_ICON_SVG}<b>Downloads</b><small></small></button>`;
         hub.addEventListener('click', e => {
             const b = e.target.closest('[data-hub]');
             if (!b) return;
             if (b.dataset.hub === 'coll') openCollectionsWindow();
+            else if (b.dataset.hub === 'dl') openDownloadsWindow();
             else openStatsWindow();
         });
         anchor.before(hub);
@@ -591,7 +601,8 @@
         const bl = document.querySelector('.s34-blbtn');
         if (hub) dock.appendChild(hub);   // its two buttons become two tiles
         if (bl) dock.appendChild(bl);
-        dock.appendChild(gear);
+        // (Beta 3.8) Settings is in the top menu - its tile here only on phones
+        if (!gear.classList.contains('s34-gear-in-nav')) dock.appendChild(gear);
         const follow = document.querySelector('.s34-follow-box');
         const view = document.querySelector('.s34-quick');
         if (follow && view && follow.parentElement === view.parentElement) view.before(follow);
@@ -655,7 +666,7 @@
 
     // ---- Popup: click an image to see it at full size, drag to move ----
     function resetZoom(stage) {
-        stage.classList.remove('s34-pv-zoomed', 's34-pv-dragging');
+        stage.classList.remove('s34-pv-zoomed', 's34-pv-dragging', 's34-pv-strip');
         stage.querySelectorAll('img.s34-pv-media').forEach(i => { i.style.width = ''; i.style.height = ''; });
     }
 
@@ -680,6 +691,28 @@
         img.style.height = H + 'px';
         stage.scrollLeft = fx * W - stage.clientWidth / 2;
         stage.scrollTop = fy * H - stage.clientHeight / 2;
+    }
+
+    // Long strips (comics) open fitted to the width, scrolled to the top.
+    // A click shows the whole strip, another one full size - like any picture.
+    function fitLongStrip(img) {
+        const stage = img.closest('.s34-pv-stage');
+        const nw = img.naturalWidth, nh = img.naturalHeight;
+        if (!stage || !isLongStrip(nw, nh)) return false;
+        const fittedW = Math.min(stage.clientWidth / nw, stage.clientHeight / nh) * nw;
+        stage.classList.add('s34-pv-zoomed', 's34-pv-strip');
+        const size = () => {
+            let W = stage.clientWidth; // (without the scrollbar, once there is one)
+            if (!CONFIG.allowUpscale) W = Math.min(W, nw);
+            img.style.width = W + 'px';
+            img.style.height = (W * nh / nw) + 'px';
+            return W;
+        };
+        size();
+        if (size() < fittedW * 1.3) { resetZoom(stage); return false; } // fitted is wide enough already
+        stage.scrollTop = 0;
+        stage.scrollLeft = 0;
+        return true;
     }
 
     function setupPopupZoom(overlay) {

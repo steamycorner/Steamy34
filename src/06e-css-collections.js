@@ -219,5 +219,36 @@
         .s34-hub b { font-size: 10.5px; letter-spacing: -.1px; }
         .s34-hub small { font-size: 9.5px; opacity: .55; }
 
+        /* (Beta 3.8) Collections on all devices: the one-time choice, the
+           favourites page bar and the folder chips on its thumbnails */
+        .s34-collsync-card { margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; background: rgba(255,95,143,.08); border: 1px solid rgba(255,95,143,.35); }
+        .s34-collsync-card b { display: block; font-size: 15px; margin-bottom: 4px; }
+        .s34-collsync-card p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; opacity: .9; }
+        .s34-collsync-card .s34-collsync-small { font-size: 12px; opacity: .65; }
+        .s34-collsync-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+        .s34-favcoll-bar { margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; background: var(--s34-panel, rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.08); }
+        .s34-favcoll-bar h2 { margin: 0; font-size: 20px; }
+        .s34-win-more { display: block; margin: 14px auto 4px; padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+        .s34-win-more:hover { border-color: #ff5f8f; }
+        .s34-favcoll-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+        .s34-favcoll-acts { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+        .s34-favcoll-acts button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .s34-favcoll-acts button:hover { border-color: #ff5f8f; }
+        .s34-favcoll-acts button svg { width: 14px; height: 14px; }
+        .s34-favcoll-acts .s34-favcoll-primary { background: #ff5f8f !important; border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-batch button.s34-armed { background: #c0392b !important; color: #fff !important; }
+        .s34-favcoll-bar p { margin: 0 0 10px; opacity: .7; font-size: 13px; }
+        .s34-favcoll-list { display: flex; flex-wrap: wrap; gap: 6px; }
+        .s34-favcoll-list button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+        .s34-favcoll-list button:hover { border-color: #ff5f8f; }
+        .s34-favcoll-list small { opacity: .6; }
+        .s34-cchip { position: absolute; left: 6px; top: 6px; z-index: 4; transition: opacity .15s; max-width: calc(100% - 12px); display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 6px; background-color: rgba(20,20,24,0.85) !important; color: #fff !important; font: 600 11px/1.4 system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+        .s34-cchip svg { flex: none; width: 12px; height: 12px; }
+        /* top left like the VID / GIF label - under it when there is one; the
+           score pill takes its place while hovering */
+        span.thumb:has(.s34-badge, .s34-new-badge) .s34-cchip { top: 30px; }
+        html.s34-tx-below span.thumb .s34-cchip { top: 6px; }
+        span.thumb:hover:has(.s34-info) .s34-cchip { opacity: 0; }
+
     `;
 

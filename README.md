@@ -46,6 +46,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - ♥ favourites both ways: on thumbnails and in the popup, ♥ again removes a favourite (with Undo) – also right on your favourites page
 - Slideshow ("Auto next") with a timer, theater mode, click-to-zoom
 - Hover previews: videos play and score / resolution show when you hover a thumbnail
+- Post pages: a click on the picture shows it at its real size (or turn "Fit pictures to the screen" off); long comic strips fit the width and read from the top
 
 **Search**
 - Tags as bubbles: add, remove or exclude a tag with one click
@@ -63,7 +64,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - The browser tab shows "(12) rule34" while there are new posts; L in the popup follows the artist
 
 **Downloads**
-- Press **B** on a post to download the original in full resolution (the key can be changed)
+- Press **B** on a post to download the original in full resolution (the key can be changed) – or the ⬇ on a thumbnail, without opening the post
 - Files are named after the tags: `[character] [series] [artist] #post.jpg` – or the classic `Character_Series_Artist_Resolution` style
 - Optional own download folder (Chrome, Edge, Brave)
 - Batch downloads of ticked posts or whole collections, with Pause / Cancel
@@ -76,14 +77,17 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Your account keeps a copy: tags not on it yet are marked, and Save on Options puts the list there
 
 **Organising**
-- Marks posts you viewed or downloaded, and can hide them
-- Local collections (your own folders of posts)
+- Download and viewed buttons on the thumbnails: green = downloaded, blue = viewed. Hover the eye to mark a post as viewed – or as downloaded without downloading it. Every thumbnail item (♥, download, viewed, marks, tags) has its own switch
+- Hides viewed or downloaded posts if you like
+- Collections (your own folders of posts) – **optionally on all your devices**: their posts are favourited too, so they're on your phone, and your favourites page becomes "Favourites & Collections". Un-favourite a post anywhere and it leaves its collections
+- Your favourites page: mark all as viewed or downloaded, or select posts to download, put into a collection or unfavourite in one go
+- A Downloads window with every post you downloaded, newest first
 - Stats: your top artists, characters and series
 
 **Phone (Android)**
 - Picture on top in the popup, info and comments below
 - Swipe left / right to browse, swipe down or press Back to close
-- One ☰ Menu with all of Steamy34's tools
+- One ☰ Menu with all of Steamy34's tools (Collections, Stats, Blacklist, Downloads, Settings)
 - Thumbnail size of their own on phones (the Size slider in the menu changes it)
 - The Following window fills the screen; Back closes it
 
@@ -91,7 +95,8 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Infinite scrolling with "Page N" dividers – and "Continue at page N" when you come back to a search
 - "Copy info for a bug report" in Settings → Help
 - With an ad blocker on, no empty ad spaces next to or above the posts – without one, every ad stays exactly as rule34 shows it
-- Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a clear, pulsing notice at the bottom of the screen asks you to solve it (the *?* explains why: without it rule34 loads nothing new)
+- Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a clear, pulsing notice at the bottom of the screen asks you to solve it (the *?* explains why: without it rule34 loads nothing new). The check window also points to the optional API key, which makes checks rarer
+- Steamy34 Settings in rule34's top menu, on every page
 - A short welcome tour and a quick tips window with all shortcuts
 - Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
 - Settings with a search box
@@ -174,6 +179,9 @@ No. Only favourites, voting and comments need a rule34.xxx login. Everything els
 
 ### Is Steamy34 free? Is it official?
 It's free and will never be monetized. It's a fan-made hobby project by steamycorner, not made by or connected to rule34.xxx.
+
+### Can I use my Steamy34 collections on my phone too?
+Yes, if you turn on "Collections on all your devices" (you're asked once when you open Collections, or Settings → Downloads). Steamy34 then also favourites every post you put into a collection – rule34 keeps favourites on your account, so they show up on your phone on the favourites page ("Favourites & Collections"). The folder names stay on the device that made them. It needs a rule34.xxx login.
 
 ### Can I move my settings to another browser or my phone?
 Yes. Settings → Privacy & data → *Export backup* saves everything to a file; *Import backup* restores it on the other device.

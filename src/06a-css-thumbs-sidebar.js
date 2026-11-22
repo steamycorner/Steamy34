@@ -25,6 +25,52 @@
         span.thumb:hover .s34-fav-btn { opacity: .9; }
         .s34-fav-btn:hover { opacity: 1 !important; transform: scale(1.12); color: #ff6b7a !important; }
         .s34-fav-btn.s34-faved { opacity: 1; color: #ff6b7a !important; }
+        /* (Beta 3.7.4 / 3.8) Download and viewed buttons in a column under the ♥ -
+           never under the score pill, fits narrow (tall) thumbnails. While
+           hovering all of them; otherwise only the ones that are on (green =
+           downloaded, blue = viewed), like a favourited ♥ */
+        .s34-tbtns { position: absolute; top: 34px; right: 6px; z-index: 5; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+        span.thumb:not(:has(.s34-fav-btn)):not(:has(.s34-dl-mark)) .s34-tbtns { top: 6px; }
+        html.s34-tx-below span.thumb .s34-tbtns { top: 6px; }
+        /* not hovering and no ♥ showing: the green / blue ones move up into the corner */
+        span.thumb:not(:hover):not(:has(.s34-fav-btn.s34-faved)):not(:has(.s34-dl-mark)) .s34-tbtns { top: 6px; }
+        .s34-tbtn {
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            padding: 0 !important; border-radius: 50% !important; border: none !important;
+            background-color: rgba(20,20,24,0.8) !important; box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+            color: #fff !important; cursor: pointer; pointer-events: auto; opacity: .9;
+            transition: transform .15s;
+        }
+        .s34-tbtn:not(.s34-on):not(.s34-busy) { display: none; }
+        span.thumb:hover .s34-tbtn { display: flex; }
+        /* the eye and its strip: one item in the column (none while it's hidden) */
+        .s34-tseen-wrap { position: relative; display: flex; pointer-events: auto; }
+        span.thumb:not(:hover) .s34-tseen-wrap:not(:has(.s34-tseen.s34-on)) { display: none; }
+        ${CONFIG.thumbMarks ? '' : 'span.thumb:not(:hover) .s34-tseen-wrap { display: none; }'}
+        .s34-tseen-fly { position: absolute; right: 100%; top: 0; z-index: 6; display: none; gap: 4px; padding-right: 4px; white-space: nowrap; }
+        .s34-tseen-wrap:hover .s34-tseen-fly { display: flex; }
+        .s34-tseen-fly button {
+            display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px !important;
+            border-radius: 12px !important; border: none !important; background-color: rgba(20,20,24,0.9) !important;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.45); color: #fff !important; font: 600 11px/1 system-ui, -apple-system, Segoe UI, sans-serif; cursor: pointer;
+        }
+        .s34-tseen-fly button svg { width: 12px; height: 12px; flex: none; pointer-events: none; }
+        .s34-tseen-fly button span { pointer-events: none; }
+        .s34-tseen-fly button:hover { filter: brightness(1.25); }
+        .s34-tseen-fly button[data-m="viewed"].s34-on { background-color: rgba(52,98,196,0.95) !important; }
+        .s34-tseen-fly button[data-m="dl"].s34-on { background-color: rgba(31,122,62,0.95) !important; }
+        .s34-tseen-fly button.s34-on::after { content: '✓'; margin-left: 2px; }
+        ${CONFIG.thumbMarks ? '' : 'span.thumb:not(:hover) .s34-tbtn.s34-on:not(.s34-busy) { display: none; }'}
+        .s34-tbtn:hover { opacity: 1 !important; transform: scale(1.12); }
+        .s34-tdl.s34-on { background-color: rgba(31,122,62,0.92) !important; }
+        .s34-tseen.s34-on { background-color: rgba(52,98,196,0.92) !important; }
+        .s34-tdl:not(.s34-on):hover { color: #6ee7a8 !important; }
+        .s34-tseen:not(.s34-on):hover { color: #8ab4f8 !important; }
+        .s34-tbtn svg { display: block; pointer-events: none; }
+        .s34-tbtn.s34-busy { opacity: 1 !important; }
+        .s34-tbtn.s34-busy svg { display: none; }
+        .s34-tbtn .s34-spin { margin: 0; width: 12px; height: 12px; }
+        @media (hover: none), (max-width: 760px), (pointer: coarse) and (max-width: 1000px) { .s34-tbtns { display: none !important; } }
         /* Favourites pages: rule34 wraps each thumbnail in an extra box (with
            "Remove" under it on your own list) - the box steps aside so the
            thumbnails join the normal grid, and the ♥ does the removing */
@@ -76,6 +122,10 @@
             transition: opacity .15s;
         }
         span.thumb:hover .s34-info { opacity: 1; }
+        /* narrow thumbnails: the pill stops before the ♥ / corner mark (cut off with …) */
+        .s34-info { max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; }
+        span.thumb:has(.s34-fav-btn) .s34-info, span.thumb:has(.s34-dl-mark) .s34-info { max-width: calc(100% - 46px); }
+        span.thumb:has(.s34-fav-btn):has(.s34-dl-mark) .s34-info { max-width: calc(100% - 74px); }
         /* The pill takes the labels' place while hovering, so nothing
            overlaps (a hovered video plays anyway). In "Below" the labels sit
            in the strip, out of the pill's way, and stay. */

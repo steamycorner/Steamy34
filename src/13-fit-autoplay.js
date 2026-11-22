@@ -59,6 +59,8 @@
             const availH = window.innerHeight - CONFIG.padding * 2;
 
             let scale = Math.min(availW / w, availH / h);
+            // long strips (comics): fit the width only, the page scrolls
+            if (img && !video && isLongStrip(w, h)) scale = availW / w;
             if (!CONFIG.allowUpscale) scale = Math.min(scale, 1);
 
             const newW = Math.floor(w * scale);

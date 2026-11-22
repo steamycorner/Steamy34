@@ -168,7 +168,9 @@
             pointer-events: none;
             transition: opacity .12s;
         }
-        .s34-dl-mark:hover::after { opacity: 1; }
+        /* (Beta 3.8) The label floated over the ♥ next to it - the browser's own
+           tooltip (title) says it now, so nothing covers anything */
+        .s34-dl-mark::after { display: none !important; }
         .s34-dl-btn kbd {
             display: inline-block;
             margin-left: 6px;

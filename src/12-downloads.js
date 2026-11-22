@@ -176,6 +176,7 @@
         if (id) touchedNow.add(id);
         if (!id || !CONFIG.trackDownloads) return;
         addDlHistory(id, info);
+        if (info && info.thumb) rememberDlThumb(id, info.thumb); // (the Downloads window shows it)
         loadDownloaded(); // fresh copy (another tab may have added some)
         downloaded[id] = Date.now();
         const ids = Object.keys(downloaded);
@@ -245,9 +246,45 @@
     const viewedPending = {};
     let viewedSaveTimer = null;
 
+    // (Beta 3.8) "Mark all as downloaded" on the favourites page: only the
+    // mark, no file and no Stats entry. Resolves the ids that were new.
+    function markDownloadedOnly(ids) {
+        if (!CONFIG.trackDownloads) return [];
+        loadDownloaded();
+        const fresh = ids.filter(id => id && !downloaded[id]);
+        fresh.forEach(id => { downloaded[id] = Date.now(); touchedNow.add(id); });
+        if (fresh.length && !downloadedUnreadable) { GM_setValue(DOWNLOADED_KEY, downloaded); bumpMarksRev(); }
+        return fresh;
+    }
+    function unmarkDownloaded(ids) {
+        loadDownloaded();
+        ids.forEach(id => delete downloaded[id]);
+        if (!downloadedUnreadable) { GM_setValue(DOWNLOADED_KEY, downloaded); bumpMarksRev(); }
+    }
+
+    // Downloaded posts count as viewed - unless you switch their eye off
+    // (Beta 3.8): those few are kept here
+    const UNSEEN_KEY = 'steamy34_unseen';
+    function getUnseen() { try { const v = GM_getValue(UNSEEN_KEY, {}); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; } }
+    function setUnseen(id, on) {
+        const u = getUnseen();
+        if (!!u[id] === on) return;
+        if (on) u[id] = Date.now(); else delete u[id];
+        GM_setValue(UNSEEN_KEY, u);
+    }
+    function isSeen(id, done) { return isViewed(id) || (done && !getUnseen()[id]); }
+
+    // The eye on thumbnails: viewed on / off (also for downloaded posts)
+    function setThumbViewed(id, on) {
+        if (!id) return;
+        if (on) { setUnseen(id, false); rememberView(id); saveViewed(); }
+        else { forgetView(id); if (isDownloaded(id)) setUnseen(id, true); }
+    }
+
     function rememberView(id) {
         if (id) touchedNow.add(id);
         if (!id || !CONFIG.trackViewed) return;
+        if (getUnseen()[id]) setUnseen(id, false);
         if (!viewed) loadViewed();
         viewed[id] = viewedPending[id] = Date.now();
         clearTimeout(viewedSaveTimer);
@@ -269,6 +306,17 @@
         if (!viewedUnreadable) GM_setValue(VIEWED_KEY, viewed);
         bumpMarksRev();
     }
+    // (Beta 3.7.4) The eye button on thumbnails: "not viewed after all"
+    function forgetView(id) {
+        if (!id) return;
+        delete viewedPending[id];
+        loadViewed();
+        Object.assign(viewed, viewedPending);
+        delete viewed[id];
+        if (!viewedUnreadable) GM_setValue(VIEWED_KEY, viewed);
+        bumpMarksRev();
+    }
+
     // Don't lose the last few when the page is left
     window.addEventListener('pagehide', () => { if (viewedSaveTimer) { clearTimeout(viewedSaveTimer); saveViewed(); } });
 
@@ -281,19 +329,43 @@
             if (!thumb) return;
             const id = thumb._s34Id || (thumb._s34Id = thumbPostId(thumb));
             const done = CONFIG.trackDownloads && isDownloaded(id);
-            const seen = CONFIG.trackViewed && (done || isViewed(id));
+            const seen = CONFIG.trackViewed && isSeen(id, done);
             thumb.classList.toggle('s34-was-downloaded', done);
             thumb.classList.toggle('s34-was-viewed', seen);
             thumb.classList.toggle('s34-touched-now', touchedNow.has(id));
-            const want = done ? 'dl' : seen ? 'seen' : '';
+            // (Beta 3.8) The ⬇ and 👁 buttons show the state themselves (green /
+            // blue, and they stay while not hovering) - the corner mark is only
+            // drawn for what has no button (switched off, or phones: no hover)
+            const dlBtn = thumb.querySelector('.s34-tdl'), eyeBtn = thumb.querySelector('.s34-tseen');
+            styleSeenButton(eyeBtn, seen);
+            styleDlThumbButton(dlBtn, done);
+            const fly = thumb.querySelector('.s34-tseen-fly');
+            if (fly) {
+                fly.querySelector('[data-m="viewed"]').classList.toggle('s34-on', seen);
+                const fd = fly.querySelector('[data-m="dl"]');
+                if (fd) fd.classList.toggle('s34-on', done);
+            }
+            const usable = b => !!b && !thumbButtonsHidden();
+            let want = done ? 'dl' : seen ? 'seen' : '';
+            if (want === 'dl' && usable(dlBtn)) want = '';
+            if (want === 'seen' && usable(eyeBtn)) want = '';
             let mark = thumb.querySelector('.s34-dl-mark');
-            if (!want) { if (mark) mark.remove(); return; }
+            if (!want || !CONFIG.thumbMarks) { if (mark) mark.remove(); return; }
             if (!mark) {
                 mark = document.createElement('span');
-                // Clicking the icon opens the post like the thumbnail does
+                // Clicking the icon opens the post like the thumbnail does -
+                // the "viewed" eye undoes "viewed" instead (Beta 3.7.4: people
+                // clicked it to un-see a post, which opened it = viewed again)
                 mark.addEventListener('click', e => {
                     e.preventDefault();
                     e.stopPropagation();
+                    if (mark.dataset.kind === 'seen') {
+                        const pid = thumbPostId(thumb);
+                        setThumbViewed(pid, false);
+                        showDownloadedState([thumb]);
+                        showToast('Marked as not viewed', 'Undo', () => { setThumbViewed(pid, true); showDownloadedState([thumb]); });
+                        return;
+                    }
                     const a = thumb.querySelector('a[href]');
                     if (a) a.click();
                 });
@@ -306,7 +378,8 @@
                 mark.innerHTML = want === 'dl'
                     ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>'
                     : '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-                mark.dataset.label = want === 'dl' ? 'Downloaded' : 'Viewed';
+                mark.dataset.label = want === 'dl' ? 'Downloaded' : 'Viewed – click to undo';
+                mark.title = want === 'dl' ? 'Downloaded – click to open' : 'Viewed – click to mark as not viewed';
             }
         });
         if (!CONFIG.trackDownloads) return;

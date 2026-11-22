@@ -546,7 +546,13 @@
 
         const cleanupObserver = CONFIG.cleanupFarPages
             ? new IntersectionObserver(entries => {
-                entries.forEach(e => e.isIntersecting ? unpark(e.target) : park(e.target));
+                // Only pages you've been near are unloaded (the ones far behind
+                // you). A freshly loaded page further down is never put away
+                // before you reach it - the popup steps into it (Beta 3.8 fix).
+                entries.forEach(e => {
+                    if (e.isIntersecting) { e.target.dataset.s34Near = '1'; unpark(e.target); }
+                    else if (e.target.dataset.s34Near) park(e.target);
+                });
             }, { rootMargin: `${CONFIG.cleanupDistance}px 0px ${CONFIG.cleanupDistance}px 0px` })
             : null;
 

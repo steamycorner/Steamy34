@@ -182,6 +182,7 @@
         showDownloadedState(); // ✓ / 👁 on posts you already downloaded / viewed
         addFavButtons();
         setupFavouritesPage(); // your favourites page: every ♥ filled, ♥ removes (the site's Remove links step aside)
+        setupCollectionsSync(); // collections on all devices (opt-in): "Favourites & Collections", background checks
         setupHoverInfo();
         learnTagTypes(document); // remember tag types from this page's tag list
         if (isPostView) {

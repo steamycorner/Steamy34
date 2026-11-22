@@ -128,6 +128,13 @@
         .s34-dock { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 12px 0; }
         .s34-tools .s34-dock, .s34-menu-tools .s34-dock { margin: 0; }
         .s34-dock .s34-hub { display: contents; }
+        /* (Beta 3.8) Collections · Stats / Blacklist · Downloads (· Settings on phones) */
+        .s34-dock .s34-hub [data-hub="coll"] { order: 1; }
+        .s34-dock .s34-hub [data-hub="stats"] { order: 2; }
+        .s34-dock .s34-blbtn { order: 3; }
+        .s34-dock .s34-hub [data-hub="dl"] { order: 4; }
+        .s34-dock .s34-gear { order: 5; }
+        .s34-gear.s34-inline.s34-gear-in-nav { display: none !important; }
         .s34-dock .s34-hub button, .s34-dock .s34-blbtn, .s34-dock .s34-gear.s34-inline {
             display: flex !important;
             flex-direction: row !important;

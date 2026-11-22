@@ -31,11 +31,12 @@
         GM_setValue(FAVS_KEY, f);
     }
 
-    async function addFavourite(id) {
+    // opts: { quiet: no "Added" message, kind: page-queue kind (collections use 'batch') }
+    async function addFavourite(id, opts = {}) {
         if (!id) return false;
         try {
             let r;
-            try { r = await loadPage('public/addfav.php?id=' + encodeURIComponent(id), 'action'); }
+            try { r = await loadPage('public/addfav.php?id=' + encodeURIComponent(id), opts.kind || 'action'); }
             catch (e) { if (e.cloudflare) { showToast('Favourite not saved – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
             const text = r.html.trim();
             if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -44,7 +45,7 @@
                 return false;
             }
             rememberFav(id);
-            showToast(text === '1' ? 'Already in your favourites ♥' : 'Added to your favourites ♥');
+            if (!opts.quiet) showToast(text === '1' ? 'Already in your favourites ♥' : 'Added to your favourites ♥');
             return true;
         } catch (e) {
             showToast('Could not add to favourites (' + (e.message || e) + ').');
@@ -60,11 +61,11 @@
 
     // Beta 3.7: ♥ again = remove it (the site's own "Remove", from its
     // favourites page: a plain address that removes it and shows the list)
-    async function removeFavourite(id) {
+    async function removeFavourite(id, opts = {}) {
         if (!id) return false;
         try {
             let r;
-            try { r = await loadPage('index.php?page=favorites&s=delete&id=' + encodeURIComponent(id) + '&return_pid=0', 'action'); }
+            try { r = await loadPage('index.php?page=favorites&s=delete&id=' + encodeURIComponent(id) + '&return_pid=0', opts.kind || 'action'); }
             catch (e) { if (e.cloudflare) { showToast('Favourite not removed – solve the quick check first.', 'Solve check', openCloudflarePanel, 10000); return false; } throw e; }
             if (!r.ok) throw new Error('HTTP ' + r.status);
             if (/[?&]s=login\b/.test(r.url || '') || /name=["']?pass(word)?["']?/i.test(r.html)) {
@@ -101,8 +102,14 @@
         if (!ok) return;
         showFavState(id, !faved);
         if (faved) {
-            showToast('Removed from your favourites', 'Undo', async () => {
-                if (await addFavourite(id)) showFavState(id, true);
+            const gone = unfavouritedHere(id); // collections on all devices: out of its collections too
+            const names = Array.from(new Set(gone.map(g => g.name)));
+            showCollectionChips();
+            showToast(names.length ? `Removed from your favourites and from ${namesText(names)}` : 'Removed from your favourites', 'Undo', async () => {
+                if (await addFavourite(id, { quiet: !!gone.length })) {
+                    showFavState(id, true);
+                    if (gone.length) { restoreToCollections(gone); showCollectionChips(); showToast('Back in your favourites and collections ♥'); }
+                }
             });
         }
     }
@@ -150,8 +157,117 @@
         btn.title = faved ? 'In your favourites – click to remove' : 'Add to your favourites';
     }
 
+    // ---- (Beta 3.7.4) Download and viewed buttons next to the ♥ on thumbnails ----
+    const TB_DL_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>';
+    const TB_EYE_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+    // On = blue and always there; off = only while hovering
+    function styleSeenButton(btn, seen) {
+        if (!btn || btn.dataset.seen === String(seen)) return;
+        btn.dataset.seen = String(seen);
+        btn.classList.toggle('s34-on', seen);
+        if (!btn.firstChild) btn.innerHTML = TB_EYE_SVG;
+        // (no tooltip: the strip next to it says it - a tooltip covered it)
+        btn.setAttribute('aria-label', seen ? 'Viewed – click to mark as not viewed' : 'Mark as viewed');
+    }
+
+    // On = green and always there
+    function styleDlThumbButton(btn, done) {
+        if (!btn || btn.dataset.done === String(done)) return;
+        btn.dataset.done = String(done);
+        btn.classList.toggle('s34-on', done);
+        btn.title = done ? 'Downloaded – click to download it again' : 'Download';
+        btn.setAttribute('aria-label', btn.title);
+    }
+
+    // The buttons need a mouse: phones (and very narrow windows) keep the corner marks
+    const THUMB_NO_HOVER = '(hover: none), (max-width: 760px), (pointer: coarse) and (max-width: 1000px)';
+    function thumbButtonsHidden() { try { return window.matchMedia(THUMB_NO_HOVER).matches; } catch (e) { return false; } }
+
+    async function thumbDownload(thumb, btn) {
+        if (btn.classList.contains('s34-busy')) return;
+        const id = thumbPostId(thumb);
+        if (CONFIG.confirmRedownload && CONFIG.trackDownloads && isDownloaded(id) && !(await confirmRedownload())) return;
+        // Ask for the download folder now, while the click still counts
+        const folder = await getFolderHandle().catch(() => null);
+        if (folder) await folderAllowed(folder, true);
+        setBusy(btn, true);
+        let ok = false;
+        try { ok = await downloadThumb(thumb, 'popup'); } catch (e) { console.warn('[Steamy34] Thumbnail download failed:', e); }
+        setBusy(btn, false);
+        showDownloadedState([thumb]);
+        showToast(ok ? 'Downloaded' : 'The download didn\'t work – try it in the popup.');
+    }
+
+    function addThumbButtons(thumbs) {
+        const wantDl = CONFIG.thumbDlButton, wantSeen = CONFIG.thumbSeenButton && CONFIG.trackViewed;
+        if (!wantDl && !wantSeen) return;
+        const made = [];
+        thumbs.forEach(thumb => {
+            if (thumb.querySelector('.s34-tbtns')) return;
+            const id = thumbPostId(thumb);
+            if (!id) return;
+            const box = document.createElement('span');
+            box.className = 's34-tbtns';
+            const dl = document.createElement('button');
+            dl.type = 'button';
+            dl.className = 's34-tbtn s34-tdl';
+            dl.innerHTML = TB_DL_SVG;
+            styleDlThumbButton(dl, !!(CONFIG.trackDownloads && isDownloaded(id)));
+            dl.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); thumbDownload(thumb, dl); });
+            if (wantDl) box.appendChild(dl);
+            if (wantSeen) {
+                // (Beta 3.8) The eye opens a small strip to its left while
+                // hovering: "Viewed" and "Downloaded" - the second only marks
+                // the post (nothing is downloaded). A click on the eye itself
+                // switches "viewed" as before.
+                const wrap = document.createElement('span');
+                wrap.className = 's34-tseen-wrap';
+                const fly = document.createElement('span');
+                fly.className = 's34-tseen-fly';
+                fly.innerHTML = `<button type="button" data-m="viewed">${TB_EYE_SVG}<span>Viewed</span></button>`
+                    + (CONFIG.trackDownloads ? `<button type="button" data-m="dl" title="Only the mark – nothing is downloaded">${TB_DL_SVG}<span>Downloaded</span></button>` : '');
+                fly.addEventListener('click', e => {
+                    const b = e.target.closest('[data-m]');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!b) return;
+                    if (b.dataset.m === 'viewed') {
+                        setThumbViewed(id, !b.classList.contains('s34-on'));
+                    } else if (b.classList.contains('s34-on')) {
+                        unmarkDownloaded([id]);
+                        showToast('No longer marked as downloaded.');
+                    } else {
+                        markDownloadedOnly([id]);
+                        showToast('Marked as downloaded – nothing was downloaded.');
+                    }
+                    showDownloadedState([thumb]);
+                    if (typeof updateDownloadsCount === 'function') updateDownloadsCount();
+                });
+                const seen = document.createElement('button');
+                seen.type = 'button';
+                seen.className = 's34-tbtn s34-tseen';
+                styleSeenButton(seen, !!(CONFIG.trackViewed && isSeen(id, CONFIG.trackDownloads && isDownloaded(id))));
+                seen.addEventListener('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setThumbViewed(id, seen.dataset.seen !== 'true');
+                    showDownloadedState([thumb]);
+                });
+                wrap.append(fly, seen);
+                box.prepend(wrap);
+            }
+            thumb.appendChild(box);
+            made.push(thumb);
+        });
+        // the marks were drawn before the buttons existed - the buttons show it now
+        if (made.length) showDownloadedState(made);
+    }
+
     function addFavButtons(thumbs) {
-        if (!CONFIG.favButtons) return;
+        addThumbButtons(thumbs || allThumbs());
+        // (your own favourites page keeps the ♥ - it's how posts are removed there)
+        if (!CONFIG.favButtons || (!CONFIG.thumbHeart && params.get('page') !== 'favorites')) return;
         const favs = getFavs();
         (thumbs || allThumbs()).forEach(thumb => {
             if (thumb.querySelector('.s34-fav-btn')) return;

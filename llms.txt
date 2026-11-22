@@ -1,6 +1,6 @@
 # Steamy34
 
-> Steamy34 is a free userscript for rule34.xxx by steamycorner. It adds White / Dark / OLED colour modes, a popup viewer, an easier tag search with filters, downloads named after the post's tags ([character] [series] [artist] #post.jpg, key B), batch downloads, following artists and saving searches with new-post counts, a Following window (key G) that shows their newest posts in a grid, local collections, tidy My Account and Options pages, blacklists of any length and a touch-friendly Android layout. It runs in Tampermonkey or Violentmonkey. Free, never monetized, collects no data, not affiliated with rule34.xxx. License: CC BY-NC-SA 4.0 (credit steamycorner, non-commercial, share alike).
+> Steamy34 is a free userscript for rule34.xxx by steamycorner. It adds White / Dark / OLED colour modes, a popup viewer, an easier tag search with filters, downloads named after the post's tags ([character] [series] [artist] #post.jpg, key B), batch downloads, following artists and saving searches with new-post counts, a Following window (key G) that shows their newest posts in a grid, download and viewed buttons on thumbnails, a Downloads window, collections that can follow you to your phone through your rule34 favourites, tidy My Account and Options pages, blacklists of any length and a touch-friendly Android layout. It runs in Tampermonkey or Violentmonkey. Free, never monetized, collects no data, not affiliated with rule34.xxx. License: CC BY-NC-SA 4.0 (credit steamycorner, non-commercial, share alike).
 
 ## Docs
 

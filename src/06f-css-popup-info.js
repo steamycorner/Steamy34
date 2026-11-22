@@ -234,6 +234,8 @@
             cursor: grab;
         }
         .s34-pv-stage.s34-pv-dragging img.s34-pv-media { cursor: grabbing !important; }
+        .s34-pv-stage.s34-pv-strip { overflow-x: hidden; overflow-y: auto; }
+        .s34-pv-stage.s34-pv-strip img.s34-pv-media { cursor: zoom-out; }
 
     `;
 

@@ -27,6 +27,11 @@
         hideViewed: false,       // posts page: hide posts you already viewed (sidebar switch)
         hideDownloaded: false,   // posts page: hide posts you already downloaded (sidebar switch)
         hoverInfo: true,         // score and resolution on thumbnails while hovering
+        collectionsSync: false,  // collections on all devices: their posts are favourited too (opt-in)
+        thumbHeart: true,        // the ♥ on thumbnails (favButtons switches all ♥ - popup too)
+        thumbDlButton: true,     // download button on thumbnails (hover)
+        thumbSeenButton: true,   // "viewed" button on thumbnails (hover)
+        thumbMarks: true,        // viewed / downloaded marks on thumbnails (tracking goes on either way)
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
         popupPreload: true,      // popup: load the next post in advance (once you stay on a post for a moment)
 
@@ -177,6 +182,10 @@
             ['hoverInfo', 'Score & resolution on hover'],
             ['thumbTagBar', 'Artist & character tags on thumbnails'],
             ['favButtons', '♥ Favourite buttons', { hint: 'On thumbnails and in the popup – needs a rule34 login' }],
+            ['thumbHeart', '♥ on thumbnails', { hint: 'Your favourites page keeps it – it\'s how posts are removed there' }],
+            ['thumbDlButton', 'Download button on thumbnails', { hint: 'While hovering, next to the ♥. Computers only' }],
+            ['thumbSeenButton', '"Viewed" button on thumbnails', { hint: 'While hovering: mark a post as viewed / not viewed. Computers only' }],
+            ['thumbMarks', 'Show viewed / downloaded without hovering', { hint: 'The green download and blue eye stay on thumbnails you downloaded or viewed (on phones: a small corner icon). Off: only while hovering. Steamy34 keeps remembering either way' }],
             ['infiniteScroll', 'Infinite scrolling', { hint: 'The next page loads when you reach the bottom' }],
             ['resumeOffer', 'Offer to continue where you left off', { hint: 'Back on a search you had scrolled deep into? A small "Continue at page N" button takes you back there' }],
             ['pageDividers', '"Page N" dividers'],
@@ -226,6 +235,7 @@
             ['trackDownloads', 'Remember downloaded posts', { hint: 'Download mark on thumbnails, green Download button' }],
             ['trackViewed', 'Remember viewed posts', { hint: 'Small eye on thumbnails' }],
             ['confirmRedownload', 'Ask before downloading a post again'],
+            ['collectionsSync', 'Collections on all your devices', { hint: 'Posts you put into a collection are favourited too, so they\'re on your phone as well (favourites page). Un-favourite one anywhere and it leaves its collections. Needs a rule34 login' }],
             ['fileNameStyle', 'File names', { options: { brackets: '[character] [series] [artist]', classic: 'Character_Series_Artist_Resolution' }, hint: 'Readable names with spaces – handy for sorting in picture libraries' }],
             ['fileNamePostId', 'Add the post number to file names', { hint: 'e.g. "[tracer] [overwatch] [someartist] #1234567.jpg" – so you can always find the post again. Bracket style only' }],
             ['batchDelay', 'Pause between batch downloads', { min: 300, max: 10000, unit: 'ms', adv: true }],

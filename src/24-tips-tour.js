@@ -202,6 +202,16 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8', date: '2026-11-22', notify: true, items: [
+            'Settings moved into rule34\'s top menu – "Steamy34 Settings", on every page. Its place in the sidebar is now Downloads: every post you downloaded, newest first (older downloads show their number – with an API key, their picture too).',
+            'Your favourites page has buttons now: mark all favourites as viewed or as downloaded (only the mark – nothing downloads), and Select… to download, put into a collection or unfavourite several at once.',
+            'Collections on all your devices (optional): Steamy34 can also favourite every post you put into a collection – rule34 keeps favourites on your account, so they\'re on your phone too. Your favourites page becomes "Favourites & Collections" and shows which collection each post is in. Take a post out of your favourites anywhere and it leaves its collections too. You\'re asked once when you open Collections; Settings → Downloads to change it.',
+            'Thumbnails: next to the ♥ there are now a download button and a "viewed" button while you hover – download a post without opening it, or mark it as viewed / not viewed. They show what you did: green = downloaded, blue = viewed – and stay there without hovering. Hover the eye for a small menu: mark a post as viewed, or as downloaded without downloading it. Settings → Posts page has a switch for each thing on a thumbnail: ♥, download, viewed, the viewed / downloaded marks and the tags.'
+        ] },
+        { v: 'Beta 3.7.3', date: '2026-11-22', items: [
+            'Long comic strips are readable now: on post pages and in the popup they fit the width and start at the top – scroll down to read. Click for the whole strip or its real size, as before.',
+            'The Cloudflare check window mentions the optional API key, which makes these checks come up less often – with a button to its page in Settings.'
+        ] },
         { v: 'Beta 3.7.2', date: '2026-11-22', items: [
             'Single post pages: click the picture to see it at its real size, click again to fit it to the window. With "Fit pictures to the screen" off (Steamy34 Settings → Viewing posts), pictures open at their real size.'
         ] },

@@ -402,6 +402,10 @@
         }
         .s34-cf-panel .s34-close:hover { background-color: rgba(255,255,255,0.12) !important; }
         .s34-cf-note { padding: 0 20px 12px; font-size: 13px; opacity: .75; }
+        .s34-cf-api { display: flex; align-items: center; gap: 14px; margin: 12px 20px 0; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); font-size: 12.5px; line-height: 1.45; }
+        .s34-cf-api span { opacity: .85; }
+        .s34-cf-api .s34-btn { flex: none; white-space: nowrap; }
+        @media (max-width: 700px) { .s34-cf-api { flex-direction: column; align-items: stretch; } }
         .s34-cf-panel .s34-cf-frame { margin: 0 20px; width: calc(100% - 40px); border-radius: 12px; }
         .s34-cf-panel .s34-panel-foot { padding: 14px 20px 18px; border-top: none !important; gap: 8px; }
         .s34-cf-panel .s34-btn {

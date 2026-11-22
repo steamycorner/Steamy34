@@ -97,6 +97,7 @@
         if (CONFIG.thumbTagBar) setupTagBars(thumbs);
         showDownloadedState(thumbs);
         addFavButtons(thumbs);
+        showCollectionChips(thumbs);
         setupHoverInfo(thumbs);
         markFeedNew(thumbs); // Following feed: NEW on later pages too
     }

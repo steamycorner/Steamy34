@@ -136,6 +136,7 @@
             <ul class="s34-api-list">
                 <li>counting new posts of the artists you follow and your saved searches</li>
                 <li>finding the file for hover previews</li>
+                <li>pictures for older downloads in your Downloads window</li>
             </ul>
             <p>That's far less for rule34 to send – so Cloudflare checks come less often, and these things get quicker. Anything that doesn't work through the API simply uses the normal pages.</p>
             <div class="s34-set-cardhead">What Steamy34 promises</div>
