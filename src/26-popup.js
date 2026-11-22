@@ -162,6 +162,33 @@
         return overlay;
     }
 
+    // (Beta 3.8.1) Blocked stays blocked: a post with a blacklisted tag (its
+    // thumbnail didn't list it, or you opened it some other way) is covered
+    function coverIfBlocked(blockedSet) {
+        const st = popupState;
+        if (!st) return;
+        const all = [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag)));
+        const hit = st.blockShown ? [] : blockedTagsOf(all);
+        const stage = st.overlay.querySelector('.s34-pv-stage');
+        const old = stage && stage.querySelector('.s34-blcover');
+        if (!hit.length) {
+            if (old) old.remove();
+            st.overlay.classList.remove('s34-pv-blocked');
+            return;
+        }
+        st.overlay.classList.add('s34-pv-blocked');
+        stage.querySelectorAll('video').forEach(v => {
+            v.pause(); v.muted = true;
+            if (!v._s34BlHold) { v._s34BlHold = true; v.addEventListener('play', () => { if (st.overlay.classList.contains('s34-pv-blocked')) v.pause(); }); }
+        });
+        if (old) old.remove();
+        stage.appendChild(makeBlockCover(hit, () => {
+            st.blockShown = true;
+            st.overlay.classList.remove('s34-pv-blocked');
+            const c = stage.querySelector('.s34-blcover');
+            if (c) c.remove();
+        }));
+    }
     function renderPopupTags() {
         if (!popupState) return;
         const box = popupState.overlay.querySelector('.s34-pv-tags');
@@ -192,6 +219,7 @@
                 });
                 box.appendChild(wrap);
             });
+        coverIfBlocked(blockedSet);
         if (!popupState.tagsFromPost) {
             const note = document.createElement('div');
             note.className = 's34-pv-note';

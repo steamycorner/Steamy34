@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.8-beta
+// @version      3.8.1-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -752,7 +752,7 @@
         @keyframes s34-load { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
         /* Artist / character bar at the bottom of each thumbnail */
-        .image-list span.thumb.s34-bl-hidden { display: none !important; }
+        .image-list span.thumb.s34-bl-hidden, span.thumb.s34-bl-hidden { display: none !important; }
         .s34-tagbar {
             position: absolute;
             left: 0;
@@ -858,10 +858,30 @@
             transition: none;
         }
 
-        /* Post blacklisted while on screen: greyed out and labelled, still usable */
+        /* Post blacklisted while on screen: fully blurred and labelled (Beta 3.8.1 -
+           before only greyed, the picture could still be made out) */
         span.thumb.s34-bl-marked img:not(.s34-hover-video) {
-            filter: grayscale(1) brightness(.35) blur(2px);
+            filter: grayscale(1) brightness(.3) blur(14px);
         }
+        span.thumb.s34-bl-marked { overflow: hidden; }
+        span.thumb.s34-bl-marked video { visibility: hidden !important; }
+
+        /* (Beta 3.8.1) A post with a blacklisted tag, opened anyway (a link, the
+           post page): covered until you choose to see it */
+        .s34-blcover {
+            position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 10px; padding: 20px; text-align: center; background: #121216 !important; color: #e8e8ee !important; border-radius: 10px;
+            font: 500 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
+        }
+        .s34-blcover b { font-size: 16px; color: #fff !important; }
+        .s34-blcover .s34-blcover-tags { color: #ff8a8a !important; font-weight: 700; overflow-wrap: anywhere; }
+        .s34-blcover button { margin-top: 4px; padding: 7px 14px; border-radius: 8px; border: 1px solid #4a4a56 !important; background: #24242a !important; color: #fff !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+        .s34-blcover button:hover { border-color: #ff5f8f !important; }
+        .s34-pv-overlay.s34-pv-blocked .s34-pv-stage > :not(.s34-blcover) { visibility: hidden !important; }
+        .s34-pv-overlay.s34-pv-blocked .s34-pv-stage { position: relative; }
+        html.s34-post-pending #image, html.s34-post-pending #gelcomVideoPlayer, html.s34-post-pending .fluid_video_wrapper,
+        html.s34-post-blocked #image, html.s34-post-blocked #gelcomVideoPlayer, html.s34-post-blocked .fluid_video_wrapper { visibility: hidden !important; }
+        .s34-blcover-post { position: relative; inset: auto; min-height: 260px; max-width: 640px; margin: 10px 0; }
         span.thumb.s34-bl-marked .s34-badge { display: none; }
         .s34-bl-label {
             position: absolute;
@@ -5821,7 +5841,9 @@
 
     function thumbTags(img) {
         const text = img.dataset.s34Tags || img.title || img.alt || '';
-        return ' ' + text.toLowerCase().replace(/\s+/g, ' ') + ' ';
+        // (Beta 3.8) rule34 writes ' as &#039; - "five_nights_at_freddy&#039;s"
+        // never matched the blacklisted "five_nights_at_freddy's"
+        return ' ' + unescapeHtml(text.toLowerCase()).replace(/\s+/g, ' ') + ' ';
     }
 
     // Remove the tag tooltip on hover: move the title into a data attribute
@@ -5896,7 +5918,7 @@
             if (link) tag = link.textContent.trim().replace(/\s+/g, '_');
         }
 
-        return tag.trim();
+        return unescapeHtml(tag.trim()); // (Beta 3.8: rule34 writes ' as &#039;)
     }
 
     function getTags(type) {
@@ -6829,6 +6851,40 @@
         }
     }
 
+    // (Beta 3.8.1) Blocked stays blocked: a post page with a blacklisted tag
+    // is covered - the picture / video stays invisible from the start
+    // (s34-post-pending, set at document-start) until the tags are checked.
+    if (isPostView) {
+        document.documentElement.classList.add('s34-post-pending');
+        setTimeout(() => document.documentElement.classList.remove('s34-post-pending'), 5000); // (never stuck hidden)
+    }
+    function checkPostBlocked() {
+        const root = document.documentElement;
+        try {
+            const tags = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-"]')).map(getTagFromRow).filter(Boolean);
+            const hit = blockedTagsOf(tags);
+            if (!hit.length) return;
+            root.classList.add('s34-post-blocked');
+            const media = document.querySelector('#gelcomVideoPlayer, #content video');
+            const holdVideo = () => { if (media && root.classList.contains('s34-post-blocked')) { media.pause(); media.muted = true; } };
+            if (media) { media.autoplay = false; holdVideo(); media.addEventListener('play', holdVideo); }
+            const spot = document.querySelector('.fluid_video_wrapper, #fluid_video_wrapper_gelcomVideoPlayer, #image, #gelcomVideoPlayer');
+            const cover = makeBlockCover(hit, () => { root.classList.remove('s34-post-blocked'); cover.remove(); });
+            cover.classList.add('s34-blcover-post');
+            if (spot) spot.before(cover); else (document.querySelector('#content') || document.body).prepend(cover);
+        } finally {
+            root.classList.remove('s34-post-pending');
+        }
+    }
+    function makeBlockCover(hit, onShow) {
+        const cover = document.createElement('div');
+        cover.className = 's34-blcover';
+        cover.innerHTML = '<b>Hidden</b><span>This post has a tag you blacklisted:</span><span class="s34-blcover-tags"></span><button type="button">Show anyway</button>';
+        cover.querySelector('.s34-blcover-tags').textContent = hit.map(t => t.replace(/_/g, ' ')).join(', ');
+        cover.querySelector('button').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onShow(); });
+        return cover;
+    }
+    if (isPostView) onReady(() => setTimeout(checkPostBlocked, 0)); // (after every part of the script is set up)
     if (isPostView) onReady(setupMedia);
 
     // =====================================================================
@@ -6861,7 +6917,7 @@
     // cookie, and browsers refuse cookies over about 4,000 characters - so
     // the full list lives in Steamy34's storage, the cookie gets as many
     // tags as fit (rule34 hides those itself), and Steamy34 hides the rest
-    // (hideExtraBlocklisted on rule34's own pages, hideBlocklisted on every
+    // (hideExtraBlocklisted - since 3.8 every blacklisted tag - on rule34's own pages, hideBlocklisted on every
     // page Steamy34 loads). readBlocklist = the full list + anything the
     // site put in the cookie on its own (e.g. after saving Options).
     const BL_FULL_KEY = 'steamy34_bl_full';
@@ -6885,6 +6941,29 @@
         blCacheRaw = m[1];
         blCacheList = parseBlocklist(m[1]);
         return blCacheList.slice();
+    }
+
+    // (Beta 3.8.1) Blocked stays blocked: the blacklist as a set to compare
+    // posts with - lower case, ' instead of &#039;, and rule34's short ratings
+    // (rating:e / q / s) as the posts write them (rating:explicit …)
+    const RATING_LONG = { e: 'explicit', q: 'questionable', s: 'safe', g: 'general' };
+    function blockedTagSet() {
+        const set = new Set();
+        readBlocklist().forEach(t => {
+            let k = unescapeHtml(String(t)).toLowerCase().trim();
+            if (!k) return;
+            const r = k.match(/^rating:([eqsg])$/);
+            if (r) k = 'rating:' + RATING_LONG[r[1]];
+            set.add(k);
+        });
+        return set;
+    }
+    // The blacklisted tags a post has (tags: a list, or the words of a thumbnail)
+    function blockedTagsOf(tags, set) {
+        const s = set || blockedTagSet();
+        if (!s.size) return [];
+        return Array.from(new Set((Array.isArray(tags) ? tags : String(tags).split(/\s+/))
+            .map(t => unescapeHtml(String(t)).toLowerCase()).filter(t => t && s.has(t))));
     }
 
     // (read very often while rendering: the merged list is kept until the
@@ -8884,12 +8963,11 @@
     // so new thumbnails are checked against the blocklist here.
     // Uses its own class, so posts can be shown again after an Undo.
     function hideBlocklisted(thumbs) {
-        const blocked = readBlocklist().map(t => t.toLowerCase());
+        const set = blockedTagSet();
         thumbs.forEach(thumb => {
             const img = thumb.querySelector('img');
             if (!img) return;
-            const tags = thumbTags(img).trim().split(' ');
-            thumb.classList.toggle('s34-bl-hidden', blocked.some(b => tags.includes(b)));
+            thumb.classList.toggle('s34-bl-hidden', blockedTagsOf(thumbTags(img).trim(), set).length > 0);
         });
     }
 
@@ -8897,15 +8975,18 @@
     // fit (see readBlocklist) are hidden here - while the page is still
     // being built, so they never show up. Only those: the cookie's tags stay
     // with the site (its "Hidden" link keeps working for them).
+    // (Beta 3.8) Now every blacklisted tag, not only the extra ones: rule34's
+    // own hiding was seen missing posts (a blacklisted tag on screen anyway).
+    // Its "Hidden" link still shows them - see watchSiteHiddenLink.
     function hideExtraBlocklisted() {
         if (isPostView) return;
-        const inCookie = new Set(readCookieBlocklist().map(t => t.toLowerCase()));
-        const extra = new Set(readBlocklist().map(t => t.toLowerCase()).filter(t => !inCookie.has(t)));
+        const extra = blockedTagSet();
         if (!extra.size) return;
+        watchSiteHiddenLink();
         const check = img => {
             const thumb = img.closest('span.thumb');
             if (!thumb || thumb.classList.contains('s34-bl-hidden')) return;
-            if (thumbTags(img).trim().split(' ').some(t => extra.has(t))) thumb.classList.add('s34-bl-hidden');
+            if (blockedTagsOf(thumbTags(img).trim(), extra).length) thumb.classList.add('s34-bl-hidden');
         };
         const all = () => document.querySelectorAll('span.thumb img').forEach(check);
         all();
@@ -8917,6 +8998,21 @@
         })));
         mo.observe(document.documentElement, { childList: true, subtree: true });
         document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); all(); }, { once: true });
+    }
+    // rule34's "Hidden" link (in its sidebar) shows the hidden posts - also the
+    // ones Steamy34 hid; a second click hides them again
+    let siteHiddenWatched = false;
+    function watchSiteHiddenLink() {
+        if (siteHiddenWatched) return;
+        siteHiddenWatched = true;
+        document.addEventListener('click', e => {
+            if (!e.target.closest || !e.target.closest('#blacklisted-sidebar a, a[onclick*="showHideBlacklistedPosts"]')) return;
+            const reveal = !document.documentElement.classList.toggle('s34-bl-reveal') ? false : true;
+            document.querySelectorAll(reveal ? '.image-list span.thumb.s34-bl-hidden' : '.image-list span.thumb.s34-bl-revealed').forEach(t => {
+                t.classList.toggle('s34-bl-hidden', !reveal);
+                t.classList.toggle('s34-bl-revealed', reveal);
+            });
+        }, true);
     }
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
@@ -11822,7 +11918,7 @@
         const list = Array.isArray(data) ? data : data && Array.isArray(data.post) ? data.post : [];
         return list.map(p => ({
             id: parseInt(p.id, 10) || 0,
-            tags: String(p.tags || '').toLowerCase().trim(),
+            tags: unescapeHtml(String(p.tags || '')).toLowerCase().trim(),
             rating: String(p.rating || '').toLowerCase().trim(), // (a field of its own here - pages have it among the tags)
             preview: String(p.preview_url || ''),
             sample: String(p.sample_url || ''),
@@ -14580,6 +14676,11 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8.1', date: '2026-11-22', items: [
+            'Blacklist: tags with an apostrophe (like five_nights_at_freddy\'s) now hide their posts – rule34 writes the apostrophe in a coded form that never matched. Their names show properly too, without "&#039;".',
+            'Blacklisted posts are now hidden by Steamy34 as well, not only by rule34 – a post with a blacklisted tag could still show up. rule34\'s "Hidden" link still shows them on request.',
+            'Blocked stays blocked: a post with a blacklisted tag that you open anyway (a link, a post page) is covered – "Show anyway" if you really want to see it. Also hidden on other pages (pools…), short ratings like rating:e work, and posts you blacklist while they\'re on screen are blurred completely.'
+        ] },
         { v: 'Beta 3.8', date: '2026-11-22', notify: true, items: [
             'Settings moved into rule34\'s top menu – "Steamy34 Settings", on every page. Its place in the sidebar is now Downloads: every post you downloaded, newest first (older downloads show their number – with an API key, their picture too).',
             'Your favourites page has buttons now: mark all favourites as viewed or as downloaded (only the mark – nothing downloads), and Select… to download, put into a collection or unfavourite several at once.',
@@ -17230,6 +17331,33 @@
         return overlay;
     }
 
+    // (Beta 3.8.1) Blocked stays blocked: a post with a blacklisted tag (its
+    // thumbnail didn't list it, or you opened it some other way) is covered
+    function coverIfBlocked(blockedSet) {
+        const st = popupState;
+        if (!st) return;
+        const all = [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag)));
+        const hit = st.blockShown ? [] : blockedTagsOf(all);
+        const stage = st.overlay.querySelector('.s34-pv-stage');
+        const old = stage && stage.querySelector('.s34-blcover');
+        if (!hit.length) {
+            if (old) old.remove();
+            st.overlay.classList.remove('s34-pv-blocked');
+            return;
+        }
+        st.overlay.classList.add('s34-pv-blocked');
+        stage.querySelectorAll('video').forEach(v => {
+            v.pause(); v.muted = true;
+            if (!v._s34BlHold) { v._s34BlHold = true; v.addEventListener('play', () => { if (st.overlay.classList.contains('s34-pv-blocked')) v.pause(); }); }
+        });
+        if (old) old.remove();
+        stage.appendChild(makeBlockCover(hit, () => {
+            st.blockShown = true;
+            st.overlay.classList.remove('s34-pv-blocked');
+            const c = stage.querySelector('.s34-blcover');
+            if (c) c.remove();
+        }));
+    }
     function renderPopupTags() {
         if (!popupState) return;
         const box = popupState.overlay.querySelector('.s34-pv-tags');
@@ -17260,6 +17388,7 @@
                 });
                 box.appendChild(wrap);
             });
+        coverIfBlocked(blockedSet);
         if (!popupState.tagsFromPost) {
             const note = document.createElement('div');
             note.className = 's34-pv-note';

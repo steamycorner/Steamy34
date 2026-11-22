@@ -140,5 +140,39 @@
         }
     }
 
+    // (Beta 3.8.1) Blocked stays blocked: a post page with a blacklisted tag
+    // is covered - the picture / video stays invisible from the start
+    // (s34-post-pending, set at document-start) until the tags are checked.
+    if (isPostView) {
+        document.documentElement.classList.add('s34-post-pending');
+        setTimeout(() => document.documentElement.classList.remove('s34-post-pending'), 5000); // (never stuck hidden)
+    }
+    function checkPostBlocked() {
+        const root = document.documentElement;
+        try {
+            const tags = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-"]')).map(getTagFromRow).filter(Boolean);
+            const hit = blockedTagsOf(tags);
+            if (!hit.length) return;
+            root.classList.add('s34-post-blocked');
+            const media = document.querySelector('#gelcomVideoPlayer, #content video');
+            const holdVideo = () => { if (media && root.classList.contains('s34-post-blocked')) { media.pause(); media.muted = true; } };
+            if (media) { media.autoplay = false; holdVideo(); media.addEventListener('play', holdVideo); }
+            const spot = document.querySelector('.fluid_video_wrapper, #fluid_video_wrapper_gelcomVideoPlayer, #image, #gelcomVideoPlayer');
+            const cover = makeBlockCover(hit, () => { root.classList.remove('s34-post-blocked'); cover.remove(); });
+            cover.classList.add('s34-blcover-post');
+            if (spot) spot.before(cover); else (document.querySelector('#content') || document.body).prepend(cover);
+        } finally {
+            root.classList.remove('s34-post-pending');
+        }
+    }
+    function makeBlockCover(hit, onShow) {
+        const cover = document.createElement('div');
+        cover.className = 's34-blcover';
+        cover.innerHTML = '<b>Hidden</b><span>This post has a tag you blacklisted:</span><span class="s34-blcover-tags"></span><button type="button">Show anyway</button>';
+        cover.querySelector('.s34-blcover-tags').textContent = hit.map(t => t.replace(/_/g, ' ')).join(', ');
+        cover.querySelector('button').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onShow(); });
+        return cover;
+    }
+    if (isPostView) onReady(() => setTimeout(checkPostBlocked, 0)); // (after every part of the script is set up)
     if (isPostView) onReady(setupMedia);
 

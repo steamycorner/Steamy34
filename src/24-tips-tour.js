@@ -202,6 +202,11 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8.1', date: '2026-11-22', items: [
+            'Blacklist: tags with an apostrophe (like five_nights_at_freddy\'s) now hide their posts – rule34 writes the apostrophe in a coded form that never matched. Their names show properly too, without "&#039;".',
+            'Blacklisted posts are now hidden by Steamy34 as well, not only by rule34 – a post with a blacklisted tag could still show up. rule34\'s "Hidden" link still shows them on request.',
+            'Blocked stays blocked: a post with a blacklisted tag that you open anyway (a link, a post page) is covered – "Show anyway" if you really want to see it. Also hidden on other pages (pools…), short ratings like rating:e work, and posts you blacklist while they\'re on screen are blurred completely.'
+        ] },
         { v: 'Beta 3.8', date: '2026-11-22', notify: true, items: [
             'Settings moved into rule34\'s top menu – "Steamy34 Settings", on every page. Its place in the sidebar is now Downloads: every post you downloaded, newest first (older downloads show their number – with an API key, their picture too).',
             'Your favourites page has buttons now: mark all favourites as viewed or as downloaded (only the mark – nothing downloads), and Select… to download, put into a collection or unfavourite several at once.',

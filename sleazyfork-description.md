@@ -44,6 +44,7 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - ⊘ next to any tag blacklists it; posts already on screen are greyed out, with Undo
 - **As long as you like:** Steamy34 keeps the whole list and hides what doesn't fit into rule34's cookie itself
 - Your account keeps a copy: tags not on it yet are marked, and Save on Options puts the list there
+- **Blocked stays blocked:** Steamy34 checks every post against your whole blacklist itself – on every list, while scrolling, in the popup and the Following window. A blacklisted post you open anyway is covered ("Show anyway" if you really want to)
 
 **Organising**
 - Download and viewed buttons on the thumbnails: green = downloaded, blue = viewed. Hover the eye to mark a post as viewed – or as downloaded without downloading it. Every thumbnail item has its own switch

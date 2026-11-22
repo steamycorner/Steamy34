@@ -52,12 +52,11 @@
     // so new thumbnails are checked against the blocklist here.
     // Uses its own class, so posts can be shown again after an Undo.
     function hideBlocklisted(thumbs) {
-        const blocked = readBlocklist().map(t => t.toLowerCase());
+        const set = blockedTagSet();
         thumbs.forEach(thumb => {
             const img = thumb.querySelector('img');
             if (!img) return;
-            const tags = thumbTags(img).trim().split(' ');
-            thumb.classList.toggle('s34-bl-hidden', blocked.some(b => tags.includes(b)));
+            thumb.classList.toggle('s34-bl-hidden', blockedTagsOf(thumbTags(img).trim(), set).length > 0);
         });
     }
 
@@ -65,15 +64,18 @@
     // fit (see readBlocklist) are hidden here - while the page is still
     // being built, so they never show up. Only those: the cookie's tags stay
     // with the site (its "Hidden" link keeps working for them).
+    // (Beta 3.8) Now every blacklisted tag, not only the extra ones: rule34's
+    // own hiding was seen missing posts (a blacklisted tag on screen anyway).
+    // Its "Hidden" link still shows them - see watchSiteHiddenLink.
     function hideExtraBlocklisted() {
         if (isPostView) return;
-        const inCookie = new Set(readCookieBlocklist().map(t => t.toLowerCase()));
-        const extra = new Set(readBlocklist().map(t => t.toLowerCase()).filter(t => !inCookie.has(t)));
+        const extra = blockedTagSet();
         if (!extra.size) return;
+        watchSiteHiddenLink();
         const check = img => {
             const thumb = img.closest('span.thumb');
             if (!thumb || thumb.classList.contains('s34-bl-hidden')) return;
-            if (thumbTags(img).trim().split(' ').some(t => extra.has(t))) thumb.classList.add('s34-bl-hidden');
+            if (blockedTagsOf(thumbTags(img).trim(), extra).length) thumb.classList.add('s34-bl-hidden');
         };
         const all = () => document.querySelectorAll('span.thumb img').forEach(check);
         all();
@@ -85,6 +87,21 @@
         })));
         mo.observe(document.documentElement, { childList: true, subtree: true });
         document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); all(); }, { once: true });
+    }
+    // rule34's "Hidden" link (in its sidebar) shows the hidden posts - also the
+    // ones Steamy34 hid; a second click hides them again
+    let siteHiddenWatched = false;
+    function watchSiteHiddenLink() {
+        if (siteHiddenWatched) return;
+        siteHiddenWatched = true;
+        document.addEventListener('click', e => {
+            if (!e.target.closest || !e.target.closest('#blacklisted-sidebar a, a[onclick*="showHideBlacklistedPosts"]')) return;
+            const reveal = !document.documentElement.classList.toggle('s34-bl-reveal') ? false : true;
+            document.querySelectorAll(reveal ? '.image-list span.thumb.s34-bl-hidden' : '.image-list span.thumb.s34-bl-revealed').forEach(t => {
+                t.classList.toggle('s34-bl-hidden', !reveal);
+                t.classList.toggle('s34-bl-revealed', reveal);
+            });
+        }, true);
     }
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 

@@ -28,7 +28,7 @@
     // cookie, and browsers refuse cookies over about 4,000 characters - so
     // the full list lives in Steamy34's storage, the cookie gets as many
     // tags as fit (rule34 hides those itself), and Steamy34 hides the rest
-    // (hideExtraBlocklisted on rule34's own pages, hideBlocklisted on every
+    // (hideExtraBlocklisted - since 3.8 every blacklisted tag - on rule34's own pages, hideBlocklisted on every
     // page Steamy34 loads). readBlocklist = the full list + anything the
     // site put in the cookie on its own (e.g. after saving Options).
     const BL_FULL_KEY = 'steamy34_bl_full';
@@ -52,6 +52,29 @@
         blCacheRaw = m[1];
         blCacheList = parseBlocklist(m[1]);
         return blCacheList.slice();
+    }
+
+    // (Beta 3.8.1) Blocked stays blocked: the blacklist as a set to compare
+    // posts with - lower case, ' instead of &#039;, and rule34's short ratings
+    // (rating:e / q / s) as the posts write them (rating:explicit …)
+    const RATING_LONG = { e: 'explicit', q: 'questionable', s: 'safe', g: 'general' };
+    function blockedTagSet() {
+        const set = new Set();
+        readBlocklist().forEach(t => {
+            let k = unescapeHtml(String(t)).toLowerCase().trim();
+            if (!k) return;
+            const r = k.match(/^rating:([eqsg])$/);
+            if (r) k = 'rating:' + RATING_LONG[r[1]];
+            set.add(k);
+        });
+        return set;
+    }
+    // The blacklisted tags a post has (tags: a list, or the words of a thumbnail)
+    function blockedTagsOf(tags, set) {
+        const s = set || blockedTagSet();
+        if (!s.size) return [];
+        return Array.from(new Set((Array.isArray(tags) ? tags : String(tags).split(/\s+/))
+            .map(t => unescapeHtml(String(t)).toLowerCase()).filter(t => t && s.has(t))));
     }
 
     // (read very often while rendering: the merged list is kept until the

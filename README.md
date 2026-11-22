@@ -75,6 +75,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - ⊘ next to any tag blacklists it; posts already on screen are greyed out, with Undo
 - **As long as you like:** rule34 keeps the blacklist in one browser cookie of about 4,000 characters, so longer lists get lost. Steamy34 keeps the whole list and hides the rest itself, everywhere
 - Your account keeps a copy: tags not on it yet are marked, and Save on Options puts the list there
+- **Blocked stays blocked:** Steamy34 checks every post against your whole blacklist itself – on every list, while scrolling, in the popup and the Following window. A blacklisted post you open anyway (a link, a post page) is covered, with "Show anyway" if you really want to see it
 
 **Organising**
 - Download and viewed buttons on the thumbnails: green = downloaded, blue = viewed. Hover the eye to mark a post as viewed – or as downloaded without downloading it. Every thumbnail item (♥, download, viewed, marks, tags) has its own switch

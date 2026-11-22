@@ -71,7 +71,7 @@
         @keyframes s34-load { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
         /* Artist / character bar at the bottom of each thumbnail */
-        .image-list span.thumb.s34-bl-hidden { display: none !important; }
+        .image-list span.thumb.s34-bl-hidden, span.thumb.s34-bl-hidden { display: none !important; }
         .s34-tagbar {
             position: absolute;
             left: 0;
@@ -177,10 +177,30 @@
             transition: none;
         }
 
-        /* Post blacklisted while on screen: greyed out and labelled, still usable */
+        /* Post blacklisted while on screen: fully blurred and labelled (Beta 3.8.1 -
+           before only greyed, the picture could still be made out) */
         span.thumb.s34-bl-marked img:not(.s34-hover-video) {
-            filter: grayscale(1) brightness(.35) blur(2px);
+            filter: grayscale(1) brightness(.3) blur(14px);
         }
+        span.thumb.s34-bl-marked { overflow: hidden; }
+        span.thumb.s34-bl-marked video { visibility: hidden !important; }
+
+        /* (Beta 3.8.1) A post with a blacklisted tag, opened anyway (a link, the
+           post page): covered until you choose to see it */
+        .s34-blcover {
+            position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 10px; padding: 20px; text-align: center; background: #121216 !important; color: #e8e8ee !important; border-radius: 10px;
+            font: 500 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
+        }
+        .s34-blcover b { font-size: 16px; color: #fff !important; }
+        .s34-blcover .s34-blcover-tags { color: #ff8a8a !important; font-weight: 700; overflow-wrap: anywhere; }
+        .s34-blcover button { margin-top: 4px; padding: 7px 14px; border-radius: 8px; border: 1px solid #4a4a56 !important; background: #24242a !important; color: #fff !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+        .s34-blcover button:hover { border-color: #ff5f8f !important; }
+        .s34-pv-overlay.s34-pv-blocked .s34-pv-stage > :not(.s34-blcover) { visibility: hidden !important; }
+        .s34-pv-overlay.s34-pv-blocked .s34-pv-stage { position: relative; }
+        html.s34-post-pending #image, html.s34-post-pending #gelcomVideoPlayer, html.s34-post-pending .fluid_video_wrapper,
+        html.s34-post-blocked #image, html.s34-post-blocked #gelcomVideoPlayer, html.s34-post-blocked .fluid_video_wrapper { visibility: hidden !important; }
+        .s34-blcover-post { position: relative; inset: auto; min-height: 260px; max-width: 640px; margin: 10px 0; }
         span.thumb.s34-bl-marked .s34-badge { display: none; }
         .s34-bl-label {
             position: absolute;

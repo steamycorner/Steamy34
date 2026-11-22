@@ -97,7 +97,7 @@
         const list = Array.isArray(data) ? data : data && Array.isArray(data.post) ? data.post : [];
         return list.map(p => ({
             id: parseInt(p.id, 10) || 0,
-            tags: String(p.tags || '').toLowerCase().trim(),
+            tags: unescapeHtml(String(p.tags || '')).toLowerCase().trim(),
             rating: String(p.rating || '').toLowerCase().trim(), // (a field of its own here - pages have it among the tags)
             preview: String(p.preview_url || ''),
             sample: String(p.sample_url || ''),

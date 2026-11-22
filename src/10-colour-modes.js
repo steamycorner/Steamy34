@@ -239,7 +239,9 @@
 
     function thumbTags(img) {
         const text = img.dataset.s34Tags || img.title || img.alt || '';
-        return ' ' + text.toLowerCase().replace(/\s+/g, ' ') + ' ';
+        // (Beta 3.8) rule34 writes ' as &#039; - "five_nights_at_freddy&#039;s"
+        // never matched the blacklisted "five_nights_at_freddy's"
+        return ' ' + unescapeHtml(text.toLowerCase()).replace(/\s+/g, ' ') + ' ';
     }
 
     // Remove the tag tooltip on hover: move the title into a data attribute

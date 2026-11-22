@@ -32,7 +32,7 @@
             if (link) tag = link.textContent.trim().replace(/\s+/g, '_');
         }
 
-        return tag.trim();
+        return unescapeHtml(tag.trim()); // (Beta 3.8: rule34 writes ' as &#039;)
     }
 
     function getTags(type) {
