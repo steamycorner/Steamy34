@@ -84,7 +84,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Picture on top in the popup, info and comments below
 - Swipe left / right to browse, swipe down or press Back to close
 - One ☰ Menu with all of Steamy34's tools
-- Thumbnails sized for phones (the Size slider in the menu changes them)
+- Thumbnail size of their own on phones (the Size slider in the menu changes it)
 - The Following window fills the screen; Back closes it
 
 **More**

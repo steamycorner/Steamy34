@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.7-beta
+// @version      3.7.1-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -171,8 +171,8 @@
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
                                  // 'grid'      = uniform square tiles
         thumbRowHeight: 220,     // px - target row height for 'justified'
-        thumbRowHeightPhone: 320, // the same on phones (Beta 3.6.3: own size - 220 made tiles too small there)
-        thumbMinWidthPhone: 170, // square tiles on phones: two to a row
+        thumbRowHeightPhone: 220, // the same on phones - their own setting, so the Size slider in the ☰ Menu can change it apart from the computer's (Beta 3.7.1: back to 220, the user's wish - 320 was too big)
+        thumbMinWidthPhone: 200, // square tiles on phones (as on computers)
         thumbMinWidth: 200,      // px - minimum tile width for 'grid'
         thumbGap: 6,             // px between tiles
         thumbFit: 'cover',       // 'grid' only: 'cover' crops to squares, 'contain' shows whole image
@@ -13637,6 +13637,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.7.1', date: '2026-11-22', items: [
+            'Phones: thumbnails are back to their earlier size (as on computers). The Size slider in the ☰ Menu still changes them on their own.'
+        ] },
         { v: 'Beta 3.7', date: '2026-11-21', notify: true, items: [
             'My Account in Steamy34\'s look: rule34\'s own links as clean tiles – its pages on top, password, two-factor and e-mail below.',
             'Blacklists as long as you like: rule34 keeps the blacklist in one browser cookie, which holds about 4,000 characters – longer lists used to get lost in the browser. Steamy34 now keeps the whole list and hides the tags that don\'t fit itself, everywhere.',

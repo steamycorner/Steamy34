@@ -54,8 +54,8 @@
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
                                  // 'grid'      = uniform square tiles
         thumbRowHeight: 220,     // px - target row height for 'justified'
-        thumbRowHeightPhone: 320, // the same on phones (Beta 3.6.3: own size - 220 made tiles too small there)
-        thumbMinWidthPhone: 170, // square tiles on phones: two to a row
+        thumbRowHeightPhone: 220, // the same on phones - their own setting, so the Size slider in the ☰ Menu can change it apart from the computer's (Beta 3.7.1: back to 220, the user's wish - 320 was too big)
+        thumbMinWidthPhone: 200, // square tiles on phones (as on computers)
         thumbMinWidth: 200,      // px - minimum tile width for 'grid'
         thumbGap: 6,             // px between tiles
         thumbFit: 'cover',       // 'grid' only: 'cover' crops to squares, 'contain' shows whole image

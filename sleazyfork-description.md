@@ -61,7 +61,7 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - Phone layout: in the popup the picture is on top, with info, tags and comments below
 - Swipe left / right to browse, swipe down or press Back to close
 - One ☰ Menu with Steamy34's tools (switches, Collections, Stats, Blacklist, Settings, tips) and all of rule34's pages
-- Thumbnails sized for phones; tag buttons and ♥ always visible, no data-hungry preloading
+- Their own thumbnail size (the Size slider in the menu); tag buttons and ♥ always visible, no data-hungry preloading
 - Quick tips with a Phone tab that lists all gestures
 - The Following window fills the screen; Back closes it
 
