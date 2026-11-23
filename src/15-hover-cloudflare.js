@@ -232,6 +232,13 @@
             why.addEventListener('click', e => { e.stopPropagation(); why.classList.toggle('s34-on'); });
             why.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); why.classList.toggle('s34-on'); } });
             document.addEventListener('pointerdown', e => { if (!why.contains(e.target)) why.classList.remove('s34-on'); }, true);
+            // (Beta 3.9) The very first check: the explanation opens by itself, once
+            let explained = true;
+            try { explained = !!GM_getValue('steamy34_cf_explained', false); } catch (e) {}
+            if (!explained) {
+                why.classList.add('s34-on');
+                try { GM_setValue('steamy34_cf_explained', Date.now()); } catch (e) {}
+            }
             pill.querySelector('.s34-cf-pill-x').addEventListener('click', () => { cfPillHidden = true; hideCloudflarePill(); });
             document.body.appendChild(pill);
         }

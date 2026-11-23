@@ -189,7 +189,8 @@
             backup.className = 's34-set-card s34-set-plain';
             backup.innerHTML = `
                 <div class="s34-set-cardhead">Backup</div>
-                <p>Settings, searches, favourite tags, collections, downloaded / viewed posts, favourites, votes and your blacklist in one file – e.g. to move to another browser or your phone.</p>
+                <p>Settings, searches, favourite tags, collections, downloaded / viewed posts, favourites, votes and your blacklist in one file. Steamy34 keeps all of it <b>in this browser only</b> – it works best on one device.</p>
+                <p><b>Using two devices?</b> Export here, import there: importing <b>combines</b> – nothing is removed, settings stay each device's own. Do it again in the other direction now and then, and both stay in step.</p>
                 <div class="s34-set-actions">
                     <button type="button" class="s34-set-btn" data-act="export">⬇ Export backup</button>
                     <button type="button" class="s34-set-btn" data-act="import">⬆ Import backup</button>

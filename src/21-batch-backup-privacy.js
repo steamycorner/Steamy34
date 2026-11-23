@@ -322,7 +322,9 @@
             blacklistDates: getBlTimes(),
             tagTypes: Object.fromEntries(tagTypes),
             following: getFollowing(),
-            savedSearches: getSavedSearches()
+            savedSearches: getSavedSearches(),
+            downloadPictures: getDlThumbs(), // (Beta 3.9: the Downloads window's pictures)
+            notViewed: getUnseen()           // (downloaded posts you switched to "not viewed")
         };
         const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         saveBlob(blob, 'Steamy34_backup_' + new Date().toISOString().slice(0, 10) + '.json');
@@ -342,6 +344,37 @@
         if (text) showToast(text, null, null, 8000);
     }
 
+    // The import question: combine (this device keeps its settings) or also take over the settings
+    function askImportMode(d) {
+        return new Promise(resolve => {
+            const when = d.exported ? new Date(d.exported).toLocaleDateString() : 'an unknown date';
+            const overlay = document.createElement('div');
+            overlay.className = 's34-overlay s34-confirm-overlay';
+            overlay.innerHTML = `
+                <div class="s34-confirm" role="dialog" aria-modal="true">
+                    <div class="s34-confirm-icon">⇄</div>
+                    <div class="s34-confirm-title">Combine this backup?</div>
+                    <div class="s34-confirm-text">From ${when}. Everything in it – searches, follows, saved searches, collections, viewed / downloaded marks, favourites and the blacklist – is <b>added</b> to what's here. Nothing here is removed, so you can go back and forth between two devices.</div>
+                    <label class="s34-confirm-check"><input type="checkbox"> Also use the backup's settings (look, keys, switches) – otherwise this device keeps its own</label>
+                    <div class="s34-confirm-foot">
+                        <button type="button" class="s34-btn" data-act="no">Cancel</button>
+                        <button type="button" class="s34-btn s34-primary" data-act="yes">Combine</button>
+                    </div>
+                </div>`;
+            const check = overlay.querySelector('input[type="checkbox"]');
+            const done = v => { document.removeEventListener('keydown', onKey, true); overlay.remove(); resolve(v); };
+            const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(null); } };
+            overlay.addEventListener('click', e => {
+                const act = e.target.closest('[data-act]');
+                if (act) done(act.dataset.act === 'yes' ? (check.checked ? 'settings' : 'combine') : null);
+                else if (e.target === overlay) done(null);
+            });
+            document.addEventListener('keydown', onKey, true);
+            document.body.appendChild(overlay);
+            overlay.querySelector('[data-act="yes"]').focus();
+        });
+    }
+
     function importBackup() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -355,13 +388,22 @@
                 showToast('That file isn\'t a Steamy34 backup – pick the "Steamy34_backup_….json" file.', null, null, 9000);
                 return;
             }
-            if (!confirm('Import this backup?\n\nSettings are replaced. Recent searches, everything you follow, ' +
-                         'downloaded / viewed posts, favourites and the blacklist are added to what you have now.')) return;
+            // (Beta 3.9) Importing combines: the file is added to what's here, so two
+            // devices can be kept in step by going back and forth. Settings stay
+            // this device's own - unless you choose to take them over too.
+            const choice = await askImportMode(d);
+            if (!choice) return;
 
             const obj = x => (x && typeof x === 'object' && !Array.isArray(x)) ? x : {};
             const arr = x => Array.isArray(x) ? x : [];
 
-            if (d.settings) GM_setValue(SETTINGS_KEY, obj(d.settings));
+            if (d.settings && choice === 'settings') GM_setValue(SETTINGS_KEY, obj(d.settings));
+            try {
+                const pics = getDlThumbs();
+                Object.entries(obj(d.downloadPictures)).forEach(([id, src]) => { if (!pics[id] && typeof src === 'string') pics[id] = src; });
+                GM_setValue(DLTHUMBS_KEY, pics);
+                GM_setValue(UNSEEN_KEY, Object.assign({}, obj(d.notViewed), getUnseen()));
+            } catch (e) {}
 
             const hist = getStoredList(HISTORY_KEY);
             arr(d.history).forEach(q => { if (typeof q === 'string' && !hist.includes(q)) hist.push(q); });
@@ -433,7 +475,9 @@
             saveSavedSearches(savedNow);
             arr(d.following && d.following.searches).concat(arr(d.saved))
                 .map(s => s && typeof s.query === 'string' ? s.query : '').filter(Boolean).reverse().forEach(addToHistory);
-            reloadWithMessage('Backup imported – your settings, searches, collections and marks are back.');
+            reloadWithMessage(choice === 'settings'
+                ? 'Backup combined – its settings are used here now, and everything else was added to what you had.'
+                : 'Backup combined – searches, follows, collections, marks and the blacklist from the file were added. Your settings here stayed as they were.');
         });
         input.click();
     }

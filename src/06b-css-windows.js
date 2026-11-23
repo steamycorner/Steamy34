@@ -458,6 +458,9 @@
         .s34-blm-chip.s34-blm-unsaved { border-style: dashed !important; box-shadow: inset 0 0 0 1px rgba(255,179,71,0.55); }
         .s34-blm-account { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -6px 0 -2px; font-size: 12px; color: #9fe3b8 !important; }
         .s34-blm-account[hidden] { display: none; }
+        .s34-blm-account-save { margin-left: auto; padding: 4px 12px; border-radius: 7px; border: 1px solid rgba(255,179,71,0.6) !important; background: rgba(255,179,71,0.15) !important; color: #ffd9ad !important; font: 600 12px system-ui, sans-serif; cursor: pointer; }
+        .s34-blm-account-save:hover { background: rgba(255,179,71,0.28) !important; }
+        .s34-blm-account-save:disabled { opacity: .6; cursor: progress; }
         .s34-blm-account.s34-blm-account-diff { margin: 0; padding: 8px 12px; border-radius: 9px; color: #ffd9ad !important; border: 1px dashed rgba(255,179,71,0.5) !important; background: rgba(255,179,71,0.07) !important; }
         .s34-blm a.s34-blm-account-go { margin-left: auto; color: #ffb347 !important; font-weight: 700; text-decoration: none !important; white-space: nowrap; }
         .s34-blm a.s34-blm-account-go:hover { text-decoration: underline !important; }

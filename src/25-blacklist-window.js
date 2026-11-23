@@ -246,7 +246,24 @@
             if (diff.add.length) parts.push(`${diff.add.length} ${diff.add.length === 1 ? 'tag' : 'tags'} not on your account yet`);
             if (diff.gone.length) parts.push(`${diff.gone.length} removed here`);
             el.innerHTML = '<span></span>';
-            el.querySelector('span').textContent = parts.join(', ') + (opts.inline ? ' – Save below puts this list on your account.' : '');
+            el.querySelector('span').textContent = parts.join(', ') + (opts.inline ? ' – so your other devices can take them over.' : '');
+            if (opts.inline) {
+                // (Beta 3.9) One click: saves the Options form (= this list on your account)
+                const save = document.createElement('button');
+                save.type = 'button';
+                save.className = 's34-blm-account-go s34-blm-account-save';
+                save.textContent = 'Save to account';
+                save.addEventListener('click', () => {
+                    const form = document.querySelector('#tags, textarea[name="tags"]');
+                    const f = form && form.form;
+                    if (!f) return;
+                    save.disabled = true;
+                    save.textContent = 'Saving…';
+                    const submit = f.querySelector('input[type="submit"], button[type="submit"]');
+                    if (f.requestSubmit) f.requestSubmit(submit || undefined); else f.submit();
+                });
+                el.appendChild(save);
+            }
             if (!opts.inline) {
                 const a = document.createElement('a');
                 a.href = BL_OPTIONS_URL;

@@ -139,6 +139,25 @@ All keys can be changed in *Settings → Viewing posts*, *Settings → Following
 
 ## FAQ
 
+### What's the Cloudflare check – and what do I do?
+rule34.xxx is protected by Cloudflare, which now and then asks you to confirm you're a person. With Steamy34 a **pulsing notice appears at the bottom of the screen**: click **Solve**, tick the box, and everything carries on. **Until it's solved, rule34 loads nothing new** – no new pages, previews or post info – so it's worth doing right away. Steamy34 pauses its own loading meanwhile and spaces out its page loads, so checks come up much less often; an optional API key (Settings → API key) makes them rarer still.
+
+### Is Steamy34 safe?
+Here's what you can check yourself, without having to trust anyone:
+- **It can only talk to rule34.xxx.** The script header allows connections to `rule34.xxx` and its subdomains – nothing else. Tampermonkey enforces that and shows it on the install screen.
+- **It only runs on rule34.xxx**, nowhere else in your browser.
+- **The code is readable and public** – here on GitHub and under "Code" on Sleazy Fork. Nothing is scrambled (Sleazy Fork doesn't allow that).
+- **Nothing is collected.** There's no server behind Steamy34; everything it remembers stays in your browser (Settings → Privacy & data shows all of it).
+- **It's written with AI help** by a designer, not a programmer – said openly, and every version is tested before release.
+
+Unsure about something? Ask in the [Discord](https://discord.gg/Udg9sNTBHb) or the Feedback tab.
+
+### Does Steamy34 work across my devices?
+It works best on **one device**. Each browser keeps its own Steamy34 data – viewed / downloaded marks, followed artists, saved searches, collections, settings and the full blacklist – and nothing syncs by itself. What does carry over:
+- **Favourites** – they're on your rule34 account anyway (and with "Collections on all your devices", collection posts too).
+- **The blacklist** – Options → *Save to account* on one device; opening Options on the other takes the tags over.
+- **Everything else** – Settings → Privacy & data → *Export backup*, then *Import backup* on the other device. Importing **combines**: nothing is removed and each device keeps its own settings, so you can go back and forth to keep both in step.
+
 ### What is Steamy34?
 A free userscript that upgrades rule34.xxx: dark mode, popup viewer, easier tag search, tag-named downloads, artist following and a phone layout. It runs in your browser through Tampermonkey or Violentmonkey.
 
@@ -185,7 +204,7 @@ It's free and will never be monetized. It's a fan-made hobby project by steamyco
 Yes, if you turn on "Collections on all your devices" (you're asked once when you open Collections, or Settings → Downloads). Steamy34 then also favourites every post you put into a collection – rule34 keeps favourites on your account, so they show up on your phone on the favourites page ("Favourites & Collections"). The folder names stay on the device that made them. It needs a rule34.xxx login.
 
 ### Can I move my settings to another browser or my phone?
-Yes. Settings → Privacy & data → *Export backup* saves everything to a file; *Import backup* restores it on the other device.
+Yes. Settings → Privacy & data → *Export backup* saves everything to a file; *Import backup* on the other device **combines** it with what's there – nothing is removed, and you choose whether the settings come along too.
 
 ### Which browsers are supported?
 Any browser with Tampermonkey or Violentmonkey: Chrome, Firefox, Edge, Brave, Waterfox, Opera and others. On Android: Firefox.

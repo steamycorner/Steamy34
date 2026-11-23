@@ -5,9 +5,21 @@
 #   powershell -ExecutionPolicy Bypass -File build.ps1
 #   ... -Snapshot "2.6: what changed"   -> also saves a snapshot in the history (Git)
 # ASCII only (Windows PowerShell 5.1 misreads UTF-8 without BOM in scripts).
-param([string]$Snapshot = '')
+param([string]$Snapshot = '', [switch]$Force)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# A check running on the release desk tests the current build - building now
+# would change what gets uploaded afterwards. (The desk's own build sets the
+# flag only after building; a flag older than 30 minutes is a closed tab.)
+$busyFile = Join-Path $root 'tests\desk-busy.json'
+if (-not $Force -and (Test-Path $busyFile)) {
+    $age = ((Get-Date) - (Get-Item $busyFile).LastWriteTime).TotalMinutes
+    if ($age -lt 30) {
+        throw ('Nothing was built: the release desk is running a check right now (started ' + [int]$age + ' min ago). ' +
+               'Wait until it is done - or build with -Force.')
+    }
+}
 $enc = New-Object System.Text.UTF8Encoding($false)
 $parts = Get-ChildItem (Join-Path $root 'src') -Filter '*.js' | Sort-Object Name
 if (-not $parts) { throw 'No parts in src\' }

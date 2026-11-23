@@ -104,6 +104,34 @@
         }, true);
     }
     try { repairBlacklistCookie(); } catch (e) { console.warn('[Steamy34] Blacklist cookie:', e); }
+
+    // (Beta 3.9) rule34's "Nobody here but us chickens!" where there should be
+    // posts: say what's going on instead of leaving it a mystery. After a
+    // Cloudflare check rule34 sends empty pages for a little while; a damaged
+    // blacklist cookie did the same (it's repaired above, before this page).
+    function explainEmptyPage() {
+        if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list') return;
+        if (document.querySelector('.image-list span.thumb, .s34-empty-note')) return;
+        const content = document.querySelector('#content') || document.body;
+        if (!/nobody here but us chickens/i.test(content.textContent || '')) return;
+        const tags = (params.get('tags') || '').trim();
+        const cf = lastCheckInfo();
+        const recentCheck = cf && cf.at && Date.now() - cf.at < 20 * 60000;
+        const note = document.createElement('div');
+        note.className = 's34-empty-note';
+        const why = blCookieRepaired
+            ? 'Your blacklist cookie was damaged – Steamy34 just repaired it. Reload and the posts should be back.'
+            : !tags || tags === 'all'
+                ? 'This list is never really empty – rule34 sent an empty page. ' + (recentCheck ? 'That happens for a little while after a Cloudflare check.' : 'That usually passes in a minute or two.')
+                : recentCheck
+                    ? 'If you\'re sure there are posts for this: rule34 sends empty pages for a little while after a Cloudflare check.'
+                    : 'Maybe there are no posts for this search (or they\'re all blacklisted). If you\'re sure there are, wait a minute and reload – rule34 sometimes sends empty pages.';
+        note.innerHTML = '<b>No posts here</b><span></span><button type="button">Reload</button>';
+        note.querySelector('span').textContent = why;
+        note.querySelector('button').addEventListener('click', () => location.reload());
+        content.prepend(note);
+    }
+    onReady(() => setTimeout(() => { try { explainEmptyPage(); } catch (e) {} }, 0));
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
     // A newly loaded page: set up only its thumbnails, not every one again

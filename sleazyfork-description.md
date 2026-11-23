@@ -83,6 +83,23 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - Backup and restore of all your settings and data – e.g. to move everything to your phone
 - **Optional: your rule34 API key** (Settings → API key) for new-post counts and hover previews – fewer Cloudflare checks. The key only goes to rule34's own API, stays in your browser and is never in a backup. Steamy34 works just the same without it
 
+## Good to know: the Cloudflare check
+
+Now and then rule34 asks for a quick Cloudflare check. Steamy34 shows it as a **pulsing notice at the bottom** – click **Solve**, tick the box, done. Until it's solved, rule34 loads nothing new, so do it right away. (Steamy34 keeps checks rare by spacing out its page loads; an optional API key makes them rarer still.)
+
+## Is it safe?
+
+Things you can check yourself:
+- **It can only talk to rule34.xxx** – the script header allows no other site, Tampermonkey enforces that and shows it before you install.
+- **It only runs on rule34.xxx**, nowhere else in your browser.
+- **Readable code** – under "Code" here and on GitHub, nothing scrambled.
+- **Nothing collected, no server** – everything stays in your browser.
+- **Written with AI help**, said openly; every version is tested before release.
+
+## One device works best
+
+Each browser keeps its own Steamy34 data (viewed / downloaded marks, follows, saved searches, collections, settings, the full blacklist). Favourites live on your rule34 account anyway; the blacklist travels with *Options → Save to account*. For the rest: *Settings → Privacy & data → Export backup*, then *Import backup* on the other device – importing **combines** (nothing is removed, each device keeps its own settings), so going back and forth keeps both in step.
+
 ## Privacy
 
 Steamy34 collects **nothing**. It only talks to rule34.xxx itself, and everything it remembers (settings, searches, collections, viewed / downloaded posts, your blacklist, your chosen download folder) stays in your browser's script storage. *Settings → Privacy & data* shows exactly what's stored and how to delete it.

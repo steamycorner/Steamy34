@@ -185,6 +185,13 @@
         span.thumb.s34-bl-marked { overflow: hidden; }
         span.thumb.s34-bl-marked video { visibility: hidden !important; }
 
+        /* (Beta 3.9) An empty posts page: what's going on */
+        .s34-empty-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 10px 0 16px; padding: 12px 16px; border-radius: 10px;
+            background: rgba(255,179,71,0.08) !important; border: 1px solid rgba(255,179,71,0.4) !important; color: #ffe2bf !important; font: 500 14px/1.45 system-ui, sans-serif; }
+        .s34-empty-note b { color: #fff !important; }
+        .s34-empty-note span { flex: 1 1 260px; }
+        .s34-empty-note button { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,179,71,0.6) !important; background: rgba(255,179,71,0.15) !important; color: #fff !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+
         /* (Beta 3.8.1) A post with a blacklisted tag, opened anyway (a link, the
            post page): covered until you choose to see it */
         .s34-blcover {

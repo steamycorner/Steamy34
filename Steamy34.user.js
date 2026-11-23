@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.8.5-beta
+// @version      3.9-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -865,6 +865,13 @@
         }
         span.thumb.s34-bl-marked { overflow: hidden; }
         span.thumb.s34-bl-marked video { visibility: hidden !important; }
+
+        /* (Beta 3.9) An empty posts page: what's going on */
+        .s34-empty-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 10px 0 16px; padding: 12px 16px; border-radius: 10px;
+            background: rgba(255,179,71,0.08) !important; border: 1px solid rgba(255,179,71,0.4) !important; color: #ffe2bf !important; font: 500 14px/1.45 system-ui, sans-serif; }
+        .s34-empty-note b { color: #fff !important; }
+        .s34-empty-note span { flex: 1 1 260px; }
+        .s34-empty-note button { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,179,71,0.6) !important; background: rgba(255,179,71,0.15) !important; color: #fff !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
 
         /* (Beta 3.8.1) A post with a blacklisted tag, opened anyway (a link, the
            post page): covered until you choose to see it */
@@ -2159,6 +2166,9 @@
         .s34-blm-chip.s34-blm-unsaved { border-style: dashed !important; box-shadow: inset 0 0 0 1px rgba(255,179,71,0.55); }
         .s34-blm-account { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -6px 0 -2px; font-size: 12px; color: #9fe3b8 !important; }
         .s34-blm-account[hidden] { display: none; }
+        .s34-blm-account-save { margin-left: auto; padding: 4px 12px; border-radius: 7px; border: 1px solid rgba(255,179,71,0.6) !important; background: rgba(255,179,71,0.15) !important; color: #ffd9ad !important; font: 600 12px system-ui, sans-serif; cursor: pointer; }
+        .s34-blm-account-save:hover { background: rgba(255,179,71,0.28) !important; }
+        .s34-blm-account-save:disabled { opacity: .6; cursor: progress; }
         .s34-blm-account.s34-blm-account-diff { margin: 0; padding: 8px 12px; border-radius: 9px; color: #ffd9ad !important; border: 1px dashed rgba(255,179,71,0.5) !important; background: rgba(255,179,71,0.07) !important; }
         .s34-blm a.s34-blm-account-go { margin-left: auto; color: #ffb347 !important; font-weight: 700; text-decoration: none !important; white-space: nowrap; }
         .s34-blm a.s34-blm-account-go:hover { text-decoration: underline !important; }
@@ -7515,6 +7525,13 @@
             why.addEventListener('click', e => { e.stopPropagation(); why.classList.toggle('s34-on'); });
             why.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); why.classList.toggle('s34-on'); } });
             document.addEventListener('pointerdown', e => { if (!why.contains(e.target)) why.classList.remove('s34-on'); }, true);
+            // (Beta 3.9) The very first check: the explanation opens by itself, once
+            let explained = true;
+            try { explained = !!GM_getValue('steamy34_cf_explained', false); } catch (e) {}
+            if (!explained) {
+                why.classList.add('s34-on');
+                try { GM_setValue('steamy34_cf_explained', Date.now()); } catch (e) {}
+            }
             pill.querySelector('.s34-cf-pill-x').addEventListener('click', () => { cfPillHidden = true; hideCloudflarePill(); });
             document.body.appendChild(pill);
         }
@@ -9046,6 +9063,34 @@
         }, true);
     }
     try { repairBlacklistCookie(); } catch (e) { console.warn('[Steamy34] Blacklist cookie:', e); }
+
+    // (Beta 3.9) rule34's "Nobody here but us chickens!" where there should be
+    // posts: say what's going on instead of leaving it a mystery. After a
+    // Cloudflare check rule34 sends empty pages for a little while; a damaged
+    // blacklist cookie did the same (it's repaired above, before this page).
+    function explainEmptyPage() {
+        if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list') return;
+        if (document.querySelector('.image-list span.thumb, .s34-empty-note')) return;
+        const content = document.querySelector('#content') || document.body;
+        if (!/nobody here but us chickens/i.test(content.textContent || '')) return;
+        const tags = (params.get('tags') || '').trim();
+        const cf = lastCheckInfo();
+        const recentCheck = cf && cf.at && Date.now() - cf.at < 20 * 60000;
+        const note = document.createElement('div');
+        note.className = 's34-empty-note';
+        const why = blCookieRepaired
+            ? 'Your blacklist cookie was damaged – Steamy34 just repaired it. Reload and the posts should be back.'
+            : !tags || tags === 'all'
+                ? 'This list is never really empty – rule34 sent an empty page. ' + (recentCheck ? 'That happens for a little while after a Cloudflare check.' : 'That usually passes in a minute or two.')
+                : recentCheck
+                    ? 'If you\'re sure there are posts for this: rule34 sends empty pages for a little while after a Cloudflare check.'
+                    : 'Maybe there are no posts for this search (or they\'re all blacklisted). If you\'re sure there are, wait a minute and reload – rule34 sometimes sends empty pages.';
+        note.innerHTML = '<b>No posts here</b><span></span><button type="button">Reload</button>';
+        note.querySelector('span').textContent = why;
+        note.querySelector('button').addEventListener('click', () => location.reload());
+        content.prepend(note);
+    }
+    onReady(() => setTimeout(() => { try { explainEmptyPage(); } catch (e) {} }, 0));
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
     // A newly loaded page: set up only its thumbnails, not every one again
@@ -9926,7 +9971,8 @@
             backup.className = 's34-set-card s34-set-plain';
             backup.innerHTML = `
                 <div class="s34-set-cardhead">Backup</div>
-                <p>Settings, searches, favourite tags, collections, downloaded / viewed posts, favourites, votes and your blacklist in one file – e.g. to move to another browser or your phone.</p>
+                <p>Settings, searches, favourite tags, collections, downloaded / viewed posts, favourites, votes and your blacklist in one file. Steamy34 keeps all of it <b>in this browser only</b> – it works best on one device.</p>
+                <p><b>Using two devices?</b> Export here, import there: importing <b>combines</b> – nothing is removed, settings stay each device's own. Do it again in the other direction now and then, and both stay in step.</p>
                 <div class="s34-set-actions">
                     <button type="button" class="s34-set-btn" data-act="export">⬇ Export backup</button>
                     <button type="button" class="s34-set-btn" data-act="import">⬆ Import backup</button>
@@ -12379,7 +12425,9 @@
             blacklistDates: getBlTimes(),
             tagTypes: Object.fromEntries(tagTypes),
             following: getFollowing(),
-            savedSearches: getSavedSearches()
+            savedSearches: getSavedSearches(),
+            downloadPictures: getDlThumbs(), // (Beta 3.9: the Downloads window's pictures)
+            notViewed: getUnseen()           // (downloaded posts you switched to "not viewed")
         };
         const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         saveBlob(blob, 'Steamy34_backup_' + new Date().toISOString().slice(0, 10) + '.json');
@@ -12399,6 +12447,37 @@
         if (text) showToast(text, null, null, 8000);
     }
 
+    // The import question: combine (this device keeps its settings) or also take over the settings
+    function askImportMode(d) {
+        return new Promise(resolve => {
+            const when = d.exported ? new Date(d.exported).toLocaleDateString() : 'an unknown date';
+            const overlay = document.createElement('div');
+            overlay.className = 's34-overlay s34-confirm-overlay';
+            overlay.innerHTML = `
+                <div class="s34-confirm" role="dialog" aria-modal="true">
+                    <div class="s34-confirm-icon">⇄</div>
+                    <div class="s34-confirm-title">Combine this backup?</div>
+                    <div class="s34-confirm-text">From ${when}. Everything in it – searches, follows, saved searches, collections, viewed / downloaded marks, favourites and the blacklist – is <b>added</b> to what's here. Nothing here is removed, so you can go back and forth between two devices.</div>
+                    <label class="s34-confirm-check"><input type="checkbox"> Also use the backup's settings (look, keys, switches) – otherwise this device keeps its own</label>
+                    <div class="s34-confirm-foot">
+                        <button type="button" class="s34-btn" data-act="no">Cancel</button>
+                        <button type="button" class="s34-btn s34-primary" data-act="yes">Combine</button>
+                    </div>
+                </div>`;
+            const check = overlay.querySelector('input[type="checkbox"]');
+            const done = v => { document.removeEventListener('keydown', onKey, true); overlay.remove(); resolve(v); };
+            const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(null); } };
+            overlay.addEventListener('click', e => {
+                const act = e.target.closest('[data-act]');
+                if (act) done(act.dataset.act === 'yes' ? (check.checked ? 'settings' : 'combine') : null);
+                else if (e.target === overlay) done(null);
+            });
+            document.addEventListener('keydown', onKey, true);
+            document.body.appendChild(overlay);
+            overlay.querySelector('[data-act="yes"]').focus();
+        });
+    }
+
     function importBackup() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -12412,13 +12491,22 @@
                 showToast('That file isn\'t a Steamy34 backup – pick the "Steamy34_backup_….json" file.', null, null, 9000);
                 return;
             }
-            if (!confirm('Import this backup?\n\nSettings are replaced. Recent searches, everything you follow, ' +
-                         'downloaded / viewed posts, favourites and the blacklist are added to what you have now.')) return;
+            // (Beta 3.9) Importing combines: the file is added to what's here, so two
+            // devices can be kept in step by going back and forth. Settings stay
+            // this device's own - unless you choose to take them over too.
+            const choice = await askImportMode(d);
+            if (!choice) return;
 
             const obj = x => (x && typeof x === 'object' && !Array.isArray(x)) ? x : {};
             const arr = x => Array.isArray(x) ? x : [];
 
-            if (d.settings) GM_setValue(SETTINGS_KEY, obj(d.settings));
+            if (d.settings && choice === 'settings') GM_setValue(SETTINGS_KEY, obj(d.settings));
+            try {
+                const pics = getDlThumbs();
+                Object.entries(obj(d.downloadPictures)).forEach(([id, src]) => { if (!pics[id] && typeof src === 'string') pics[id] = src; });
+                GM_setValue(DLTHUMBS_KEY, pics);
+                GM_setValue(UNSEEN_KEY, Object.assign({}, obj(d.notViewed), getUnseen()));
+            } catch (e) {}
 
             const hist = getStoredList(HISTORY_KEY);
             arr(d.history).forEach(q => { if (typeof q === 'string' && !hist.includes(q)) hist.push(q); });
@@ -12490,7 +12578,9 @@
             saveSavedSearches(savedNow);
             arr(d.following && d.following.searches).concat(arr(d.saved))
                 .map(s => s && typeof s.query === 'string' ? s.query : '').filter(Boolean).reverse().forEach(addToHistory);
-            reloadWithMessage('Backup imported – your settings, searches, collections and marks are back.');
+            reloadWithMessage(choice === 'settings'
+                ? 'Backup combined – its settings are used here now, and everything else was added to what you had.'
+                : 'Backup combined – searches, follows, collections, marks and the blacklist from the file were added. Your settings here stayed as they were.');
         });
         input.click();
     }
@@ -14509,7 +14599,7 @@
     // Shown once after installing (or updating to a version with new tips);
     // reopen it any time with the "?" in the popup or in the settings.
     const TIPS_KEY = 'steamy34_tips_seen';
-    const TIPS_VERSION = 9; // raise this when the tips get new entries -> shown once more
+    const TIPS_VERSION = 10; // raise this when the tips get new entries -> shown once more
 
     const MOUSE_MIDDLE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6" /><rect x="10.6" y="5.5" width="2.8" height="4.5" rx="1.4" fill="currentColor" stroke="none"/></svg>';
 
@@ -14546,6 +14636,7 @@
             [`${k('Collections')} · ${k('Stats')}`, 'Your own folders · your top artists, characters & series'],
             [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – click one for their newest posts in the Following window. The bell next to an artist in a post follows them`],
             [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted'],
+            [`${k('Solve')}`, `${nu}A Cloudflare check came up (the pulsing notice at the bottom): Solve, tick the box – nothing new loads until it's done`],
             [`${k('⚙ Settings')}`, 'Every option, plus backup and what is stored on your device'],
             [`${k('Choose folder…')}`, `${nu}Settings → Downloads: save straight into any folder, e.g. Eagle's watch folder (computer)`]
         ]];
@@ -14709,6 +14800,13 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.9', date: '2026-11-23', notify: true, items: [
+            'Backups combine now: importing adds everything from the file (follows, saved searches, collections, viewed / downloaded marks, blacklist) to what you have – nothing is removed, and this device keeps its own settings unless you choose to take them over. Export and import now and then, both ways, and two devices stay in step.',
+            'Steamy34 keeps its data in each browser – it works best on one device. Settings → Privacy & data explains how to bring a second one along.',
+            'Blacklist: "Save to account" right in the Options blacklist, one click – your other devices take the tags over when they open Options.',
+            'Cloudflare checks explained: the welcome tour, the quick tips and the phone guide say what to do – and the first time a check comes up, the notice explains itself. (Solve, tick the box, done – until then rule34 loads nothing new.)',
+            'An empty posts page ("Nobody here but us chickens!") now says what\'s going on – e.g. rule34 sends empty pages for a while after a Cloudflare check – with a Reload button.'
+        ] },
         { v: 'Beta 3.8.5', date: '2026-11-23', items: [
             'Fixed: on post pages the box with search, Download and the tools stayed at the top while scrolling and covered the tags. It scrolls with the page now (B still downloads from anywhere).'
         ] },
@@ -15078,7 +15176,8 @@
                     <b>Bring your stuff along <span class="s34-mob-opt">optional</span></b>
                     <span>Here on the computer: <em>Export backup</em> (button below). Send the file to your phone
                           (e.g. e-mail it to yourself). On the phone: <em>☰ Menu</em> → <em>⚙ Settings</em> → <em>Privacy &amp; data</em>
-                          → <em>Import backup</em>. Searches, favourite tags, collections and marks come along.</span>
+                          → <em>Import backup</em>. Searches, favourite tags, collections and marks come along.
+                          Steamy34 keeps its data per browser – importing <em>combines</em>, so do it again now and then (both ways) to keep the two in step.</span>
                 </div></div>
                 <div class="s34-mob-step"><div>
                     <b>Open rule34.xxx in Firefox</b>
@@ -15091,6 +15190,7 @@
                     <li>Tap a post to open it – swipe left / right on the picture to browse, swipe down or press <b>Back</b> to close.</li>
                     <li>Steamy34's switches, Settings, Blacklist and the quick tips (with a <b>Phone</b> tab for all gestures) are in the <b>☰ Menu</b> at the top right.</li>
                     <li>Hover previews need a mouse, so they're off on phones.</li>
+                    <li><b>Now and then rule34 asks for a quick Cloudflare check</b> – a pulsing notice at the bottom. Tap <b>Solve</b>, tick the box, and everything carries on. Until then nothing new loads.</li>
                     <li>Something awkward or broken? Tell steamycorner in #feedback on the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – it helps make the touch version better.</li>
                 </ul>
             </div>
@@ -15191,9 +15291,20 @@
                 ]
             },
             {
+                // (Beta 3.9) The one thing everyone needs to know - in the short tour
+                art: CF_SHIELD_SVG, step: 'Good to know',
+                title: 'Now and then: a quick check',
+                text: 'rule34 is protected by Cloudflare, which now and then asks you to confirm you\'re a person. When it does, a pulsing notice appears at the bottom of the screen – ' + (phone ? 'tap' : 'click') + ' Solve, tick the box, and everything carries on.',
+                cards: [
+                    ['⏸', 'Until then, nothing new loads', 'No new pages, previews or post info – rule34 turns every request down. Steamy34 pauses meanwhile, so it doesn\'t make things worse.'],
+                    ['✓', 'Solve it right there', 'Solve opens the check where you are – no new tab, and Steamy34 continues where it stopped.'],
+                    ['🔑', 'Fewer checks', 'Optional: your rule34 API key makes them come up less often (Settings → API key).']
+                ]
+            },
+            {
                 art: FOLDER_SVG, step: '5 · Organise',
                 title: 'Keep track of everything',
-                text: 'Your own little archive on top of rule34 – kept only on your device.',
+                text: 'Your own little archive on top of rule34 – kept in this browser, so Steamy34 works best on one device. Using two? A backup combines them (Settings → Privacy & data).',
                 cards: [
                     ['👁', 'Viewed & downloaded', 'Small marks on the thumbnails – or hide those posts completely.'],
                     [FOLDER_SVG, 'Collections', 'Your own folders of posts' + (phone ? '.' : ` – ${k(keyLabel(CONFIG.collectKey))} in the popup.`)],
@@ -15248,7 +15359,7 @@
         let idx = Math.min(Math.max(parseInt(startAt, 10) || 0, 0), slides.length - 1);
         // Short tour first (welcome, popup, search, following, downloads); the rest
         // (organise, thumbnails, colours) only after "Show me more"
-        const SHORT = 5;
+        const SHORT = 6; // (welcome, popup, search, following, downloads, the Cloudflare check)
         let full = idx >= SHORT;
         const shown = () => (full ? slides.length : SHORT);
 
@@ -15665,7 +15776,24 @@
             if (diff.add.length) parts.push(`${diff.add.length} ${diff.add.length === 1 ? 'tag' : 'tags'} not on your account yet`);
             if (diff.gone.length) parts.push(`${diff.gone.length} removed here`);
             el.innerHTML = '<span></span>';
-            el.querySelector('span').textContent = parts.join(', ') + (opts.inline ? ' – Save below puts this list on your account.' : '');
+            el.querySelector('span').textContent = parts.join(', ') + (opts.inline ? ' – so your other devices can take them over.' : '');
+            if (opts.inline) {
+                // (Beta 3.9) One click: saves the Options form (= this list on your account)
+                const save = document.createElement('button');
+                save.type = 'button';
+                save.className = 's34-blm-account-go s34-blm-account-save';
+                save.textContent = 'Save to account';
+                save.addEventListener('click', () => {
+                    const form = document.querySelector('#tags, textarea[name="tags"]');
+                    const f = form && form.form;
+                    if (!f) return;
+                    save.disabled = true;
+                    save.textContent = 'Saving…';
+                    const submit = f.querySelector('input[type="submit"], button[type="submit"]');
+                    if (f.requestSubmit) f.requestSubmit(submit || undefined); else f.submit();
+                });
+                el.appendChild(save);
+            }
             if (!opts.inline) {
                 const a = document.createElement('a');
                 a.href = BL_OPTIONS_URL;

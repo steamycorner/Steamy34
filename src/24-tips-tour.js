@@ -2,7 +2,7 @@
     // Shown once after installing (or updating to a version with new tips);
     // reopen it any time with the "?" in the popup or in the settings.
     const TIPS_KEY = 'steamy34_tips_seen';
-    const TIPS_VERSION = 9; // raise this when the tips get new entries -> shown once more
+    const TIPS_VERSION = 10; // raise this when the tips get new entries -> shown once more
 
     const MOUSE_MIDDLE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6" /><rect x="10.6" y="5.5" width="2.8" height="4.5" rx="1.4" fill="currentColor" stroke="none"/></svg>';
 
@@ -39,6 +39,7 @@
             [`${k('Collections')} · ${k('Stats')}`, 'Your own folders · your top artists, characters & series'],
             [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – click one for their newest posts in the Following window. The bell next to an artist in a post follows them`],
             [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted'],
+            [`${k('Solve')}`, `${nu}A Cloudflare check came up (the pulsing notice at the bottom): Solve, tick the box – nothing new loads until it's done`],
             [`${k('⚙ Settings')}`, 'Every option, plus backup and what is stored on your device'],
             [`${k('Choose folder…')}`, `${nu}Settings → Downloads: save straight into any folder, e.g. Eagle's watch folder (computer)`]
         ]];
@@ -202,6 +203,13 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.9', date: '2026-11-23', notify: true, items: [
+            'Backups combine now: importing adds everything from the file (follows, saved searches, collections, viewed / downloaded marks, blacklist) to what you have – nothing is removed, and this device keeps its own settings unless you choose to take them over. Export and import now and then, both ways, and two devices stay in step.',
+            'Steamy34 keeps its data in each browser – it works best on one device. Settings → Privacy & data explains how to bring a second one along.',
+            'Blacklist: "Save to account" right in the Options blacklist, one click – your other devices take the tags over when they open Options.',
+            'Cloudflare checks explained: the welcome tour, the quick tips and the phone guide say what to do – and the first time a check comes up, the notice explains itself. (Solve, tick the box, done – until then rule34 loads nothing new.)',
+            'An empty posts page ("Nobody here but us chickens!") now says what\'s going on – e.g. rule34 sends empty pages for a while after a Cloudflare check – with a Reload button.'
+        ] },
         { v: 'Beta 3.8.5', date: '2026-11-23', items: [
             'Fixed: on post pages the box with search, Download and the tools stayed at the top while scrolling and covered the tags. It scrolls with the page now (B still downloads from anywhere).'
         ] },
@@ -571,7 +579,8 @@
                     <b>Bring your stuff along <span class="s34-mob-opt">optional</span></b>
                     <span>Here on the computer: <em>Export backup</em> (button below). Send the file to your phone
                           (e.g. e-mail it to yourself). On the phone: <em>☰ Menu</em> → <em>⚙ Settings</em> → <em>Privacy &amp; data</em>
-                          → <em>Import backup</em>. Searches, favourite tags, collections and marks come along.</span>
+                          → <em>Import backup</em>. Searches, favourite tags, collections and marks come along.
+                          Steamy34 keeps its data per browser – importing <em>combines</em>, so do it again now and then (both ways) to keep the two in step.</span>
                 </div></div>
                 <div class="s34-mob-step"><div>
                     <b>Open rule34.xxx in Firefox</b>
@@ -584,6 +593,7 @@
                     <li>Tap a post to open it – swipe left / right on the picture to browse, swipe down or press <b>Back</b> to close.</li>
                     <li>Steamy34's switches, Settings, Blacklist and the quick tips (with a <b>Phone</b> tab for all gestures) are in the <b>☰ Menu</b> at the top right.</li>
                     <li>Hover previews need a mouse, so they're off on phones.</li>
+                    <li><b>Now and then rule34 asks for a quick Cloudflare check</b> – a pulsing notice at the bottom. Tap <b>Solve</b>, tick the box, and everything carries on. Until then nothing new loads.</li>
                     <li>Something awkward or broken? Tell steamycorner in #feedback on the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – it helps make the touch version better.</li>
                 </ul>
             </div>
@@ -684,9 +694,20 @@
                 ]
             },
             {
+                // (Beta 3.9) The one thing everyone needs to know - in the short tour
+                art: CF_SHIELD_SVG, step: 'Good to know',
+                title: 'Now and then: a quick check',
+                text: 'rule34 is protected by Cloudflare, which now and then asks you to confirm you\'re a person. When it does, a pulsing notice appears at the bottom of the screen – ' + (phone ? 'tap' : 'click') + ' Solve, tick the box, and everything carries on.',
+                cards: [
+                    ['⏸', 'Until then, nothing new loads', 'No new pages, previews or post info – rule34 turns every request down. Steamy34 pauses meanwhile, so it doesn\'t make things worse.'],
+                    ['✓', 'Solve it right there', 'Solve opens the check where you are – no new tab, and Steamy34 continues where it stopped.'],
+                    ['🔑', 'Fewer checks', 'Optional: your rule34 API key makes them come up less often (Settings → API key).']
+                ]
+            },
+            {
                 art: FOLDER_SVG, step: '5 · Organise',
                 title: 'Keep track of everything',
-                text: 'Your own little archive on top of rule34 – kept only on your device.',
+                text: 'Your own little archive on top of rule34 – kept in this browser, so Steamy34 works best on one device. Using two? A backup combines them (Settings → Privacy & data).',
                 cards: [
                     ['👁', 'Viewed & downloaded', 'Small marks on the thumbnails – or hide those posts completely.'],
                     [FOLDER_SVG, 'Collections', 'Your own folders of posts' + (phone ? '.' : ` – ${k(keyLabel(CONFIG.collectKey))} in the popup.`)],
@@ -741,7 +762,7 @@
         let idx = Math.min(Math.max(parseInt(startAt, 10) || 0, 0), slides.length - 1);
         // Short tour first (welcome, popup, search, following, downloads); the rest
         // (organise, thumbnails, colours) only after "Show me more"
-        const SHORT = 5;
+        const SHORT = 6; // (welcome, popup, search, following, downloads, the Cloudflare check)
         let full = idx >= SHORT;
         const shown = () => (full ? slides.length : SHORT);
 
