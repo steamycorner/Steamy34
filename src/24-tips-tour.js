@@ -202,6 +202,12 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8.3', date: '2026-11-23', items: [
+            'Fixed: searches could suddenly come back empty ("Nobody here but us chickens!") – rule34 now uses your blacklist cookie inside every search, and a damaged cookie (seen after reloading during a Cloudflare check) broke them. Steamy34 now checks the cookie on every page and writes it fresh when needed.'
+        ] },
+        { v: 'Beta 3.8.2', date: '2026-11-22', items: [
+            'After a small update like this one, a short note says so once: "Steamy34 updated to …" with a What\'s new button. Big updates still open the What\'s new window.'
+        ] },
         { v: 'Beta 3.8.1', date: '2026-11-22', items: [
             'Blacklist: tags with an apostrophe (like five_nights_at_freddy\'s) now hide their posts – rule34 writes the apostrophe in a coded form that never matched. Their names show properly too, without "&#039;".',
             'Blacklisted posts are now hidden by Steamy34 as well, not only by rule34 – a post with a blacklisted tag could still show up. rule34\'s "Hidden" link still shows them on request.',
@@ -873,7 +879,12 @@
                 show = () => openChangelog(since);
                 GM_setValue(TIPS_KEY, TIPS_VERSION);   // the changelog covers it - no tips on top
             } else {
-                if (compareVersions(CURRENT_VERSION, since) > 0) GM_setValue(CHANGELOG_SEEN_KEY, CURRENT_VERSION);
+                if (compareVersions(CURRENT_VERSION, since) > 0) {
+                    GM_setValue(CHANGELOG_SEEN_KEY, CURRENT_VERSION);
+                    // (Beta 3.8.2) A small update: no window, but a short note
+                    // once, so you know something changed
+                    setTimeout(() => showToast(`Steamy34 updated to ${CURRENT_VERSION}`, 'What\'s new', () => openChangelog(since), 9000), 1200);
+                }
                 if (tipsSeen < TIPS_VERSION) show = () => openQuickTips();
             }
         }

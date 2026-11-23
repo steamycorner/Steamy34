@@ -86,7 +86,7 @@
         if (!full.length) return cookie;
         if (blMergeFull === full && blMergeKey === blCacheRaw) return blMergeList.slice();
         const seen = new Set(full.map(t => t.toLowerCase()));
-        blMergeList = full.concat(cookie.filter(t => !seen.has(t.toLowerCase())));
+        blMergeList = full.concat(cookie.filter(t => looksLikeTag(t) && !seen.has(t.toLowerCase())));
         blMergeFull = full;
         blMergeKey = blCacheRaw;
         return blMergeList.slice();
@@ -150,6 +150,33 @@
         // Keep the sidebar "Blacklist · N tags" button up to date
         const count = document.querySelector('.s34-blbtn-count');
         if (count) count.textContent = list.length === 1 ? '1 tag' : list.length + ' tags';
+    }
+
+    // A real tag: no spaces, no leftover %-codes or HTML bits, not absurdly long
+    function looksLikeTag(t) {
+        return typeof t === 'string' && /^[^\s%<>"]{1,150}$/.test(t);
+    }
+
+    // (Beta 3.8.3) rule34 now uses the blacklist cookie on its server, inside
+    // every search - a damaged cookie made searches come back empty ("Nobody
+    // here but us chickens!"), seen on a phone after reloading during a
+    // Cloudflare check. On every page Steamy34 compares the cookie with the
+    // list and writes it fresh when it's damaged, missing or out of step.
+    let blCookieRepaired = '';
+    function repairBlacklistCookie() {
+        const full = readFullBlocklist();
+        if (!full.length) return;
+        const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + BL_COOKIE + '=([^;]*)'));
+        const raw = m ? m[1] : null;
+        const cookieTags = raw === null ? [] : parseBlocklist(raw);
+        const damaged = cookieTags.some(t => !looksLikeTag(t));
+        const seen = new Set(full.map(t => t.toLowerCase()));
+        const merged = full.concat(cookieTags.filter(t => looksLikeTag(t) && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase())));
+        const want = blCookieValue(blCookieFit(merged));
+        if (raw === want) return;
+        blCookieRepaired = raw === null ? 'missing' : damaged ? 'damaged' : 'out of step';
+        console.log('[Steamy34] rule34\'s blacklist cookie was ' + blCookieRepaired + ' – written fresh.');
+        writeBlocklist(merged, true);
     }
 
     function isBlocked(tag) {

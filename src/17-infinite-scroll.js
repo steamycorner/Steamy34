@@ -103,6 +103,7 @@
             });
         }, true);
     }
+    try { repairBlacklistCookie(); } catch (e) { console.warn('[Steamy34] Blacklist cookie:', e); }
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
     // A newly loaded page: set up only its thumbnails, not every one again

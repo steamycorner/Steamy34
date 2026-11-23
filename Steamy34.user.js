@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.8.1-beta
+// @version      3.8.3-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -6975,7 +6975,7 @@
         if (!full.length) return cookie;
         if (blMergeFull === full && blMergeKey === blCacheRaw) return blMergeList.slice();
         const seen = new Set(full.map(t => t.toLowerCase()));
-        blMergeList = full.concat(cookie.filter(t => !seen.has(t.toLowerCase())));
+        blMergeList = full.concat(cookie.filter(t => looksLikeTag(t) && !seen.has(t.toLowerCase())));
         blMergeFull = full;
         blMergeKey = blCacheRaw;
         return blMergeList.slice();
@@ -7039,6 +7039,33 @@
         // Keep the sidebar "Blacklist · N tags" button up to date
         const count = document.querySelector('.s34-blbtn-count');
         if (count) count.textContent = list.length === 1 ? '1 tag' : list.length + ' tags';
+    }
+
+    // A real tag: no spaces, no leftover %-codes or HTML bits, not absurdly long
+    function looksLikeTag(t) {
+        return typeof t === 'string' && /^[^\s%<>"]{1,150}$/.test(t);
+    }
+
+    // (Beta 3.8.3) rule34 now uses the blacklist cookie on its server, inside
+    // every search - a damaged cookie made searches come back empty ("Nobody
+    // here but us chickens!"), seen on a phone after reloading during a
+    // Cloudflare check. On every page Steamy34 compares the cookie with the
+    // list and writes it fresh when it's damaged, missing or out of step.
+    let blCookieRepaired = '';
+    function repairBlacklistCookie() {
+        const full = readFullBlocklist();
+        if (!full.length) return;
+        const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + BL_COOKIE + '=([^;]*)'));
+        const raw = m ? m[1] : null;
+        const cookieTags = raw === null ? [] : parseBlocklist(raw);
+        const damaged = cookieTags.some(t => !looksLikeTag(t));
+        const seen = new Set(full.map(t => t.toLowerCase()));
+        const merged = full.concat(cookieTags.filter(t => looksLikeTag(t) && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase())));
+        const want = blCookieValue(blCookieFit(merged));
+        if (raw === want) return;
+        blCookieRepaired = raw === null ? 'missing' : damaged ? 'damaged' : 'out of step';
+        console.log('[Steamy34] rule34\'s blacklist cookie was ' + blCookieRepaired + ' – written fresh.');
+        writeBlocklist(merged, true);
     }
 
     function isBlocked(tag) {
@@ -9014,6 +9041,7 @@
             });
         }, true);
     }
+    try { repairBlacklistCookie(); } catch (e) { console.warn('[Steamy34] Blacklist cookie:', e); }
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
     // A newly loaded page: set up only its thumbnails, not every one again
@@ -10960,6 +10988,7 @@
         lines.push('Data: following ' + f.artists.length + ' artists · viewed ' + count(loadViewed()) +
                    ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length +
                    ' · saved searches ' + getSavedSearches().length + ' · API key ' + (hasApiKey() ? 'yes (used ' + apiStats.uses + 'x this page' + (apiStats.lastError ? ', last problem: ' + apiStats.lastError.replace(/[A-Za-z0-9]{24,}/g, '…') : '') + ')' : 'no')); // (never the key itself)
+        lines.push('Blacklist cookie: ' + readCookieBlocklist().length + ' tags' + (blCookieRepaired ? ' (was ' + blCookieRepaired + ' on this page – written fresh)' : ' · OK'));
         const site = siteShapeProblems();
         lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));
         // The last Cloudflare check: what hit it, and what loaded in the 2 minutes before
@@ -14676,6 +14705,12 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8.3', date: '2026-11-23', items: [
+            'Fixed: searches could suddenly come back empty ("Nobody here but us chickens!") – rule34 now uses your blacklist cookie inside every search, and a damaged cookie (seen after reloading during a Cloudflare check) broke them. Steamy34 now checks the cookie on every page and writes it fresh when needed.'
+        ] },
+        { v: 'Beta 3.8.2', date: '2026-11-22', items: [
+            'After a small update like this one, a short note says so once: "Steamy34 updated to …" with a What\'s new button. Big updates still open the What\'s new window.'
+        ] },
         { v: 'Beta 3.8.1', date: '2026-11-22', items: [
             'Blacklist: tags with an apostrophe (like five_nights_at_freddy\'s) now hide their posts – rule34 writes the apostrophe in a coded form that never matched. Their names show properly too, without "&#039;".',
             'Blacklisted posts are now hidden by Steamy34 as well, not only by rule34 – a post with a blacklisted tag could still show up. rule34\'s "Hidden" link still shows them on request.',
@@ -15347,7 +15382,12 @@
                 show = () => openChangelog(since);
                 GM_setValue(TIPS_KEY, TIPS_VERSION);   // the changelog covers it - no tips on top
             } else {
-                if (compareVersions(CURRENT_VERSION, since) > 0) GM_setValue(CHANGELOG_SEEN_KEY, CURRENT_VERSION);
+                if (compareVersions(CURRENT_VERSION, since) > 0) {
+                    GM_setValue(CHANGELOG_SEEN_KEY, CURRENT_VERSION);
+                    // (Beta 3.8.2) A small update: no window, but a short note
+                    // once, so you know something changed
+                    setTimeout(() => showToast(`Steamy34 updated to ${CURRENT_VERSION}`, 'What\'s new', () => openChangelog(since), 9000), 1200);
+                }
                 if (tipsSeen < TIPS_VERSION) show = () => openQuickTips();
             }
         }

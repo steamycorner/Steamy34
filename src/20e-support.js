@@ -65,6 +65,7 @@
         lines.push('Data: following ' + f.artists.length + ' artists · viewed ' + count(loadViewed()) +
                    ' · downloaded ' + count(loadDownloaded()) + ' · blacklist ' + readBlocklist().length + ' tags · collections ' + getCollections().length +
                    ' · saved searches ' + getSavedSearches().length + ' · API key ' + (hasApiKey() ? 'yes (used ' + apiStats.uses + 'x this page' + (apiStats.lastError ? ', last problem: ' + apiStats.lastError.replace(/[A-Za-z0-9]{24,}/g, '…') : '') + ')' : 'no')); // (never the key itself)
+        lines.push('Blacklist cookie: ' + readCookieBlocklist().length + ' tags' + (blCookieRepaired ? ' (was ' + blCookieRepaired + ' on this page – written fresh)' : ' · OK'));
         const site = siteShapeProblems();
         lines.push('Site check: ' + (site.length ? 'missing ' + site.join(', ') : 'OK'));
         // The last Cloudflare check: what hit it, and what loaded in the 2 minutes before
