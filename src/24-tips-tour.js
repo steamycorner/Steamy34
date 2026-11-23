@@ -203,6 +203,10 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.9.1', date: '2026-11-23', items: [
+            'Blocked stays blocked – the last gaps: posts with a blacklisted tag are hidden on the comments page too ("Show them" if you want), and covered in your Collections and the Downloads window – "Show" on one post, or "Show blacklisted (N)" for all of them, since you saved those yourself.',
+            'Mute a tag for a while: in the Blacklist, pick "Mute 24 hours" or "Mute 7 days" next to Add – the tag is hidden until then and comes back by itself.'
+        ] },
         { v: 'Beta 3.9', date: '2026-11-23', notify: true, items: [
             'Backups combine now: importing adds everything from the file (follows, saved searches, collections, viewed / downloaded marks, blacklist) to what you have – nothing is removed, and this device keeps its own settings unless you choose to take them over. Export and import now and then, both ways, and two devices stay in step.',
             'Steamy34 keeps its data in each browser – it works best on one device. Settings → Privacy & data explains how to bring a second one along.',

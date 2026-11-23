@@ -112,7 +112,8 @@
             else if (act === 'theater') setTheater(!overlay.classList.contains('s34-pv-theater'));
             else if (act === 'collect') {
                 const s = popupState;
-                if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s) }]);
+                if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
+                    tags: [].concat(...Object.values(s.tags || {}).map(l => (l || []).map(x => x.tag))).join(' ') }]);
             }
         });
         setTheater(GM_getValue(THEATER_KEY, false) === true, overlay);

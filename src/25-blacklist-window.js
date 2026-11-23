@@ -100,7 +100,16 @@
             <div class="s34-blm-account" hidden></div>
             <div class="s34-blm-add">
                 <input type="text" class="s34-blm-input" placeholder="Blacklist a tag…" autocomplete="off" spellcheck="false">
+                <select class="s34-blm-for" title="Blacklist for good – or only mute it for a while (it comes back by itself)">
+                    <option value="">For good</option>
+                    <option value="86400000">Mute 24 hours</option>
+                    <option value="604800000">Mute 7 days</option>
+                </select>
                 <button type="button" class="s34-blm-addbtn">Add</button>
+            </div>
+            <div class="s34-blm-muted-box" hidden>
+                <div class="s34-blm-label">Muted for now</div>
+                <div class="s34-blm-muted"></div>
             </div>
             <div class="s34-blm-recent-box">
                 <div class="s34-blm-label">Recently blacklisted</div>
@@ -379,7 +388,14 @@
             const parts = v.split(/\s+/);
             const keep = all || /\s$/.test(v) ? '' : parts.pop();
             const done = parts.filter(Boolean);
-            if (done.length) addTags(done);
+            const forMs = parseInt($('.s34-blm-for').value, 10) || 0;
+            if (done.length && forMs) {
+                // (Beta 3.9.1) muted: hidden until then, then back by itself
+                muteTags(done, forMs);
+                showToast(`Muted ${done.length === 1 ? '"' + done[0].replace(/_/g, ' ') + '"' : done.length + ' tags'} for ${forMs > 86400000 ? '7 days' : '24 hours'} – hidden until then.`);
+                renderMuted();
+                if (opts.onChange) opts.onChange();
+            } else if (done.length) addTags(done);
             addInput.value = keep;
         };
         addInput.addEventListener('input', () => { if (/\s/.test(addInput.value)) commitAdd(false); });
@@ -391,6 +407,27 @@
             if (e.key === 'Enter') commitAdd(true);
         });
         $('.s34-blm-addbtn').addEventListener('click', () => { commitAdd(true); addInput.focus(); });
+
+        // Muted tags: what's left of their time, × ends it early
+        function renderMuted() {
+            const m = getMutes();
+            const keys = Object.keys(m).sort((a, b) => m[a] - m[b]);
+            const box = $('.s34-blm-muted-box');
+            box.hidden = !keys.length;
+            const row = $('.s34-blm-muted');
+            row.replaceChildren();
+            keys.forEach(t => {
+                const left = m[t] - Date.now();
+                const chip = document.createElement('span');
+                chip.className = 's34-blm-item s34-blm-mutedchip';
+                chip.innerHTML = '<span class="s34-blm-name"></span><small></small><button type="button" title="Unmute now">×</button>';
+                chip.querySelector('.s34-blm-name').textContent = t.replace(/_/g, ' ');
+                chip.querySelector('small').textContent = left > 86400000 ? Math.ceil(left / 86400000) + ' d left' : Math.max(1, Math.ceil(left / 3600000)) + ' h left';
+                chip.querySelector('button').addEventListener('click', () => { unmuteTag(t); renderMuted(); if (opts.onChange) opts.onChange(); });
+                row.appendChild(chip);
+            });
+        }
+        renderMuted();
 
         const filterBox = $('.s34-blm-filter');
         filterBox.addEventListener('input', () => { filter = filterBox.value.trim(); render(); });

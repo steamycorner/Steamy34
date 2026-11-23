@@ -6,9 +6,9 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 
 > **About the code.** Steamy34 is designed by steamycorner, a designer (web design, corporate identity, 3D) rather than a programmer. The code is written with AI (Claude), and bug fixes are made the same way, so mistakes are possible. Each version is tested before release. Problems can be reported on Discord or in the Feedback tab.
 
-> **New in Beta 3.8: your collections on all your devices.** Optional: Steamy34 also favourites what you put into a collection, so it's on your phone too – and your favourites page becomes "Favourites & Collections", with buttons to mark everything as viewed or downloaded, and to download, sort or unfavourite several posts at once. Also new: download and viewed buttons right on the thumbnails (green = downloaded, blue = viewed), a Downloads window with every post you downloaded, Steamy34 Settings in rule34's top menu, long comic strips that fit the width, and a click on a post's picture for its real size.
+> **New in Beta 3.9: blocked stays blocked – everywhere.** Steamy34 now checks every post against your whole blacklist itself: on every list, while scrolling, in the popup, on the comments page, in your Collections and the Downloads window. A blacklisted post you open anyway is covered ("Show anyway" if you really want to). Tags can be **muted** for 24 hours or 7 days. Backups now **combine**, so two devices stay in step. Plus: the Cloudflare check is explained right where it appears, and empty pages say what's going on.
 
-> **Since Beta 3.7:** blacklists as long as you like, saved searches with filters, an optional API key for fewer Cloudflare checks, and My Account and Options in Steamy34's look.
+> **Since Beta 3.8:** collections on all your devices (optional), download and viewed buttons on the thumbnails, a Downloads window, Steamy34 Settings in rule34's top menu, long comic strips that fit the width. **Since 3.7:** blacklists as long as you like, saved searches, an optional API key for fewer Cloudflare checks.
 
 ## Features
 
@@ -45,6 +45,7 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - **As long as you like:** Steamy34 keeps the whole list and hides what doesn't fit into rule34's cookie itself
 - Your account keeps a copy: tags not on it yet are marked, and Save on Options puts the list there
 - **Blocked stays blocked:** Steamy34 checks every post against your whole blacklist itself – on every list, while scrolling, in the popup and the Following window. A blacklisted post you open anyway is covered ("Show anyway" if you really want to)
+- **Mute for a while:** hide a tag for 24 hours or 7 days – it comes back by itself
 
 **Organising**
 - Download and viewed buttons on the thumbnails: green = downloaded, blue = viewed. Hover the eye to mark a post as viewed – or as downloaded without downloading it. Every thumbnail item has its own switch

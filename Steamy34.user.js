@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.9-beta
+// @version      3.9.1-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -865,6 +865,23 @@
         }
         span.thumb.s34-bl-marked { overflow: hidden; }
         span.thumb.s34-bl-marked video { visibility: hidden !important; }
+
+        /* (Beta 3.9.1) Comments page: posts with a blacklisted tag hidden (until "Show them") */
+        html.s34-cm-pending #comment-list .post, html.s34-cm-pending div.post[id^="p"] { visibility: hidden !important; }
+        html:not(.s34-bl-posts-shown) div.post.s34-bl-post { display: none !important; }
+        html.s34-bl-posts-shown div.post.s34-bl-post { outline: 2px dashed rgba(255,90,90,.5); outline-offset: 4px; }
+        .s34-bl-postnote { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 14px; padding: 10px 14px; border-radius: 10px;
+            background: rgba(255,90,90,0.08) !important; border: 1px solid rgba(255,90,90,0.35) !important; color: #ffd0d0 !important; font: 500 13px/1.4 system-ui, sans-serif; }
+        .s34-bl-postnote span { flex: 1 1 240px; }
+        .s34-bl-postnote button { padding: 5px 12px; border-radius: 7px; border: 1px solid rgba(255,90,90,0.5) !important; background: rgba(255,90,90,0.12) !important; color: #fff !important; font: 600 12px system-ui, sans-serif; cursor: pointer; }
+
+        /* (Beta 3.9.1) Collections / Downloads: a tile with a blacklisted tag - covered, "Show" uncovers it */
+        .s34-tile.s34-tile-bl .s34-tile-img img { filter: grayscale(1) brightness(.3) blur(16px); }
+        .s34-tile-blcover { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px;
+            text-align: center; color: #ffd0d0 !important; font: 600 11px/1.35 system-ui, sans-serif; overflow-wrap: anywhere; }
+        .s34-tile-blcover button { padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,.3) !important; background: rgba(20,20,24,.85) !important; color: #fff !important; font: 600 11px system-ui, sans-serif; cursor: pointer; }
+        .s34-tile-img { position: relative; }
+        .s34-win-tools .s34-bl-toggle.s34-on { border-color: #ff8a8a !important; color: #ffd0d0 !important; }
 
         /* (Beta 3.9) An empty posts page: what's going on */
         .s34-empty-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 10px 0 16px; padding: 12px 16px; border-radius: 10px;
@@ -2166,6 +2183,12 @@
         .s34-blm-chip.s34-blm-unsaved { border-style: dashed !important; box-shadow: inset 0 0 0 1px rgba(255,179,71,0.55); }
         .s34-blm-account { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -6px 0 -2px; font-size: 12px; color: #9fe3b8 !important; }
         .s34-blm-account[hidden] { display: none; }
+        .s34-blm-for { flex: none; padding: 0 8px; border-radius: 8px; border: 1px solid #3a3a44 !important; background: #1b1b20 !important; color: #e8e8ee !important; font: 500 12px system-ui, sans-serif; }
+        .s34-blm-muted-box[hidden] { display: none; }
+        .s34-blm-muted { display: flex; flex-wrap: wrap; gap: 6px; }
+        .s34-blm-mutedchip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 7px; border: 1px dashed rgba(138,180,248,.5) !important; color: #cfe0ff !important; font-size: 12px; }
+        .s34-blm-mutedchip small { opacity: .65; }
+        .s34-blm-mutedchip button { border: none !important; background: none !important; color: inherit !important; cursor: pointer; padding: 0 4px; }
         .s34-blm-account-save { margin-left: auto; padding: 4px 12px; border-radius: 7px; border: 1px solid rgba(255,179,71,0.6) !important; background: rgba(255,179,71,0.15) !important; color: #ffd9ad !important; font: 600 12px system-ui, sans-serif; cursor: pointer; }
         .s34-blm-account-save:hover { background: rgba(255,179,71,0.28) !important; }
         .s34-blm-account-save:disabled { opacity: .6; cursor: progress; }
@@ -6955,8 +6978,34 @@
     // posts with - lower case, ' instead of &#039;, and rule34's short ratings
     // (rating:e / q / s) as the posts write them (rating:explicit …)
     const RATING_LONG = { e: 'explicit', q: 'questionable', s: 'safe', g: 'general' };
+
+    // (Beta 3.9.1) Muted tags: hidden like blacklisted ones, but only until a
+    // time - then they come back by themselves. Steamy34 hides them itself
+    // (they never go into rule34's cookie).
+    const MUTE_KEY = 'steamy34_muted';
+    function getMutes() {
+        let m = {};
+        try { const v = GM_getValue(MUTE_KEY, {}); m = v && typeof v === 'object' ? v : {}; } catch (e) {}
+        const now = Date.now();
+        let changed = false;
+        Object.keys(m).forEach(t => { if (!(m[t] > now)) { delete m[t]; changed = true; } });
+        if (changed) { try { GM_setValue(MUTE_KEY, m); } catch (e) {} }
+        return m;
+    }
+    function muteTags(tags, ms) {
+        const m = getMutes();
+        const until = Date.now() + ms;
+        tags.forEach(t => { const k = unescapeHtml(String(t)).toLowerCase().trim(); if (k) m[k] = until; });
+        GM_setValue(MUTE_KEY, m);
+    }
+    function unmuteTag(tag) {
+        const m = getMutes();
+        delete m[String(tag).toLowerCase()];
+        GM_setValue(MUTE_KEY, m);
+    }
+
     function blockedTagSet() {
-        const set = new Set();
+        const set = new Set(Object.keys(getMutes()));
         readBlocklist().forEach(t => {
             let k = unescapeHtml(String(t)).toLowerCase().trim();
             if (!k) return;
@@ -9063,6 +9112,44 @@
         }, true);
     }
     try { repairBlacklistCookie(); } catch (e) { console.warn('[Steamy34] Blacklist cookie:', e); }
+
+    // (Beta 3.9.1) Blocked stays blocked on the comments page too. Each post
+    // there carries its tags in a small script (posts.tags[id] = '…'); posts
+    // with a blacklisted (or muted) tag are hidden with their comments. The
+    // list stays invisible until it's checked (never longer than 5 s).
+    const onCommentsPage = params.get('page') === 'comment';
+    if (onCommentsPage) {
+        document.documentElement.classList.add('s34-cm-pending');
+        setTimeout(() => document.documentElement.classList.remove('s34-cm-pending'), 5000);
+    }
+    function hideBlockedCommentPosts() {
+        const root = document.documentElement;
+        try {
+            const set = blockedTagSet();
+            const hidden = [];
+            document.querySelectorAll('#comment-list div.post[id^="p"], div.post[id^="p"]').forEach(post => {
+                const sc = Array.from(post.querySelectorAll('script')).map(s => s.textContent).join(' ');
+                const m = sc.match(/posts\.tags\[\d+\]\s*=\s*'((?:\\.|[^'\\])*)'/);
+                if (!m) return;
+                const tags = m[1].replace(/\\(.)/g, '$1').split(/\s+/);
+                if (blockedTagsOf(tags, set).length) { post.classList.add('s34-bl-post'); hidden.push(post); }
+            });
+            if (!hidden.length) return;
+            const note = document.createElement('div');
+            note.className = 's34-bl-postnote';
+            note.innerHTML = '<span></span><button type="button">Show them</button>';
+            note.querySelector('span').textContent = hidden.length + (hidden.length === 1 ? ' post with a blacklisted tag is hidden here.' : ' posts with blacklisted tags are hidden here.');
+            note.querySelector('button').addEventListener('click', () => {
+                const show = !root.classList.toggle('s34-bl-posts-shown') ? false : true;
+                note.querySelector('button').textContent = show ? 'Hide them again' : 'Show them';
+            });
+            const list = document.querySelector('#comment-list') || hidden[0].parentElement;
+            list.prepend(note);
+        } finally {
+            root.classList.remove('s34-cm-pending');
+        }
+    }
+    if (onCommentsPage) onReady(() => setTimeout(hideBlockedCommentPosts, 0));
 
     // (Beta 3.9) rule34's "Nobody here but us chickens!" where there should be
     // posts: say what's going on instead of leaving it a mystery. After a
@@ -12177,7 +12264,7 @@
                 } else if (a === 'collect') {
                     const posts = allThumbs().filter(t => selected.has(t)).map(t => {
                         const img = t.querySelector('img');
-                        return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '' };
+                        return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' };
                     });
                     if (posts.length) openCollectMenu(act, posts);
                 } else if (a === 'stop') {
@@ -13702,6 +13789,16 @@
         const w = openWindow({ cls: 's34-dlw-overlay s34-coll-overlay', icon: DL_ICON_SVG, title: 'Downloads', width: 820 });
         let shown = DLW_PAGE;
         let lookups = 0;
+        let showBlocked = false;      // (Beta 3.9.1) "Show blacklisted (N)"
+        const shownNow = new Set();
+        // What's known about each download's tags: the download history (artist /
+        // character / series) and collections that hold the post
+        function knownTags() {
+            const map = {};
+            getDlHistory().forEach(h => { map[h.id] = [].concat(h.artist || [], h.character || [], h.copyright || []).join(' '); });
+            getCollections().forEach(c => c.posts.forEach(p => { if (p.tags) map[p.id] = (map[p.id] ? map[p.id] + ' ' : '') + p.tags; }));
+            return map;
+        }
 
         function render() {
             const list = CONFIG.trackDownloads ? downloadedList() : [];
@@ -13714,6 +13811,17 @@
                 e.textContent = '"Remember downloaded posts" is off (Settings → Downloads) – turn it on and your downloads collect here.';
                 w.body.appendChild(e);
                 return;
+            }
+            const tagsOf = knownTags();
+            const blSet = blockedTagSet();
+            const hitOf = id => (tagsOf[id] ? blockedTagsOf(tagsOf[id], blSet) : []);
+            const blCount = list.filter(p => hitOf(p.id).length).length;
+            if (blCount) {
+                const bar = document.createElement('div');
+                bar.className = 's34-win-tools';
+                bar.innerHTML = '<span class="s34-grow"></span>';
+                blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; render(); });
+                w.body.appendChild(bar);
             }
             const tiles = document.createElement('div');
             tiles.className = 's34-tiles';
@@ -13781,6 +13889,8 @@
                 });
                 acts.appendChild(rm);
                 tile.append(link, cap, acts);
+                const hit = hitOf(p.id);
+                if (hit.length && !showBlocked && !shownNow.has(p.id)) coverBlockedTile(tile, link, hit, () => { shownNow.add(p.id); uncoverTile(tile); });
                 tiles.appendChild(tile);
             });
             w.body.appendChild(tiles);
@@ -14144,7 +14254,7 @@
                         const addedIds = [];
                         posts.forEach(p => {
                             if (p.id && !col.posts.some(x => x.id === p.id)) {
-                                col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() });
+                                col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {}));
                                 added++;
                                 addedIds.push(p.id);
                             }
@@ -14166,7 +14276,7 @@
                 const c = createCollection(input.value);
                 const all = getCollections();
                 const col = all.find(x => x.id === c.id);
-                posts.forEach(p => { if (p.id) col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() }); });
+                posts.forEach(p => { if (p.id) col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {})); });
                 saveCollections(all);
                 collectionsAdded(posts.map(p => p.id).filter(Boolean));
                 showToast(`Made "${col.name}" and saved ${posts.length === 1 ? 'the post' : posts.length + ' posts'}.`);
@@ -14200,11 +14310,48 @@
         setTimeout(() => document.addEventListener('mousedown', off, true), 0);
     }
 
+    // (Beta 3.9.1) A tile whose known tags are blacklisted: covered, "Show" uncovers it
+    function coverBlockedTile(tile, link, hit, onShow) {
+        tile.classList.add('s34-tile-bl');
+        const box = link.querySelector('.s34-tile-img') || link;
+        const cover = document.createElement('div');
+        cover.className = 's34-tile-blcover';
+        cover.innerHTML = '<span></span><button type="button">Show</button>';
+        cover.querySelector('span').textContent = 'Blacklisted: ' + hit.slice(0, 3).map(t => t.replace(/_/g, ' ')).join(', ');
+        cover.querySelector('button').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onShow(); });
+        box.appendChild(cover);
+        // a covered post doesn't open - except its own "Show" button works
+        link.addEventListener('click', e => {
+            if (!tile.classList.contains('s34-tile-bl') || (e.target.closest && e.target.closest('.s34-tile-blcover button'))) return;
+            e.preventDefault(); e.stopImmediatePropagation();
+        }, true);
+    }
+    function uncoverTile(tile) {
+        tile.classList.remove('s34-tile-bl');
+        const c = tile.querySelector('.s34-tile-blcover');
+        if (c) c.remove();
+    }
+    // The "Show blacklisted (N)" switch in a window's tool bar
+    function blacklistToggle(bar, count, on, onChange) {
+        if (!count) return null;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 's34-bl-toggle' + (on ? ' s34-on' : '');
+        b.textContent = (on ? 'Hide' : 'Show') + ' blacklisted (' + count + ')';
+        b.title = 'Posts with a blacklisted tag – you saved them yourself, so you decide';
+        b.addEventListener('click', () => onChange(!on));
+        const grow = bar.querySelector('.s34-grow');
+        if (grow) grow.after(b); else bar.appendChild(b);
+        return b;
+    }
+
     function openCollectionsWindow(openId) {
         if (document.querySelector('.s34-coll-overlay')) return;
         const w = openWindow({ cls: 's34-coll-overlay', icon: FOLDER_SVG, title: 'Collections', width: 820 });
         let current = openId || null;
         let downloading = null; // { stop }
+        let showBlocked = false;              // (Beta 3.9.1) "Show blacklisted (N)"
+        const shownNow = new Set();           // single posts uncovered with "Show"
         checkFavouritesElsewhere(15 * 60000); // posts un-favourited on another device leave their collections
 
         function renderList() {
@@ -14223,7 +14370,8 @@
                 card.className = 's34-coll-card';
                 const cover = document.createElement('div');
                 cover.className = 's34-coll-cover';
-                c.posts.slice(0, 4).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
+                const blSet = blockedTagSet();
+                c.posts.filter(p => !(p.tags && blockedTagsOf(p.tags, blSet).length)).slice(0, 4).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
                 if (!cover.childElementCount) cover.innerHTML = FOLDER_SVG;
                 cover.classList.toggle('s34-coll-cover-n' + Math.min(4, cover.querySelectorAll('img').length), true);
                 const name = document.createElement('div');
@@ -14360,6 +14508,10 @@
                 return s;
             });
             const list = { thumbs: () => proxies, state: () => 'done', more: () => {} };
+            const blSet = blockedTagSet();
+            const hitOf = p => (p.tags ? blockedTagsOf(p.tags, blSet) : []);
+            const blCount = c.posts.filter(p => hitOf(p).length).length;
+            blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; renderOne(id); });
             c.posts.forEach((p, n) => {
                 const tile = document.createElement('div');
                 tile.className = 's34-tile';
@@ -14395,6 +14547,8 @@
                 });
                 acts.appendChild(rm);
                 tile.append(link, cap, acts);
+                const hit = hitOf(p);
+                if (hit.length && !showBlocked && !shownNow.has(p.id)) coverBlockedTile(tile, link, hit, () => { shownNow.add(p.id); uncoverTile(tile); });
                 tiles.appendChild(tile);
             });
             w.body.append(bar, status, tiles);
@@ -14471,7 +14625,8 @@
         btn.innerHTML = FOLDER_SVG + '<span>Save to collection</span>';
         btn.addEventListener('click', () => {
             const img = document.querySelector('#image');
-            openCollectMenu(btn, [{ id, thumb: img ? img.src : '' }]);
+            const tags = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-"]')).map(getTagFromRow).filter(Boolean).join(' ');
+            openCollectMenu(btn, [{ id, thumb: img ? img.src : '', tags }]);
         });
         const dl = slot.querySelector('.s34-dl-btn');
         if (dl) dl.after(btn); else slot.prepend(btn);
@@ -14800,6 +14955,10 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.9.1', date: '2026-11-23', items: [
+            'Blocked stays blocked – the last gaps: posts with a blacklisted tag are hidden on the comments page too ("Show them" if you want), and covered in your Collections and the Downloads window – "Show" on one post, or "Show blacklisted (N)" for all of them, since you saved those yourself.',
+            'Mute a tag for a while: in the Blacklist, pick "Mute 24 hours" or "Mute 7 days" next to Add – the tag is hidden until then and comes back by itself.'
+        ] },
         { v: 'Beta 3.9', date: '2026-11-23', notify: true, items: [
             'Backups combine now: importing adds everything from the file (follows, saved searches, collections, viewed / downloaded marks, blacklist) to what you have – nothing is removed, and this device keeps its own settings unless you choose to take them over. Export and import now and then, both ways, and two devices stay in step.',
             'Steamy34 keeps its data in each browser – it works best on one device. Settings → Privacy & data explains how to bring a second one along.',
@@ -15630,7 +15789,16 @@
             <div class="s34-blm-account" hidden></div>
             <div class="s34-blm-add">
                 <input type="text" class="s34-blm-input" placeholder="Blacklist a tag…" autocomplete="off" spellcheck="false">
+                <select class="s34-blm-for" title="Blacklist for good – or only mute it for a while (it comes back by itself)">
+                    <option value="">For good</option>
+                    <option value="86400000">Mute 24 hours</option>
+                    <option value="604800000">Mute 7 days</option>
+                </select>
                 <button type="button" class="s34-blm-addbtn">Add</button>
+            </div>
+            <div class="s34-blm-muted-box" hidden>
+                <div class="s34-blm-label">Muted for now</div>
+                <div class="s34-blm-muted"></div>
             </div>
             <div class="s34-blm-recent-box">
                 <div class="s34-blm-label">Recently blacklisted</div>
@@ -15909,7 +16077,14 @@
             const parts = v.split(/\s+/);
             const keep = all || /\s$/.test(v) ? '' : parts.pop();
             const done = parts.filter(Boolean);
-            if (done.length) addTags(done);
+            const forMs = parseInt($('.s34-blm-for').value, 10) || 0;
+            if (done.length && forMs) {
+                // (Beta 3.9.1) muted: hidden until then, then back by itself
+                muteTags(done, forMs);
+                showToast(`Muted ${done.length === 1 ? '"' + done[0].replace(/_/g, ' ') + '"' : done.length + ' tags'} for ${forMs > 86400000 ? '7 days' : '24 hours'} – hidden until then.`);
+                renderMuted();
+                if (opts.onChange) opts.onChange();
+            } else if (done.length) addTags(done);
             addInput.value = keep;
         };
         addInput.addEventListener('input', () => { if (/\s/.test(addInput.value)) commitAdd(false); });
@@ -15921,6 +16096,27 @@
             if (e.key === 'Enter') commitAdd(true);
         });
         $('.s34-blm-addbtn').addEventListener('click', () => { commitAdd(true); addInput.focus(); });
+
+        // Muted tags: what's left of their time, × ends it early
+        function renderMuted() {
+            const m = getMutes();
+            const keys = Object.keys(m).sort((a, b) => m[a] - m[b]);
+            const box = $('.s34-blm-muted-box');
+            box.hidden = !keys.length;
+            const row = $('.s34-blm-muted');
+            row.replaceChildren();
+            keys.forEach(t => {
+                const left = m[t] - Date.now();
+                const chip = document.createElement('span');
+                chip.className = 's34-blm-item s34-blm-mutedchip';
+                chip.innerHTML = '<span class="s34-blm-name"></span><small></small><button type="button" title="Unmute now">×</button>';
+                chip.querySelector('.s34-blm-name').textContent = t.replace(/_/g, ' ');
+                chip.querySelector('small').textContent = left > 86400000 ? Math.ceil(left / 86400000) + ' d left' : Math.max(1, Math.ceil(left / 3600000)) + ' h left';
+                chip.querySelector('button').addEventListener('click', () => { unmuteTag(t); renderMuted(); if (opts.onChange) opts.onChange(); });
+                row.appendChild(chip);
+            });
+        }
+        renderMuted();
 
         const filterBox = $('.s34-blm-filter');
         filterBox.addEventListener('input', () => { filter = filterBox.value.trim(); render(); });
@@ -17461,7 +17657,8 @@
             else if (act === 'theater') setTheater(!overlay.classList.contains('s34-pv-theater'));
             else if (act === 'collect') {
                 const s = popupState;
-                if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s) }]);
+                if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
+                    tags: [].concat(...Object.values(s.tags || {}).map(l => (l || []).map(x => x.tag))).join(' ') }]);
             }
         });
         setTheater(GM_getValue(THEATER_KEY, false) === true, overlay);

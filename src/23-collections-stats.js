@@ -295,7 +295,7 @@
                         const addedIds = [];
                         posts.forEach(p => {
                             if (p.id && !col.posts.some(x => x.id === p.id)) {
-                                col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() });
+                                col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {}));
                                 added++;
                                 addedIds.push(p.id);
                             }
@@ -317,7 +317,7 @@
                 const c = createCollection(input.value);
                 const all = getCollections();
                 const col = all.find(x => x.id === c.id);
-                posts.forEach(p => { if (p.id) col.posts.unshift({ id: p.id, thumb: p.thumb || '', time: Date.now() }); });
+                posts.forEach(p => { if (p.id) col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {})); });
                 saveCollections(all);
                 collectionsAdded(posts.map(p => p.id).filter(Boolean));
                 showToast(`Made "${col.name}" and saved ${posts.length === 1 ? 'the post' : posts.length + ' posts'}.`);
@@ -351,11 +351,48 @@
         setTimeout(() => document.addEventListener('mousedown', off, true), 0);
     }
 
+    // (Beta 3.9.1) A tile whose known tags are blacklisted: covered, "Show" uncovers it
+    function coverBlockedTile(tile, link, hit, onShow) {
+        tile.classList.add('s34-tile-bl');
+        const box = link.querySelector('.s34-tile-img') || link;
+        const cover = document.createElement('div');
+        cover.className = 's34-tile-blcover';
+        cover.innerHTML = '<span></span><button type="button">Show</button>';
+        cover.querySelector('span').textContent = 'Blacklisted: ' + hit.slice(0, 3).map(t => t.replace(/_/g, ' ')).join(', ');
+        cover.querySelector('button').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onShow(); });
+        box.appendChild(cover);
+        // a covered post doesn't open - except its own "Show" button works
+        link.addEventListener('click', e => {
+            if (!tile.classList.contains('s34-tile-bl') || (e.target.closest && e.target.closest('.s34-tile-blcover button'))) return;
+            e.preventDefault(); e.stopImmediatePropagation();
+        }, true);
+    }
+    function uncoverTile(tile) {
+        tile.classList.remove('s34-tile-bl');
+        const c = tile.querySelector('.s34-tile-blcover');
+        if (c) c.remove();
+    }
+    // The "Show blacklisted (N)" switch in a window's tool bar
+    function blacklistToggle(bar, count, on, onChange) {
+        if (!count) return null;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 's34-bl-toggle' + (on ? ' s34-on' : '');
+        b.textContent = (on ? 'Hide' : 'Show') + ' blacklisted (' + count + ')';
+        b.title = 'Posts with a blacklisted tag – you saved them yourself, so you decide';
+        b.addEventListener('click', () => onChange(!on));
+        const grow = bar.querySelector('.s34-grow');
+        if (grow) grow.after(b); else bar.appendChild(b);
+        return b;
+    }
+
     function openCollectionsWindow(openId) {
         if (document.querySelector('.s34-coll-overlay')) return;
         const w = openWindow({ cls: 's34-coll-overlay', icon: FOLDER_SVG, title: 'Collections', width: 820 });
         let current = openId || null;
         let downloading = null; // { stop }
+        let showBlocked = false;              // (Beta 3.9.1) "Show blacklisted (N)"
+        const shownNow = new Set();           // single posts uncovered with "Show"
         checkFavouritesElsewhere(15 * 60000); // posts un-favourited on another device leave their collections
 
         function renderList() {
@@ -374,7 +411,8 @@
                 card.className = 's34-coll-card';
                 const cover = document.createElement('div');
                 cover.className = 's34-coll-cover';
-                c.posts.slice(0, 4).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
+                const blSet = blockedTagSet();
+                c.posts.filter(p => !(p.tags && blockedTagsOf(p.tags, blSet).length)).slice(0, 4).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
                 if (!cover.childElementCount) cover.innerHTML = FOLDER_SVG;
                 cover.classList.toggle('s34-coll-cover-n' + Math.min(4, cover.querySelectorAll('img').length), true);
                 const name = document.createElement('div');
@@ -511,6 +549,10 @@
                 return s;
             });
             const list = { thumbs: () => proxies, state: () => 'done', more: () => {} };
+            const blSet = blockedTagSet();
+            const hitOf = p => (p.tags ? blockedTagsOf(p.tags, blSet) : []);
+            const blCount = c.posts.filter(p => hitOf(p).length).length;
+            blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; renderOne(id); });
             c.posts.forEach((p, n) => {
                 const tile = document.createElement('div');
                 tile.className = 's34-tile';
@@ -546,6 +588,8 @@
                 });
                 acts.appendChild(rm);
                 tile.append(link, cap, acts);
+                const hit = hitOf(p);
+                if (hit.length && !showBlocked && !shownNow.has(p.id)) coverBlockedTile(tile, link, hit, () => { shownNow.add(p.id); uncoverTile(tile); });
                 tiles.appendChild(tile);
             });
             w.body.append(bar, status, tiles);
@@ -622,7 +666,8 @@
         btn.innerHTML = FOLDER_SVG + '<span>Save to collection</span>';
         btn.addEventListener('click', () => {
             const img = document.querySelector('#image');
-            openCollectMenu(btn, [{ id, thumb: img ? img.src : '' }]);
+            const tags = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-"]')).map(getTagFromRow).filter(Boolean).join(' ');
+            openCollectMenu(btn, [{ id, thumb: img ? img.src : '', tags }]);
         });
         const dl = slot.querySelector('.s34-dl-btn');
         if (dl) dl.after(btn); else slot.prepend(btn);

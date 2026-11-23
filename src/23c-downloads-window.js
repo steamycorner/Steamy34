@@ -50,6 +50,16 @@
         const w = openWindow({ cls: 's34-dlw-overlay s34-coll-overlay', icon: DL_ICON_SVG, title: 'Downloads', width: 820 });
         let shown = DLW_PAGE;
         let lookups = 0;
+        let showBlocked = false;      // (Beta 3.9.1) "Show blacklisted (N)"
+        const shownNow = new Set();
+        // What's known about each download's tags: the download history (artist /
+        // character / series) and collections that hold the post
+        function knownTags() {
+            const map = {};
+            getDlHistory().forEach(h => { map[h.id] = [].concat(h.artist || [], h.character || [], h.copyright || []).join(' '); });
+            getCollections().forEach(c => c.posts.forEach(p => { if (p.tags) map[p.id] = (map[p.id] ? map[p.id] + ' ' : '') + p.tags; }));
+            return map;
+        }
 
         function render() {
             const list = CONFIG.trackDownloads ? downloadedList() : [];
@@ -62,6 +72,17 @@
                 e.textContent = '"Remember downloaded posts" is off (Settings → Downloads) – turn it on and your downloads collect here.';
                 w.body.appendChild(e);
                 return;
+            }
+            const tagsOf = knownTags();
+            const blSet = blockedTagSet();
+            const hitOf = id => (tagsOf[id] ? blockedTagsOf(tagsOf[id], blSet) : []);
+            const blCount = list.filter(p => hitOf(p.id).length).length;
+            if (blCount) {
+                const bar = document.createElement('div');
+                bar.className = 's34-win-tools';
+                bar.innerHTML = '<span class="s34-grow"></span>';
+                blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; render(); });
+                w.body.appendChild(bar);
             }
             const tiles = document.createElement('div');
             tiles.className = 's34-tiles';
@@ -129,6 +150,8 @@
                 });
                 acts.appendChild(rm);
                 tile.append(link, cap, acts);
+                const hit = hitOf(p.id);
+                if (hit.length && !showBlocked && !shownNow.has(p.id)) coverBlockedTile(tile, link, hit, () => { shownNow.add(p.id); uncoverTile(tile); });
                 tiles.appendChild(tile);
             });
             w.body.appendChild(tiles);

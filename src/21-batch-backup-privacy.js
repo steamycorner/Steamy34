@@ -74,7 +74,7 @@
                 } else if (a === 'collect') {
                     const posts = allThumbs().filter(t => selected.has(t)).map(t => {
                         const img = t.querySelector('img');
-                        return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '' };
+                        return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' };
                     });
                     if (posts.length) openCollectMenu(act, posts);
                 } else if (a === 'stop') {

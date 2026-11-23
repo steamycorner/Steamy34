@@ -185,6 +185,23 @@
         span.thumb.s34-bl-marked { overflow: hidden; }
         span.thumb.s34-bl-marked video { visibility: hidden !important; }
 
+        /* (Beta 3.9.1) Comments page: posts with a blacklisted tag hidden (until "Show them") */
+        html.s34-cm-pending #comment-list .post, html.s34-cm-pending div.post[id^="p"] { visibility: hidden !important; }
+        html:not(.s34-bl-posts-shown) div.post.s34-bl-post { display: none !important; }
+        html.s34-bl-posts-shown div.post.s34-bl-post { outline: 2px dashed rgba(255,90,90,.5); outline-offset: 4px; }
+        .s34-bl-postnote { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 14px; padding: 10px 14px; border-radius: 10px;
+            background: rgba(255,90,90,0.08) !important; border: 1px solid rgba(255,90,90,0.35) !important; color: #ffd0d0 !important; font: 500 13px/1.4 system-ui, sans-serif; }
+        .s34-bl-postnote span { flex: 1 1 240px; }
+        .s34-bl-postnote button { padding: 5px 12px; border-radius: 7px; border: 1px solid rgba(255,90,90,0.5) !important; background: rgba(255,90,90,0.12) !important; color: #fff !important; font: 600 12px system-ui, sans-serif; cursor: pointer; }
+
+        /* (Beta 3.9.1) Collections / Downloads: a tile with a blacklisted tag - covered, "Show" uncovers it */
+        .s34-tile.s34-tile-bl .s34-tile-img img { filter: grayscale(1) brightness(.3) blur(16px); }
+        .s34-tile-blcover { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px;
+            text-align: center; color: #ffd0d0 !important; font: 600 11px/1.35 system-ui, sans-serif; overflow-wrap: anywhere; }
+        .s34-tile-blcover button { padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,.3) !important; background: rgba(20,20,24,.85) !important; color: #fff !important; font: 600 11px system-ui, sans-serif; cursor: pointer; }
+        .s34-tile-img { position: relative; }
+        .s34-win-tools .s34-bl-toggle.s34-on { border-color: #ff8a8a !important; color: #ffd0d0 !important; }
+
         /* (Beta 3.9) An empty posts page: what's going on */
         .s34-empty-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 10px 0 16px; padding: 12px 16px; border-radius: 10px;
             background: rgba(255,179,71,0.08) !important; border: 1px solid rgba(255,179,71,0.4) !important; color: #ffe2bf !important; font: 500 14px/1.45 system-ui, sans-serif; }

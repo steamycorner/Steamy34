@@ -105,6 +105,44 @@
     }
     try { repairBlacklistCookie(); } catch (e) { console.warn('[Steamy34] Blacklist cookie:', e); }
 
+    // (Beta 3.9.1) Blocked stays blocked on the comments page too. Each post
+    // there carries its tags in a small script (posts.tags[id] = '…'); posts
+    // with a blacklisted (or muted) tag are hidden with their comments. The
+    // list stays invisible until it's checked (never longer than 5 s).
+    const onCommentsPage = params.get('page') === 'comment';
+    if (onCommentsPage) {
+        document.documentElement.classList.add('s34-cm-pending');
+        setTimeout(() => document.documentElement.classList.remove('s34-cm-pending'), 5000);
+    }
+    function hideBlockedCommentPosts() {
+        const root = document.documentElement;
+        try {
+            const set = blockedTagSet();
+            const hidden = [];
+            document.querySelectorAll('#comment-list div.post[id^="p"], div.post[id^="p"]').forEach(post => {
+                const sc = Array.from(post.querySelectorAll('script')).map(s => s.textContent).join(' ');
+                const m = sc.match(/posts\.tags\[\d+\]\s*=\s*'((?:\\.|[^'\\])*)'/);
+                if (!m) return;
+                const tags = m[1].replace(/\\(.)/g, '$1').split(/\s+/);
+                if (blockedTagsOf(tags, set).length) { post.classList.add('s34-bl-post'); hidden.push(post); }
+            });
+            if (!hidden.length) return;
+            const note = document.createElement('div');
+            note.className = 's34-bl-postnote';
+            note.innerHTML = '<span></span><button type="button">Show them</button>';
+            note.querySelector('span').textContent = hidden.length + (hidden.length === 1 ? ' post with a blacklisted tag is hidden here.' : ' posts with blacklisted tags are hidden here.');
+            note.querySelector('button').addEventListener('click', () => {
+                const show = !root.classList.toggle('s34-bl-posts-shown') ? false : true;
+                note.querySelector('button').textContent = show ? 'Hide them again' : 'Show them';
+            });
+            const list = document.querySelector('#comment-list') || hidden[0].parentElement;
+            list.prepend(note);
+        } finally {
+            root.classList.remove('s34-cm-pending');
+        }
+    }
+    if (onCommentsPage) onReady(() => setTimeout(hideBlockedCommentPosts, 0));
+
     // (Beta 3.9) rule34's "Nobody here but us chickens!" where there should be
     // posts: say what's going on instead of leaving it a mystery. After a
     // Cloudflare check rule34 sends empty pages for a little while; a damaged

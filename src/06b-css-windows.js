@@ -458,6 +458,12 @@
         .s34-blm-chip.s34-blm-unsaved { border-style: dashed !important; box-shadow: inset 0 0 0 1px rgba(255,179,71,0.55); }
         .s34-blm-account { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -6px 0 -2px; font-size: 12px; color: #9fe3b8 !important; }
         .s34-blm-account[hidden] { display: none; }
+        .s34-blm-for { flex: none; padding: 0 8px; border-radius: 8px; border: 1px solid #3a3a44 !important; background: #1b1b20 !important; color: #e8e8ee !important; font: 500 12px system-ui, sans-serif; }
+        .s34-blm-muted-box[hidden] { display: none; }
+        .s34-blm-muted { display: flex; flex-wrap: wrap; gap: 6px; }
+        .s34-blm-mutedchip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 7px; border: 1px dashed rgba(138,180,248,.5) !important; color: #cfe0ff !important; font-size: 12px; }
+        .s34-blm-mutedchip small { opacity: .65; }
+        .s34-blm-mutedchip button { border: none !important; background: none !important; color: inherit !important; cursor: pointer; padding: 0 4px; }
         .s34-blm-account-save { margin-left: auto; padding: 4px 12px; border-radius: 7px; border: 1px solid rgba(255,179,71,0.6) !important; background: rgba(255,179,71,0.15) !important; color: #ffd9ad !important; font: 600 12px system-ui, sans-serif; cursor: pointer; }
         .s34-blm-account-save:hover { background: rgba(255,179,71,0.28) !important; }
         .s34-blm-account-save:disabled { opacity: .6; cursor: progress; }

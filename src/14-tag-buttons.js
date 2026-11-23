@@ -58,8 +58,34 @@
     // posts with - lower case, ' instead of &#039;, and rule34's short ratings
     // (rating:e / q / s) as the posts write them (rating:explicit …)
     const RATING_LONG = { e: 'explicit', q: 'questionable', s: 'safe', g: 'general' };
+
+    // (Beta 3.9.1) Muted tags: hidden like blacklisted ones, but only until a
+    // time - then they come back by themselves. Steamy34 hides them itself
+    // (they never go into rule34's cookie).
+    const MUTE_KEY = 'steamy34_muted';
+    function getMutes() {
+        let m = {};
+        try { const v = GM_getValue(MUTE_KEY, {}); m = v && typeof v === 'object' ? v : {}; } catch (e) {}
+        const now = Date.now();
+        let changed = false;
+        Object.keys(m).forEach(t => { if (!(m[t] > now)) { delete m[t]; changed = true; } });
+        if (changed) { try { GM_setValue(MUTE_KEY, m); } catch (e) {} }
+        return m;
+    }
+    function muteTags(tags, ms) {
+        const m = getMutes();
+        const until = Date.now() + ms;
+        tags.forEach(t => { const k = unescapeHtml(String(t)).toLowerCase().trim(); if (k) m[k] = until; });
+        GM_setValue(MUTE_KEY, m);
+    }
+    function unmuteTag(tag) {
+        const m = getMutes();
+        delete m[String(tag).toLowerCase()];
+        GM_setValue(MUTE_KEY, m);
+    }
+
     function blockedTagSet() {
-        const set = new Set();
+        const set = new Set(Object.keys(getMutes()));
         readBlocklist().forEach(t => {
             let k = unescapeHtml(String(t)).toLowerCase().trim();
             if (!k) return;
