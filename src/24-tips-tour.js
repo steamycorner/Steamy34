@@ -202,6 +202,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8.5', date: '2026-11-23', items: [
+            'Fixed: on post pages the box with search, Download and the tools stayed at the top while scrolling and covered the tags. It scrolls with the page now (B still downloads from anywhere).'
+        ] },
         { v: 'Beta 3.8.4', date: '2026-11-23', items: [
             'Fixed: Options kept saying some tags were "not on your account yet" even after Save – tags with an apostrophe that were blacklisted before 3.8.1 were stored in a coded form. They\'re cleaned up by themselves now.'
         ] },

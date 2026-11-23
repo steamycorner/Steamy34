@@ -82,14 +82,12 @@
         }
         .s34-tools .s34-gear.s34-inline { margin: 0; }
 
-        /* Single post page: search + Download + Settings stay at the top */
+        /* Single post page: search + Download + tools on top of the sidebar.
+           (Beta 3.8.5: no longer sticky - with the tool tiles it grew tall
+           enough to cover the tag list while scrolling. B still downloads.) */
         .s34-sticky-top {
-            position: sticky;
-            top: 0;
-            z-index: 60;
+            position: static;
             padding: 8px 0 2px;
-            background-color: #1c1c20 !important;
-            box-shadow: 0 10px 12px -10px rgba(0,0,0,0.6);
         }
         .s34-sticky-top .s34-tools { margin: 10px 0 8px; }
         /* The sidebar must be as tall as the page for sticky to work

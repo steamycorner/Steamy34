@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.8.4-beta
+// @version      3.8.5-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -5240,14 +5240,12 @@
         }
         .s34-tools .s34-gear.s34-inline { margin: 0; }
 
-        /* Single post page: search + Download + Settings stay at the top */
+        /* Single post page: search + Download + tools on top of the sidebar.
+           (Beta 3.8.5: no longer sticky - with the tool tiles it grew tall
+           enough to cover the tag list while scrolling. B still downloads.) */
         .s34-sticky-top {
-            position: sticky;
-            top: 0;
-            z-index: 60;
+            position: static;
             padding: 8px 0 2px;
-            background-color: #1c1c20 !important;
-            box-shadow: 0 10px 12px -10px rgba(0,0,0,0.6);
         }
         .s34-sticky-top .s34-tools { margin: 10px 0 8px; }
         /* The sidebar must be as tall as the page for sticky to work
@@ -14711,6 +14709,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8.5', date: '2026-11-23', items: [
+            'Fixed: on post pages the box with search, Download and the tools stayed at the top while scrolling and covered the tags. It scrolls with the page now (B still downloads from anywhere).'
+        ] },
         { v: 'Beta 3.8.4', date: '2026-11-23', items: [
             'Fixed: Options kept saying some tags were "not on your account yet" even after Save – tags with an apostrophe that were blacklisted before 3.8.1 were stored in a coded form. They\'re cleaned up by themselves now.'
         ] },
