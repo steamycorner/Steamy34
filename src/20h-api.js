@@ -101,7 +101,8 @@
             rating: String(p.rating || '').toLowerCase().trim(), // (a field of its own here - pages have it among the tags)
             preview: String(p.preview_url || ''),
             sample: String(p.sample_url || ''),
-            file: String(p.file_url || '')
+            file: String(p.file_url || ''),
+            parent: parseInt(p.parent_id, 10) || 0
         })).filter(p => p.id);
     }
 

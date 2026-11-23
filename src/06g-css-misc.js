@@ -149,6 +149,9 @@
         /* Icons on dark buttons keep the button's colour (White mode would
            otherwise paint them dark - dark on dark) */
         .s34-fav-btn svg, .s34-dl-mark svg, .s34-pv-tbar svg { color: inherit !important; }
+        .s34-vopt-tools { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 6px; flex: 0 0 100%; margin-top: 0; }
+        .s34-vopt-tools button { height: 28px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(255,255,255,.04) !important; color: inherit !important; font: 600 12px system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+        .s34-vopt-tools button.s34-on { border-color: #8ab4f8 !important; color: #cfe0ff !important; }
         /* ...and the shapes inside them: the colour-mode rule paints every
            element grey, which turned favourited hearts grey instead of red */
         .s34-fav-btn svg *, .s34-pv-fav svg *, .s34-dl-mark svg *, .s34-pv-tbar svg * { color: inherit !important; }

@@ -524,7 +524,7 @@
                 const myId = ++hoverId;
                 timer = setTimeout(() => {
                     if (!hovering || myId !== hoverId || overlay) return;
-                    if (thumb.classList.contains('s34-bl-marked')) return; // blacklisted: no preview
+                    if (thumb.classList.contains('s34-bl-marked') && !thumb.classList.contains('s34-bl-unblur')) return; // blacklisted: no preview
                     thumb.classList.add('s34-loading');
 
                     // 1st choice: build the file address straight from the

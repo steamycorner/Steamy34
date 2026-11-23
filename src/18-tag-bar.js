@@ -379,6 +379,18 @@
             const hits = (thumb._s34Tags || thumbTagList(thumb)).filter(t => blocked.has(t));
             let label = thumb.querySelector('.s34-bl-label');
 
+            // (Beta 3.10) only soft-blocked tags: blurred with Show, also when it was hidden before
+            if (hits.length && blockModeOf(hits) === 'soft') {
+                thumb.classList.remove('s34-bl-hidden');
+                markSoft(thumb, hits);
+                if (thumb.dataset.s34Tagbar) renderTagBar(thumb, ctx);
+                return;
+            }
+            if (thumb.classList.contains('s34-bl-soft')) {
+                thumb.classList.remove('s34-bl-soft', 's34-bl-unblur');
+                if (label) { label.remove(); label = null; }
+            }
+
             if (hits.length) {
                 // Already hidden (came in on a later page)? Leave it hidden.
                 if (thumb.classList.contains('s34-bl-hidden')) return;
@@ -414,6 +426,9 @@
 
     function showToast(text, actionLabel, action, durationMs = 6000) {
         if (!document.body) return;
+        // (Beta 3.9.2) never a wall of text - a message is a sentence or two
+        text = String(text == null ? '' : text);
+        if (text.length > 280) text = text.slice(0, 277).trimEnd() + '…';
         let stack = document.querySelector('.s34-toasts');
         if (!stack) {
             stack = document.createElement('div');
@@ -585,7 +600,11 @@
                 if (!doc.querySelector('.image-list')) throw new Error('page had no post list (rate limit or check page?)');
 
                 learnTagTypes(doc); // its sidebar lists the types of that page's tags
+                // (Beta 3.9.2) the same post twice (random sort, or posts moving
+                // between pages while you scroll) is only shown once
+                const onPage = new Set(Array.from(document.querySelectorAll('.image-list span.thumb')).map(t => thumbPostId(t)));
                 const newThumbs = Array.from(doc.querySelectorAll('.image-list span.thumb'))
+                    .filter(t => !onPage.has(thumbPostId(t)))
                     .map(t => document.adoptNode(t));
 
                 // The site may know about more pages now

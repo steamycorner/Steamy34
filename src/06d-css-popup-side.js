@@ -45,7 +45,7 @@
         /* Popup: ♥ Favourite + 📁 Collection side by side */
         .s34-pv-row2 { display: flex; gap: 8px; }
         .s34-pv-row2 > * { flex: 1; min-width: 0; }
-        .s34-pv-collect, .s34-post-collect {
+        .s34-pv-collect, .s34-post-collect, .s34-pv-later, .s34-pv-icame {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -58,8 +58,8 @@
             border: 1px solid #3a3a44 !important;
             color: #e8e8ee !important;
         }
-        .s34-pv-collect:hover, .s34-post-collect:hover { border-color: #ffb347 !important; }
-        .s34-pv-collect svg, .s34-post-collect svg { display: block; flex: none; }
+        .s34-pv-collect:hover, .s34-post-collect:hover, .s34-pv-later:hover, .s34-pv-icame:hover { border-color: #ffb347 !important; }
+        .s34-pv-collect svg, .s34-post-collect svg, .s34-pv-later svg, .s34-pv-icame svg { display: block; flex: none; }
         .s34-post-collect { width: 100%; }
 
         /* "Save to collection" menu */

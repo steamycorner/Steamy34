@@ -1,4 +1,12 @@
     const PHONE_CSS = `
+        /* (Beta 3.9.4) Hold a thumbnail: its buttons as a sheet from the bottom */
+        .s34-tsheet-overlay { align-items: flex-end !important; }
+        .s34-tsheet { width: min(520px, 100vw); margin: 0 auto; box-sizing: border-box; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); border-radius: 16px 16px 0 0;
+            background: var(--s34-panel, #1c1c20) !important; border: 1px solid var(--s34-border, #33333b); display: grid; gap: 8px; }
+        .s34-tsheet-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 2px 4px; font-size: 15px; }
+        .s34-tsheet-head button { border: none !important; background: none !important; color: inherit !important; font-size: 18px; }
+        .s34-tsheet > button { height: 48px; border-radius: 12px; border: 1px solid var(--s34-border, #33333b) !important; background: var(--s34-panel-2, #24242a) !important; color: inherit !important; font: 600 16px system-ui, sans-serif; text-align: left; padding: 0 16px !important; }
+        .image-list span.thumb { -webkit-touch-callout: none; user-select: none; }
         /* ================= PHONES ================= */
         /* No mouse: buttons that normally appear on hover are always there */
         @media (hover: none) {
@@ -72,7 +80,7 @@
             .s34-pv-top .s34-pv-nav, .s34-pv-top .s34-pv-close { display: none; }
             /* Bigger tap targets */
             .s34-pv-side .s34-dl-btn.s34-inline { padding: 13px 12px; }
-            .s34-pv-fav, .s34-pv-collect { height: 42px; }
+            .s34-pv-fav, .s34-pv-collect, .s34-pv-later, .s34-pv-icame { height: 42px; }
             .s34-pv-chips .s34-chip { font-size: 13px; line-height: 1.9; }
             .s34-pv-chips .s34-chip .s34-chip-add, .s34-pv-chips .s34-chip .s34-chip-block { padding: 0 8px 0 4px !important; font-size: 15px; }
         }

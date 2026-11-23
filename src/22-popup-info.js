@@ -118,6 +118,18 @@
         }
     }
 
+    // "https://www.deviantart.com/…" -> "DeviantArt"; known names, else the domain
+    function sourceName(url) {
+        let host = '';
+        try { host = new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return 'Source'; }
+        const known = { 'twitter.com': 'Twitter', 'x.com': 'X', 'deviantart.com': 'DeviantArt', 'pixiv.net': 'Pixiv', 'patreon.com': 'Patreon',
+            'artstation.com': 'ArtStation', 'tumblr.com': 'Tumblr', 'reddit.com': 'Reddit', 'instagram.com': 'Instagram', 'newgrounds.com': 'Newgrounds',
+            'fanbox.cc': 'Fanbox', 'furaffinity.net': 'FurAffinity', 'itaku.ee': 'Itaku', 'bsky.app': 'Bluesky', 'subscribestar.adult': 'SubscribeStar',
+            'gumroad.com': 'Gumroad', 'youtube.com': 'YouTube', 'iwara.tv': 'Iwara', 'kemono.su': 'Kemono' };
+        const key = Object.keys(known).find(k => host === k || host.endsWith('.' + k));
+        return key ? known[key] : host;
+    }
+
     function renderPopupInfo(state, info) {
         const box = state.overlay.querySelector('.s34-pv-info');
         if (!box) return;
@@ -164,38 +176,42 @@
         });
         box.appendChild(row);
 
-        // Row 2: posted date + uploader
-        if (info.posted || info.by) {
-            const p = document.createElement('div');
-            p.className = 's34-pv-line';
-            p.append('Posted ' + (info.posted || ''));
-            if (info.by) {
-                p.append(' by ');
-                const a = document.createElement('a');
-                a.textContent = info.by;
-                if (info.byUrl) { a.href = info.byUrl; a.target = '_blank'; a.rel = 'noopener'; }
-                p.appendChild(a);
+        // (Beta 3.9.2) Row 2 as chips: when (relative, exact on hover), who, where from
+        if (info.posted || info.by || info.source || info.sourceText) {
+            const chips = document.createElement('div');
+            chips.className = 's34-pv-chips2';
+            if (info.posted) {
+                const c = document.createElement('span');
+                c.className = 's34-pv-chip2';
+                const t = Date.parse(String(info.posted).replace(' ', 'T'));
+                c.textContent = '🕒 ' + (isNaN(t) ? info.posted : timeAgo(t));
+                c.title = 'Posted ' + info.posted;
+                chips.appendChild(c);
             }
-            box.appendChild(p);
-        }
-
-        // Row 3: source
-        if (info.source || info.sourceText) {
-            const s = document.createElement('div');
-            s.className = 's34-pv-line';
-            s.append('Source: ');
+            if (info.by) {
+                const a = document.createElement(info.byUrl ? 'a' : 'span');
+                a.className = 's34-pv-chip2';
+                a.textContent = '👤 ' + info.by;
+                a.title = 'Uploaded by ' + info.by;
+                if (info.byUrl) { a.href = info.byUrl; a.target = '_blank'; a.rel = 'noopener'; }
+                chips.appendChild(a);
+            }
             if (info.source) {
                 const a = document.createElement('a');
+                a.className = 's34-pv-chip2 s34-pv-source';
                 a.href = info.source;
                 a.target = '_blank';
                 a.rel = 'noopener noreferrer';
-                a.textContent = shortUrl(info.source);
-                a.title = info.source;
-                s.appendChild(a);
-            } else {
-                s.append(info.sourceText);
+                a.textContent = sourceName(info.source) + ' ↗';
+                a.title = 'Source: ' + info.source;
+                chips.appendChild(a);
+            } else if (info.sourceText) {
+                const c = document.createElement('span');
+                c.className = 's34-pv-chip2';
+                c.textContent = 'Source: ' + info.sourceText;
+                chips.appendChild(c);
             }
-            box.appendChild(s);
+            box.appendChild(chips);
         }
 
         // Parent / child / pool

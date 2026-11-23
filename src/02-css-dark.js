@@ -77,6 +77,10 @@
             border: 1px solid transparent !important;
             border-radius: 999px;
             text-decoration: none !important;
+        }
+        /* (Beta 3.9.2) the colour fade only once the page is there - it used to
+           play while a page loaded, so every menu border flashed */
+        html.s34-nav-ready #navbar li a, html.s34-nav-ready #subnavbar li a {
             transition: background-color .15s ease, color .15s ease, border-color .15s ease;
         }
         #navbar li a {
@@ -84,6 +88,8 @@
             font-weight: 600;
             color: var(--s34-fg) !important;
         }
+        /* the page you're on, in the second row (rule34 doesn't mark it) */
+        #subnavbar li.s34-sub-current a { background-color: var(--s34-panel-2) !important; border-color: var(--s34-border) !important; color: #fff !important; }
         #subnavbar li a {
             padding: 3px 11px !important;
             font-size: 0.9em;

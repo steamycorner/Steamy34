@@ -185,6 +185,13 @@
         span.thumb.s34-bl-marked { overflow: hidden; }
         span.thumb.s34-bl-marked video { visibility: hidden !important; }
 
+        /* (Beta 3.9.4) Versions of one picture: folded into the first one */
+        .image-list span.thumb.s34-var-hidden:not(.s34-var-open) { display: none !important; }
+        span.thumb.s34-var-open { outline: 2px dashed rgba(138,180,248,.6); outline-offset: 2px; }
+        .s34-var-badge { position: absolute; left: 6px; bottom: 6px; z-index: 5; padding: 3px 9px; border-radius: 99px; border: none !important;
+            background: rgba(52,98,196,.95) !important; color: #fff !important; font: 700 11px/1.3 system-ui, sans-serif; cursor: pointer; }
+        span.thumb:has(.s34-tagbar) .s34-var-badge { bottom: auto; top: 34px; }
+
         /* (Beta 3.9.1) Comments page: posts with a blacklisted tag hidden (until "Show them") */
         html.s34-cm-pending #comment-list .post, html.s34-cm-pending div.post[id^="p"] { visibility: hidden !important; }
         html:not(.s34-bl-posts-shown) div.post.s34-bl-post { display: none !important; }
@@ -226,6 +233,15 @@
         html.s34-post-blocked #image, html.s34-post-blocked #gelcomVideoPlayer, html.s34-post-blocked .fluid_video_wrapper { visibility: hidden !important; }
         .s34-blcover-post { position: relative; inset: auto; min-height: 260px; max-width: 640px; margin: 10px 0; }
         span.thumb.s34-bl-marked .s34-badge { display: none; }
+        /* (Beta 3.10) Soft block: blurred, a calm label with Show */
+        span.thumb.s34-bl-soft .s34-bl-label { display: flex; align-items: center; justify-content: space-between; gap: 6px; background-color: rgba(28,28,36,0.9) !important; }
+        span.thumb.s34-bl-soft .s34-bl-label span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .s34-bl-show { pointer-events: auto; flex: none; padding: 2px 9px !important; border-radius: 99px; border: 1px solid rgba(255,255,255,.35) !important;
+            background: rgba(255,255,255,.12) !important; color: #fff !important; font: 700 11px/1.3 system-ui, sans-serif; cursor: pointer; }
+        .s34-bl-show:hover { background: #ff5f8f !important; border-color: #ff5f8f !important; }
+        span.thumb.s34-bl-soft.s34-bl-unblur img:not(.s34-hover-video) { filter: none; }
+        span.thumb.s34-bl-soft.s34-bl-unblur video { visibility: visible !important; }
+        span.thumb.s34-bl-soft.s34-bl-unblur .s34-bl-label { display: none; }
         .s34-bl-label {
             position: absolute;
             top: 6px;

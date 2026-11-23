@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.9.1-beta
+// @version      3.10-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -148,6 +148,9 @@
         thumbHeart: true,        // the ♥ on thumbnails (favButtons switches all ♥ - popup too)
         thumbDlButton: true,     // download button on thumbnails (hover)
         thumbSeenButton: true,   // "viewed" button on thumbnails (hover)
+        thumbCollButton: true,   // collection button on thumbnails (hover; lit when in a collection)
+        groupVariants: true,     // versions of one picture (parent / child) as one thumbnail - needs the API key
+        dlArtistFolders: false,  // own download folder: a subfolder per artist
         thumbMarks: true,        // viewed / downloaded marks on thumbnails (tracking goes on either way)
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
         popupPreload: true,      // popup: load the next post in advance (once you stay on a post for a moment)
@@ -188,6 +191,7 @@
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         homePage: true,          // rule34's start page as Steamy34's home (Beta 3.6): search, continue, recent, following
         accountPages: true,      // My Account and Options in Steamy34's look (Beta 3.7)
+        sitePages: true,         // Artists, Wiki, Aliases, iCame Top 100 in Steamy34's look (Beta 3.9.3)
         matchSiteTheme: true,    // keep rule34's own Light / Dark theme in step with the colour mode (no white flash)
         videoServer: 'default',  // rule34's 'Preferred CDN location': default, eu, cusa, eusa, wusa, api
         siteSuggestions: false,  // rule34's own tag suggestion list (Steamy34 has its own in the search box)
@@ -278,6 +282,7 @@
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
             ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],
             ['homePage', 'Steamy34 start page', { hint: 'rule34\'s start page with your search, where you left off, your recent searches and the newest posts from who you follow – off: the site\'s own start page' }],
@@ -302,6 +307,8 @@
             ['thumbHeart', '♥ on thumbnails', { hint: 'Your favourites page keeps it – it\'s how posts are removed there' }],
             ['thumbDlButton', 'Download button on thumbnails', { hint: 'While hovering, next to the ♥. Computers only' }],
             ['thumbSeenButton', '"Viewed" button on thumbnails', { hint: 'While hovering: mark a post as viewed / not viewed. Computers only' }],
+            ['groupVariants', 'Group versions of the same picture', { hint: 'Posts that are versions of each other (parent / child) show as one thumbnail with "+N versions". Needs your API key (Settings → API key) – rule34 only says which posts belong together there' }],
+            ['thumbCollButton', 'Collection button on thumbnails', { hint: 'While hovering: save the post to a collection. Lit (and always there) when it\'s in one. Computers only' }],
             ['thumbMarks', 'Show viewed / downloaded without hovering', { hint: 'The green download and blue eye stay on thumbnails you downloaded or viewed (on phones: a small corner icon). Off: only while hovering. Steamy34 keeps remembering either way' }],
             ['infiniteScroll', 'Infinite scrolling', { hint: 'The next page loads when you reach the bottom' }],
             ['resumeOffer', 'Offer to continue where you left off', { hint: 'Back on a search you had scrolled deep into? A small "Continue at page N" button takes you back there' }],
@@ -347,6 +354,7 @@
         ] },
         { id: 'downloads', title: 'Downloads', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 20h14"/></svg>', rows: [
             ['downloadKey', 'Download hotkey', { hotkey: true, hint: 'Click the box, then press a key' }],
+            ['dlArtistFolders', 'A subfolder per artist', { hint: 'Only with your own download folder: files go into folder / artist / … (posts without an artist: "unknown artist")' }],
             ['dlFolder', 'Download folder', { folder: true, hint: 'Save straight into any folder – e.g. Eagle\'s watch folder. The browser asks once per session whether Steamy34 may write there' }],
             ['showDownloadButton', 'Show the Download button'],
             ['trackDownloads', 'Remember downloaded posts', { hint: 'Download mark on thumbnails, green Download button' }],
@@ -486,6 +494,10 @@
             border: 1px solid transparent !important;
             border-radius: 999px;
             text-decoration: none !important;
+        }
+        /* (Beta 3.9.2) the colour fade only once the page is there - it used to
+           play while a page loaded, so every menu border flashed */
+        html.s34-nav-ready #navbar li a, html.s34-nav-ready #subnavbar li a {
             transition: background-color .15s ease, color .15s ease, border-color .15s ease;
         }
         #navbar li a {
@@ -493,6 +505,8 @@
             font-weight: 600;
             color: var(--s34-fg) !important;
         }
+        /* the page you're on, in the second row (rule34 doesn't mark it) */
+        #subnavbar li.s34-sub-current a { background-color: var(--s34-panel-2) !important; border-color: var(--s34-border) !important; color: #fff !important; }
         #subnavbar li a {
             padding: 3px 11px !important;
             font-size: 0.9em;
@@ -866,6 +880,13 @@
         span.thumb.s34-bl-marked { overflow: hidden; }
         span.thumb.s34-bl-marked video { visibility: hidden !important; }
 
+        /* (Beta 3.9.4) Versions of one picture: folded into the first one */
+        .image-list span.thumb.s34-var-hidden:not(.s34-var-open) { display: none !important; }
+        span.thumb.s34-var-open { outline: 2px dashed rgba(138,180,248,.6); outline-offset: 2px; }
+        .s34-var-badge { position: absolute; left: 6px; bottom: 6px; z-index: 5; padding: 3px 9px; border-radius: 99px; border: none !important;
+            background: rgba(52,98,196,.95) !important; color: #fff !important; font: 700 11px/1.3 system-ui, sans-serif; cursor: pointer; }
+        span.thumb:has(.s34-tagbar) .s34-var-badge { bottom: auto; top: 34px; }
+
         /* (Beta 3.9.1) Comments page: posts with a blacklisted tag hidden (until "Show them") */
         html.s34-cm-pending #comment-list .post, html.s34-cm-pending div.post[id^="p"] { visibility: hidden !important; }
         html:not(.s34-bl-posts-shown) div.post.s34-bl-post { display: none !important; }
@@ -907,6 +928,15 @@
         html.s34-post-blocked #image, html.s34-post-blocked #gelcomVideoPlayer, html.s34-post-blocked .fluid_video_wrapper { visibility: hidden !important; }
         .s34-blcover-post { position: relative; inset: auto; min-height: 260px; max-width: 640px; margin: 10px 0; }
         span.thumb.s34-bl-marked .s34-badge { display: none; }
+        /* (Beta 3.10) Soft block: blurred, a calm label with Show */
+        span.thumb.s34-bl-soft .s34-bl-label { display: flex; align-items: center; justify-content: space-between; gap: 6px; background-color: rgba(28,28,36,0.9) !important; }
+        span.thumb.s34-bl-soft .s34-bl-label span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .s34-bl-show { pointer-events: auto; flex: none; padding: 2px 9px !important; border-radius: 99px; border: 1px solid rgba(255,255,255,.35) !important;
+            background: rgba(255,255,255,.12) !important; color: #fff !important; font: 700 11px/1.3 system-ui, sans-serif; cursor: pointer; }
+        .s34-bl-show:hover { background: #ff5f8f !important; border-color: #ff5f8f !important; }
+        span.thumb.s34-bl-soft.s34-bl-unblur img:not(.s34-hover-video) { filter: none; }
+        span.thumb.s34-bl-soft.s34-bl-unblur video { visibility: visible !important; }
+        span.thumb.s34-bl-soft.s34-bl-unblur .s34-bl-label { display: none; }
         .s34-bl-label {
             position: absolute;
             top: 6px;
@@ -1441,6 +1471,8 @@
         .s34-tbtn:hover { opacity: 1 !important; transform: scale(1.12); }
         .s34-tdl.s34-on { background-color: rgba(31,122,62,0.92) !important; }
         .s34-tseen.s34-on { background-color: rgba(52,98,196,0.92) !important; }
+        .s34-tcoll.s34-on { background-color: rgba(201,138,26,0.92) !important; }
+        .s34-tcoll:not(.s34-on):hover { color: #ffd27a !important; }
         .s34-tdl:not(.s34-on):hover { color: #6ee7a8 !important; }
         .s34-tseen:not(.s34-on):hover { color: #8ab4f8 !important; }
         .s34-tbtn svg { display: block; pointer-events: none; }
@@ -1687,7 +1719,7 @@
         .s34-batch button:disabled { opacity: .45; cursor: default; }
 
         /* Video options (popup and single post) */
-        .s34-vopts { display: flex; gap: 6px; align-items: center; }
+        .s34-vopts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .s34-vopts[hidden], .s34-pv-vopts[hidden] { display: none !important; }
         .s34-vopts button, .s34-vopts select {
             height: 28px;
@@ -1698,7 +1730,7 @@
             border: 1px solid #3a3a44 !important;
             color: #e8e8ec !important;
         }
-        .s34-vopts button { flex: 1; padding: 0 8px !important; }
+        .s34-vopts button { flex: 1; padding: 0 8px !important; white-space: nowrap; }
         .s34-vopts button.s34-on { border-color: #3a6fd4 !important; }
         .s34-vopt-speed { display: flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; }
         .s34-vopt-speed select { padding: 0 4px !important; }
@@ -2254,6 +2286,10 @@
         }
         .s34-blm .s34-blm-typemenu button:hover { background-color: rgba(255,255,255,0.07) !important; }
         .s34-blm .s34-blm-typemenu button.s34-on { border-color: currentColor !important; }
+        .s34-blm-typemenu-head2 { margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .s34-blm .s34-blm-typemenu button.s34-blm-mode { color: #dcdce4 !important; }
+        .s34-blm-softmark { margin-right: 4px; opacity: .8; }
+        .s34-blm-softchip { border-style: dashed !important; }
 
         /* Settings: privacy & your data */
         .s34-privacy { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; font-size: 12.5px; }
@@ -2851,7 +2887,7 @@
         /* Popup: ♥ Favourite + 📁 Collection side by side */
         .s34-pv-row2 { display: flex; gap: 8px; }
         .s34-pv-row2 > * { flex: 1; min-width: 0; }
-        .s34-pv-collect, .s34-post-collect {
+        .s34-pv-collect, .s34-post-collect, .s34-pv-later, .s34-pv-icame {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2864,8 +2900,8 @@
             border: 1px solid #3a3a44 !important;
             color: #e8e8ee !important;
         }
-        .s34-pv-collect:hover, .s34-post-collect:hover { border-color: #ffb347 !important; }
-        .s34-pv-collect svg, .s34-post-collect svg { display: block; flex: none; }
+        .s34-pv-collect:hover, .s34-post-collect:hover, .s34-pv-later:hover, .s34-pv-icame:hover { border-color: #ffb347 !important; }
+        .s34-pv-collect svg, .s34-post-collect svg, .s34-pv-later svg, .s34-pv-icame svg { display: block; flex: none; }
         .s34-post-collect { width: 100%; }
 
         /* "Save to collection" menu */
@@ -3086,6 +3122,21 @@
         .s34-coll-cover.s34-coll-cover-n3 img:first-child { grid-row: 1 / 3; }
         .s34-coll-name { font-weight: 700; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 2px 0; }
         .s34-coll-n { font-size: 11px; opacity: .55; padding: 0 2px; }
+        /* (Beta 3.10) collection tools: note, sort, cover, drag to arrange */
+        .s34-coll-notep { font-size: 11px; opacity: .7; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
+        .s34-win textarea.s34-coll-note { display: block; width: 100%; box-sizing: border-box; margin: 0 0 12px; padding: 8px 12px; min-height: 36px; resize: none; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1) !important; background: rgba(255,255,255,0.03) !important; color: inherit !important; font: 13px/1.45 system-ui, sans-serif; }
+        .s34-win textarea.s34-coll-note:focus { outline: none; border-color: rgba(255,95,143,.6) !important; }
+        .s34-win select.s34-coll-sort { height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12) !important; background: rgba(255,255,255,0.04) !important; color: inherit !important; font: 600 12px system-ui, sans-serif; }
+        .s34-win select.s34-coll-sort option { background: #1c1c22; color: #e8e8ee; }
+        .s34-tiles-drag .s34-tile { cursor: grab; }
+        .s34-tile.s34-dragging { opacity: .35; }
+        .s34-tile.s34-drop-before { box-shadow: -4px 0 0 #ff5f8f; }
+        .s34-tile.s34-drop-after { box-shadow: 4px 0 0 #ff5f8f; }
+        .s34-win .s34-tile-acts button.s34-tile-cover.s34-on { background-color: #f5b301 !important; color: #111 !important; }
+        .s34-tile.s34-tile-iscover .s34-tile-acts { opacity: 1; }
+        .s34-tile.s34-tile-iscover .s34-tile-acts button:not(.s34-on) { opacity: 0; }
+        .s34-tile.s34-tile-iscover:hover .s34-tile-acts button { opacity: 1; }
         .s34-coll-new { cursor: default; justify-content: center; gap: 8px !important; }
         .s34-coll-plus { font-size: 26px; font-weight: 300; text-align: center; opacity: .5; }
         .s34-coll-new input { flex: none; width: 100%; }
@@ -3175,6 +3226,10 @@
         .s34-collsync-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
         .s34-favcoll-bar { margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; background: var(--s34-panel, rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.08); }
         .s34-favcoll-bar h2 { margin: 0; font-size: 20px; }
+        .s34-dlw-filter { flex: 1 1 240px; min-width: 0; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(0,0,0,.25) !important; color: inherit !important; font: inherit; font-size: 13px; }
+        .s34-shuffle { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 10px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(255,255,255,.05) !important; color: inherit !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+        .s34-shuffle:hover { border-color: #ff5f8f !important; }
+        .s34-shuffle.s34-shuffle-sb { display: flex; width: 100%; justify-content: center; margin: 8px 0 0; box-sizing: border-box; }
         .s34-win-more { display: block; margin: 14px auto 4px; padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
         .s34-win-more:hover { border-color: #ff5f8f; }
         .s34-favcoll-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -3417,6 +3472,42 @@
         .s34-cm-more:hover { border-color: #ff5f8f !important; }
         .s34-cm-more:disabled { opacity: .6; cursor: progress; }
 
+        /* (Beta 3.9.2) Info as chips: when, who, where from */
+        .s34-pv-chips2 { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .s34-pv-chip2 { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; border: 1px solid rgba(255,255,255,.12) !important;
+            background: rgba(255,255,255,.05) !important; color: #dcdce4 !important; font: 500 12px/1.4 system-ui, sans-serif; text-decoration: none !important; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        a.s34-pv-chip2:hover { border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-pv-source { font-weight: 700; }
+        /* (Beta 3.9.2) Favourite · Collection / Later · iCame: two even rows */
+        .s34-pv-row2 { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .s34-pv-row2 > button { width: auto !important; min-width: 0; justify-content: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .s34-pv-row2 > button span { overflow: hidden; text-overflow: ellipsis; }
+        /* (Beta 3.9.3) More: Find source · Similar · Upscale · Report */
+        .s34-pv-more { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+        .s34-pv-morebtn { display: flex; align-items: center; justify-content: center; height: 30px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12) !important;
+            background: rgba(255,255,255,.04) !important; color: #cfcfd8 !important; font: 600 12px/1 system-ui, sans-serif; text-decoration: none !important; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; }
+        .s34-pv-morebtn:hover { border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-pv-report:hover { border-color: #ff6b6b !important; }
+        .s34-report-why { width: 100%; box-sizing: border-box; margin: 4px 0 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid #3a3a44 !important; background: #121216 !important; color: #eee !important; font: 14px system-ui, sans-serif; resize: vertical; }
+        /* (Beta 3.9.4) Similar: a filmstrip along the bottom of the picture */
+        .s34-pv-strip { position: sticky; bottom: 0; z-index: 6; margin-top: -132px; height: 132px; box-sizing: border-box; padding: 8px 10px; background: linear-gradient(to top, rgba(10,10,14,.96), rgba(10,10,14,.82)) !important; border-top: 1px solid rgba(255,255,255,.12); }
+        .s34-pv-strip-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font: 600 12px system-ui, sans-serif; color: #dcdce4; }
+        .s34-pv-strip-head b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .s34-pv-strip-keys { flex: none; font-weight: 500; font-size: 11px; color: #9a9aa6; }
+        @media (max-width: 700px) { .s34-pv-strip-keys { display: none; } }
+        .s34-pv-strip-head button { border: none !important; background: none !important; color: #ccc !important; cursor: pointer; font-size: 14px; }
+        .s34-pv-strip-row { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; height: 90px; align-items: center; scrollbar-width: thin; overscroll-behavior: contain; }
+        .s34-pv-strip-item { flex: none; height: 86px; width: 86px; padding: 0 !important; border-radius: 8px; overflow: hidden; border: 2px solid transparent !important; background: #1b1b20 !important; cursor: pointer; }
+        .s34-pv-strip-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .s34-pv-strip-item:hover, .s34-pv-strip-item.s34-on { border-color: #ff5f8f !important; }
+        .s34-pv-strip-wait { color: #aaa; font-size: 12px; }
+        /* Later / iCame next to Collection */
+        .s34-pv-later.s34-on { border-color: #8ab4f8 !important; color: #cfe0ff !important; }
+        .s34-pv-icame svg { width: 17px; height: 17px; }
+        .s34-pv-icame.s34-on { color: #9fd8ff !important; border-color: rgba(159,216,255,.6) !important; }
+        .s34-pv-icame.s34-pop svg { animation: s34-splash .6s ease-out; }
+        @keyframes s34-splash { 0% { transform: scale(1); } 35% { transform: scale(1.45) rotate(-8deg); } 100% { transform: scale(1); } }
+
         /* Popup: zoom */
         .s34-pv-overlay { grid-template-rows: minmax(0, 1fr); }
         .s34-pv-stage img.s34-pv-media:not(.s34-pv-placeholder) { cursor: zoom-in; }
@@ -3591,6 +3682,9 @@
         /* Icons on dark buttons keep the button's colour (White mode would
            otherwise paint them dark - dark on dark) */
         .s34-fav-btn svg, .s34-dl-mark svg, .s34-pv-tbar svg { color: inherit !important; }
+        .s34-vopt-tools { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 6px; flex: 0 0 100%; margin-top: 0; }
+        .s34-vopt-tools button { height: 28px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(255,255,255,.04) !important; color: inherit !important; font: 600 12px system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+        .s34-vopt-tools button.s34-on { border-color: #8ab4f8 !important; color: #cfe0ff !important; }
         /* ...and the shapes inside them: the colour-mode rule paints every
            element grey, which turned favourited hearts grey instead of red */
         .s34-fav-btn svg *, .s34-pv-fav svg *, .s34-dl-mark svg *, .s34-pv-tbar svg * { color: inherit !important; }
@@ -3663,6 +3757,14 @@
     `;
 
     const PHONE_CSS = `
+        /* (Beta 3.9.4) Hold a thumbnail: its buttons as a sheet from the bottom */
+        .s34-tsheet-overlay { align-items: flex-end !important; }
+        .s34-tsheet { width: min(520px, 100vw); margin: 0 auto; box-sizing: border-box; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); border-radius: 16px 16px 0 0;
+            background: var(--s34-panel, #1c1c20) !important; border: 1px solid var(--s34-border, #33333b); display: grid; gap: 8px; }
+        .s34-tsheet-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 2px 4px; font-size: 15px; }
+        .s34-tsheet-head button { border: none !important; background: none !important; color: inherit !important; font-size: 18px; }
+        .s34-tsheet > button { height: 48px; border-radius: 12px; border: 1px solid var(--s34-border, #33333b) !important; background: var(--s34-panel-2, #24242a) !important; color: inherit !important; font: 600 16px system-ui, sans-serif; text-align: left; padding: 0 16px !important; }
+        .image-list span.thumb { -webkit-touch-callout: none; user-select: none; }
         /* ================= PHONES ================= */
         /* No mouse: buttons that normally appear on hover are always there */
         @media (hover: none) {
@@ -3736,7 +3838,7 @@
             .s34-pv-top .s34-pv-nav, .s34-pv-top .s34-pv-close { display: none; }
             /* Bigger tap targets */
             .s34-pv-side .s34-dl-btn.s34-inline { padding: 13px 12px; }
-            .s34-pv-fav, .s34-pv-collect { height: 42px; }
+            .s34-pv-fav, .s34-pv-collect, .s34-pv-later, .s34-pv-icame { height: 42px; }
             .s34-pv-chips .s34-chip { font-size: 13px; line-height: 1.9; }
             .s34-pv-chips .s34-chip .s34-chip-add, .s34-pv-chips .s34-chip .s34-chip-block { padding: 0 8px 0 4px !important; font-size: 15px; }
         }
@@ -5749,6 +5851,7 @@
     const THEME_FIX_CSS = {
         white: `
             html.s34-theme-white #navbar li a:hover, html.s34-theme-white #subnavbar li a:hover { color: #1d1f24 !important; }
+            html.s34-theme-white #subnavbar li.s34-sub-current a { color: #1d1f24 !important; }
             html.s34-theme-white .s34-cm-user, html.s34-theme-white .s34-cm-head h3,
             html.s34-theme-white .s34-auto-sec, html.s34-theme-white .s34-tipslink button:hover { color: #1d1f24 !important; }
             html.s34-theme-white .s34-set-head h2, html.s34-theme-white .s34-set-nav nav button:hover,
@@ -6524,7 +6627,8 @@
 
     let folderAskShown = false;
 
-    async function saveUrlAs(url, filename, referer) {
+    // (Beta 3.9.2) opts.artist: with "A subfolder per artist", files go into folder / artist /
+    async function saveUrlAs(url, filename, referer, opts = {}) {
         const video = /\.(mp4|webm|mkv|mov)(\?|$)/i.test(url);
         const timeout = video ? DL_BIG_TIMEOUT_MS : DL_TIMEOUT_MS;
         const folder = await getFolderHandle().catch(() => null);
@@ -6534,7 +6638,12 @@
                 const blob = await fetchBlob(url, referer, timeout);
                 if (!blob) return false;
                 try {
-                    const name = await writeToFolder(folder, filename, blob);
+                    let dir = folder;
+                    if (CONFIG.dlArtistFolders) {
+                        const sub = String(opts.artist || 'unknown artist').replace(/_/g, ' ').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'unknown artist';
+                        dir = await folder.getDirectoryHandle(sub, { create: true });
+                    }
+                    const name = await writeToFolder(dir, filename, blob);
                     console.log('[Steamy34] Saved into folder "' + folder.name + '":', name);
                     return true;
                 } catch (e) {
@@ -6707,7 +6816,7 @@
         console.log('[Steamy34] Downloading:', url, '→', filename);
 
         // Same saving as batch downloads: time limit, big files via the downloader
-        const ok = await saveUrlAs(url, filename, location.href);
+        const ok = await saveUrlAs(url, filename, location.href, { artist: ((historyInfo.tags || {}).artist || [])[0] });
         if (ok) {
             rememberDownload(id, historyInfo);
             console.log('[Steamy34] Download complete:', filename);
@@ -6982,6 +7091,33 @@
     // (Beta 3.9.1) Muted tags: hidden like blacklisted ones, but only until a
     // time - then they come back by themselves. Steamy34 hides them itself
     // (they never go into rule34's cookie).
+    // (Beta 3.10) Soft block: blacklisted tags you'd rather see blurred (with
+    // a Show button) than hidden. A post is only blurred when ALL its
+    // blacklisted tags are soft ones - any other one still hides it.
+    const SOFT_KEY = 'steamy34_bl_soft';
+    let softCache = null, softAt = 0;
+    function getSoftTags() {
+        if (softCache && Date.now() - softAt < 2000) return softCache;
+        let v = [];
+        try { v = GM_getValue(SOFT_KEY, []); } catch (e) {}
+        softCache = new Set(Array.isArray(v) ? v.map(t => unescapeHtml(String(t)).toLowerCase()) : []);
+        softAt = Date.now();
+        return softCache;
+    }
+    function setSoftTag(tag, on) {
+        const s = new Set(getSoftTags());
+        const k = unescapeHtml(String(tag)).toLowerCase();
+        if (on) s.add(k); else s.delete(k);
+        try { GM_setValue(SOFT_KEY, Array.from(s)); } catch (e) {}
+        softCache = s; softAt = Date.now();
+    }
+    // the blacklisted tags a post has, and whether they only blur it
+    function blockModeOf(hit, mutes) {
+        if (!hit.length) return '';
+        const soft = getSoftTags(), m = mutes || getMutes();
+        return hit.every(t => soft.has(t) && !(t in m)) ? 'soft' : 'hide';
+    }
+
     const MUTE_KEY = 'steamy34_muted';
     function getMutes() {
         let m = {};
@@ -7866,7 +8002,7 @@
                 const myId = ++hoverId;
                 timer = setTimeout(() => {
                     if (!hovering || myId !== hoverId || overlay) return;
-                    if (thumb.classList.contains('s34-bl-marked')) return; // blacklisted: no preview
+                    if (thumb.classList.contains('s34-bl-marked') && !thumb.classList.contains('s34-bl-unblur')) return; // blacklisted: no preview
                     thumb.classList.add('s34-loading');
 
                     // 1st choice: build the file address straight from the
@@ -7957,7 +8093,13 @@
     //  sidebar is not affected. Enter still searches.
     // =====================================================================
 
+    // (Beta 3.9.3) Steamy34's search box only where you search for posts. On
+    // Tags (and other lists) the "tags" field searches tag names - the bubbles
+    // and pinned filters (e.g. 1080p+) made it find nothing there.
+    const POST_SEARCH_PAGE = ['', 'post', 'favorites', 'pool'].includes((params.get('page') || '').toLowerCase());
+
     function setupMultilineSearch() {
+        if (!POST_SEARCH_PAGE) return;
         const input = document.querySelector(
             '.tag-search input[name="tags"], .sidebar input[name="tags"], input[name="tags"][type="text"], input[name="tags"]:not([type])'
         );
@@ -8197,6 +8339,7 @@
     })();
 
     function setupChipSearch() {
+        if (!POST_SEARCH_PAGE) return;
         const input = document.querySelector(
             '.tag-search input[name="tags"], .sidebar input[name="tags"], input[name="tags"][type="text"], input[name="tags"]:not([type])'
         );
@@ -9060,12 +9203,38 @@
     // so new thumbnails are checked against the blocklist here.
     // Uses its own class, so posts can be shown again after an Undo.
     function hideBlocklisted(thumbs) {
-        const set = blockedTagSet();
+        const set = blockedTagSet(), mutes = getMutes();
         thumbs.forEach(thumb => {
             const img = thumb.querySelector('img');
             if (!img) return;
-            thumb.classList.toggle('s34-bl-hidden', blockedTagsOf(thumbTags(img).trim(), set).length > 0);
+            const hit = blockedTagsOf(thumbTags(img).trim(), set);
+            const mode = blockModeOf(hit, mutes);
+            thumb.classList.toggle('s34-bl-hidden', mode === 'hide');
+            if (mode === 'soft') markSoft(thumb, hit);
         });
+    }
+
+    // (Beta 3.10) Soft block: blurred, its tags named, "Show" uncovers it
+    function markSoft(thumb, hit) {
+        thumb.classList.add('s34-bl-marked', 's34-bl-soft');
+        let label = thumb.querySelector('.s34-bl-label');
+        if (!label) {
+            label = document.createElement('div');
+            label.className = 's34-bl-label';
+            thumb.appendChild(label);
+        }
+        if (label.dataset.soft === hit.join(' ')) return;
+        label.dataset.soft = hit.join(' ');
+        label.replaceChildren();
+        const t = document.createElement('span');
+        t.textContent = 'Blurred: ' + hit.map(prettyTag).join(', ');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 's34-bl-show';
+        b.textContent = 'Show';
+        b.title = 'Show this post (it stays blurred elsewhere)';
+        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); thumb.classList.add('s34-bl-unblur'); });
+        label.append(t, b);
     }
 
     // Beta 3.7: rule34 hides only the tags in its cookie. The ones that didn't
@@ -9083,7 +9252,10 @@
         const check = img => {
             const thumb = img.closest('span.thumb');
             if (!thumb || thumb.classList.contains('s34-bl-hidden')) return;
-            if (blockedTagsOf(thumbTags(img).trim(), extra).length) thumb.classList.add('s34-bl-hidden');
+            const hit = blockedTagsOf(thumbTags(img).trim(), extra);
+            const mode = blockModeOf(hit);
+            if (mode === 'hide') thumb.classList.add('s34-bl-hidden');
+            else if (mode === 'soft') markSoft(thumb, hit);
         };
         const all = () => document.querySelectorAll('span.thumb img').forEach(check);
         all();
@@ -9151,6 +9323,27 @@
     }
     if (onCommentsPage) onReady(() => setTimeout(hideBlockedCommentPosts, 0));
 
+    // (Beta 3.9.2) Random sort: "Shuffle again" above the posts
+    function addShuffleButton() {
+        if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list') return;
+        if (!/(^|\s)sort:random(\s|$)/i.test((params.get('tags') || '').replace(/\+/g, ' '))) return;
+        const list = document.querySelector('.image-list');
+        if (!list || document.querySelector('.s34-shuffle')) return;
+        const goRow = document.querySelector('.s34-sb-gorow'); // (under the Search button)
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 's34-shuffle';
+        b.textContent = '🔀 Shuffle again';
+        b.title = 'New random posts for this search';
+        b.addEventListener('click', () => {
+            const u = new URL(location.href);
+            u.searchParams.delete('pid');
+            location.href = u.href;
+        });
+        if (goRow) { b.classList.add('s34-shuffle-sb'); goRow.after(b); } else list.before(b);
+    }
+    onReady(() => setTimeout(() => { try { addShuffleButton(); } catch (e) {} }, 50));
+
     // (Beta 3.9) rule34's "Nobody here but us chickens!" where there should be
     // posts: say what's going on instead of leaving it a mystery. After a
     // Cloudflare check rule34 sends empty pages for a little while; a damaged
@@ -9180,6 +9373,49 @@
     onReady(() => setTimeout(() => { try { explainEmptyPage(); } catch (e) {} }, 0));
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
+    // (Beta 3.9.4) Versions of one picture (parent / child) as one thumbnail:
+    // the first one stays, the others fold into "+N versions". Only rule34's
+    // API says which posts belong together, so this needs the API key.
+    async function groupVariants(thumbs) {
+        if (!CONFIG.groupVariants || isPostView || !hasApiKey() || !thumbs.length) return;
+        const ids = thumbs.map(t => parseInt(thumbPostId(t), 10)).filter(Boolean);
+        if (ids.length < 2) return;
+        const tags = (params.get('tags') || '').replace(/\+/g, ' ').trim();
+        const q = (tags === 'all' ? '' : tags) + ' id:>=' + Math.min(...ids) + ' id:<=' + Math.max(...ids);
+        let posts = [];
+        try { posts = await apiPosts(q.trim(), 100); } catch (e) { return; }
+        const parentOf = {};
+        posts.forEach(p => { parentOf[p.id] = p.parent || 0; });
+        // a group: the parent and its children - by the parent's number
+        const groups = {};
+        document.querySelectorAll('.image-list span.thumb').forEach(t => {
+            const id = parseInt(thumbPostId(t), 10);
+            if (!id || !(id in parentOf || Object.values(parentOf).includes(id))) return;
+            const key = parentOf[id] || id;
+            (groups[key] = groups[key] || []).push(t);
+        });
+        Object.entries(groups).forEach(([key, members]) => {
+            members = members.filter(t => !t.classList.contains('s34-bl-hidden'));
+            if (members.length < 2) return;
+            const [first, ...rest] = members;
+            if (first.querySelector('.s34-var-badge')) return;
+            rest.forEach(t => t.classList.add('s34-var-hidden'));
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 's34-var-badge';
+            b.textContent = '+' + rest.length + (rest.length === 1 ? ' version' : ' versions');
+            b.title = 'Other versions of this picture – click to show them';
+            b.addEventListener('click', e => {
+                e.preventDefault(); e.stopPropagation();
+                const open = !first.classList.toggle('s34-var-open') ? false : true;
+                rest.forEach(t => t.classList.toggle('s34-var-open', open));
+                b.textContent = open ? 'Hide versions' : '+' + rest.length + (rest.length === 1 ? ' version' : ' versions');
+            });
+            first.appendChild(b);
+        });
+    }
+    onReady(() => setTimeout(() => { try { groupVariants(Array.from(document.querySelectorAll('.image-list span.thumb'))); } catch (e) {} }, 300));
+
     // A newly loaded page: set up only its thumbnails, not every one again
     function enhanceThumbs(thumbs) {
         removeTagTooltips(thumbs);
@@ -9192,6 +9428,7 @@
         showCollectionChips(thumbs);
         setupHoverInfo(thumbs);
         markFeedNew(thumbs); // Following feed: NEW on later pages too
+        groupVariants(thumbs).catch(() => {});
     }
 
     // =====================================================================
@@ -9575,6 +9812,18 @@
             const hits = (thumb._s34Tags || thumbTagList(thumb)).filter(t => blocked.has(t));
             let label = thumb.querySelector('.s34-bl-label');
 
+            // (Beta 3.10) only soft-blocked tags: blurred with Show, also when it was hidden before
+            if (hits.length && blockModeOf(hits) === 'soft') {
+                thumb.classList.remove('s34-bl-hidden');
+                markSoft(thumb, hits);
+                if (thumb.dataset.s34Tagbar) renderTagBar(thumb, ctx);
+                return;
+            }
+            if (thumb.classList.contains('s34-bl-soft')) {
+                thumb.classList.remove('s34-bl-soft', 's34-bl-unblur');
+                if (label) { label.remove(); label = null; }
+            }
+
             if (hits.length) {
                 // Already hidden (came in on a later page)? Leave it hidden.
                 if (thumb.classList.contains('s34-bl-hidden')) return;
@@ -9610,6 +9859,9 @@
 
     function showToast(text, actionLabel, action, durationMs = 6000) {
         if (!document.body) return;
+        // (Beta 3.9.2) never a wall of text - a message is a sentence or two
+        text = String(text == null ? '' : text);
+        if (text.length > 280) text = text.slice(0, 277).trimEnd() + '…';
         let stack = document.querySelector('.s34-toasts');
         if (!stack) {
             stack = document.createElement('div');
@@ -9781,7 +10033,11 @@
                 if (!doc.querySelector('.image-list')) throw new Error('page had no post list (rate limit or check page?)');
 
                 learnTagTypes(doc); // its sidebar lists the types of that page's tags
+                // (Beta 3.9.2) the same post twice (random sort, or posts moving
+                // between pages while you scroll) is only shown once
+                const onPage = new Set(Array.from(document.querySelectorAll('.image-list span.thumb')).map(t => thumbPostId(t)));
                 const newThumbs = Array.from(doc.querySelectorAll('.image-list span.thumb'))
+                    .filter(t => !onPage.has(thumbPostId(t)))
                     .map(t => document.adoptNode(t));
 
                 // The site may know about more pages now
@@ -11397,6 +11653,18 @@
         btn.setAttribute('aria-label', seen ? 'Viewed – click to mark as not viewed' : 'Mark as viewed');
     }
 
+    // Collection button: lit (amber) and always there when the post is in a collection
+    function styleCollThumbButton(btn, id) {
+        if (!btn) return;
+        const names = typeof collectionNamesOf === 'function' ? collectionNamesOf(id) : [];
+        btn.classList.toggle('s34-on', names.length > 0);
+        btn.title = names.length ? 'In ' + names.join(', ') + ' – click to change' : 'Save to a collection';
+        btn.setAttribute('aria-label', btn.title);
+    }
+    function refreshCollThumbButtons() {
+        document.querySelectorAll('.s34-tcoll').forEach(b => { const t = b.closest('span.thumb'); if (t) styleCollThumbButton(b, thumbPostId(t)); });
+    }
+
     // On = green and always there
     function styleDlThumbButton(btn, done) {
         if (!btn || btn.dataset.done === String(done)) return;
@@ -11425,9 +11693,67 @@
         showToast(ok ? 'Downloaded' : 'The download didn\'t work – try it in the popup.');
     }
 
+    // (Beta 3.9.4) Phones have no hover: hold a thumbnail for a moment and its
+    // buttons come up as a sheet (favourite, download, viewed, collection, later)
+    let longPressDone = 0;
+    function setupThumbLongPress() {
+        if (!thumbButtonsHidden()) return; // (computers: the hover buttons)
+        let timer = null, start = null;
+        document.addEventListener('touchstart', e => {
+            const t = e.target.closest && e.target.closest('.image-list span.thumb');
+            if (!t || e.touches.length !== 1) return;
+            start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            clearTimeout(timer);
+            timer = setTimeout(() => { longPressDone = Date.now(); try { navigator.vibrate && navigator.vibrate(12); } catch (err) {} openThumbSheet(t); }, 480);
+        }, { passive: true });
+        document.addEventListener('touchmove', e => {
+            if (!start || !e.touches[0]) return;
+            if (Math.abs(e.touches[0].clientX - start.x) + Math.abs(e.touches[0].clientY - start.y) > 12) clearTimeout(timer);
+        }, { passive: true });
+        document.addEventListener('touchend', () => clearTimeout(timer), { passive: true });
+        // the tap that ends a long press doesn't open the post; no browser menu either
+        document.addEventListener('click', e => {
+            if (Date.now() - longPressDone < 700 && e.target.closest && e.target.closest('.image-list span.thumb')) { e.preventDefault(); e.stopImmediatePropagation(); }
+        }, true);
+        document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.image-list span.thumb')) e.preventDefault(); });
+    }
+
+    function openThumbSheet(thumb) {
+        if (document.querySelector('.s34-tsheet-overlay')) return;
+        const id = thumbPostId(thumb);
+        const img = thumb.querySelector('img');
+        const overlay = document.createElement('div');
+        overlay.className = 's34-overlay s34-tsheet-overlay';
+        const sheet = document.createElement('div');
+        sheet.className = 's34-tsheet';
+        const fav = isFav(id), seen = CONFIG.trackViewed && isSeen(id, CONFIG.trackDownloads && isDownloaded(id));
+        const inLater = typeof inWatchLater === 'function' && inWatchLater(id);
+        sheet.innerHTML = `<div class="s34-tsheet-head"><b>Post #${id}</b><button type="button" data-a="close">✕</button></div>
+            <button type="button" data-a="fav">${fav ? '♥ Remove from favourites' : '♡ Add to favourites'}</button>
+            <button type="button" data-a="dl">⬇ Download</button>
+            ${CONFIG.trackViewed ? `<button type="button" data-a="seen">${seen ? '👁 Mark as not viewed' : '👁 Mark as viewed'}</button>` : ''}
+            <button type="button" data-a="coll">📁 Save to collection</button>
+            <button type="button" data-a="later">${inLater ? '🕒 Take off Watch later' : '🕒 Watch later'}</button>`;
+        overlay.appendChild(sheet);
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) { close(); return; }
+            const b = e.target.closest('[data-a]');
+            if (!b) return;
+            const a = b.dataset.a;
+            if (a === 'close') close();
+            else if (a === 'fav') { close(); toggleFavourite(id, thumb.querySelector('.s34-fav-btn')); }
+            else if (a === 'dl') { close(); thumbDownload(thumb, thumb.querySelector('.s34-tdl') || document.createElement('button')); }
+            else if (a === 'seen') { close(); setThumbViewed(id, !seen); showDownloadedState([thumb]); }
+            else if (a === 'coll') { openCollectMenu(b, [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]); close(); }
+            else if (a === 'later') { close(); toggleLaterFor(id, img ? img.getAttribute('src') : '', img ? thumbTags(img).trim() : ''); }
+        });
+        document.body.appendChild(overlay);
+    }
+
     function addThumbButtons(thumbs) {
-        const wantDl = CONFIG.thumbDlButton, wantSeen = CONFIG.thumbSeenButton && CONFIG.trackViewed;
-        if (!wantDl && !wantSeen) return;
+        const wantDl = CONFIG.thumbDlButton, wantSeen = CONFIG.thumbSeenButton && CONFIG.trackViewed, wantColl = CONFIG.thumbCollButton;
+        if (!wantDl && !wantSeen && !wantColl) return;
         const made = [];
         thumbs.forEach(thumb => {
             if (thumb.querySelector('.s34-tbtns')) return;
@@ -11442,6 +11768,20 @@
             styleDlThumbButton(dl, !!(CONFIG.trackDownloads && isDownloaded(id)));
             dl.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); thumbDownload(thumb, dl); });
             if (wantDl) box.appendChild(dl);
+            if (wantColl) {
+                // (Beta 3.9.2) Save to a collection right from the thumbnail
+                const cb = document.createElement('button');
+                cb.type = 'button';
+                cb.className = 's34-tbtn s34-tcoll';
+                cb.innerHTML = FOLDER_SVG.replace('width="15" height="15"', 'width="13" height="13"');
+                styleCollThumbButton(cb, id);
+                cb.addEventListener('click', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    const img = thumb.querySelector('img');
+                    openCollectMenu(cb, [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]);
+                });
+                box.appendChild(cb);
+            }
             if (wantSeen) {
                 // (Beta 3.8) The eye opens a small strip to its left while
                 // hovering: "Viewed" and "Downloaded" - the second only marks
@@ -12088,7 +12428,8 @@
             rating: String(p.rating || '').toLowerCase().trim(), // (a field of its own here - pages have it among the tags)
             preview: String(p.preview_url || ''),
             sample: String(p.sample_url || ''),
-            file: String(p.file_url || '')
+            file: String(p.file_url || ''),
+            parent: parseInt(p.parent_id, 10) || 0
         })).filter(p => p.id);
     }
 
@@ -12307,7 +12648,7 @@
             artist: names('artist')
         };
         const filename = buildFilename(url, tags, readPostSize(doc), postIdFrom(a.href));
-        const ok = await saveUrlAs(url, filename, a.href);
+        const ok = await saveUrlAs(url, filename, a.href, { artist: (tags.artist || [])[0] });
         const img = thumb.querySelector('img');
         if (ok) rememberDownload(thumbPostId(thumb), { thumb: img ? img.getAttribute('src') : '', tags });
         return ok;
@@ -12478,6 +12819,40 @@
             if (v) { v.defaultPlaybackRate = r; v.playbackRate = r; }
             sel.blur();
         });
+        // (Beta 3.9.3) Frame by frame (also , and . keys) and a loop between two points (A–B)
+        const tools = document.createElement('div');
+        tools.className = 's34-vopt-tools';
+        tools.innerHTML = '<button type="button" data-v="back" title="One frame back (,)">⏮</button><button type="button" data-v="fwd" title="One frame on (.)">⏭</button><button type="button" data-v="ab" title="Loop a part: click at the start, click at the end, click again to stop">A–B</button>';
+        const ab = { a: null, b: null };
+        const abBtn = tools.querySelector('[data-v="ab"]');
+        const showAb = () => {
+            abBtn.textContent = ab.a == null ? 'A–B' : ab.b == null ? 'A ' + ab.a.toFixed(1) + 's – B?' : 'A–B ' + ab.a.toFixed(1) + '–' + ab.b.toFixed(1) + 's';
+            abBtn.classList.toggle('s34-on', ab.a != null);
+        };
+        const step = dir => { const v = getVideo(); if (!v) return; v.pause(); v.currentTime = Math.max(0, Math.min((v.duration || 1e9), v.currentTime + dir / 30)); };
+        tools.addEventListener('click', e => {
+            const b = e.target.closest('[data-v]');
+            if (!b) return;
+            const v = getVideo();
+            if (b.dataset.v === 'back') step(-1);
+            else if (b.dataset.v === 'fwd') step(1);
+            else if (v) {
+                if (ab.a == null) ab.a = v.currentTime;
+                else if (ab.b == null) { ab.b = Math.max(ab.a + 0.2, v.currentTime); v.currentTime = ab.a; v.play().catch(() => {}); }
+                else { ab.a = ab.b = null; }
+                showAb();
+            }
+        });
+        const keepLoop = () => { const v = getVideo(); if (v && ab.a != null && ab.b != null && v.currentTime >= ab.b) v.currentTime = ab.a; };
+        setInterval(() => { if (box.isConnected) keepLoop(); }, 100);
+        document.addEventListener('keydown', e => {
+            if (!box.isConnected || !getVideo() || e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+            if (e.key === ',') { e.preventDefault(); step(-1); }
+            else if (e.key === '.') { e.preventDefault(); step(1); }
+        }, true);
+        showAb();
+        box.appendChild(tools);
         showLoop();
         return box;
     }
@@ -12692,6 +13067,7 @@
         ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
         ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
+        ['steamy34_bl_soft', 'Blurred blacklist tags', 'Blacklisted tags whose posts are blurred with a Show button instead of hidden', []],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],
         ['steamy34_auto', 'Auto next timer', 'Seconds per post for "Auto next"', {}],
         ['steamy34_theater', 'Theater mode', 'Whether the popup opens without its sidebar', false],
@@ -12963,6 +13339,18 @@
         }
     }
 
+    // "https://www.deviantart.com/…" -> "DeviantArt"; known names, else the domain
+    function sourceName(url) {
+        let host = '';
+        try { host = new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return 'Source'; }
+        const known = { 'twitter.com': 'Twitter', 'x.com': 'X', 'deviantart.com': 'DeviantArt', 'pixiv.net': 'Pixiv', 'patreon.com': 'Patreon',
+            'artstation.com': 'ArtStation', 'tumblr.com': 'Tumblr', 'reddit.com': 'Reddit', 'instagram.com': 'Instagram', 'newgrounds.com': 'Newgrounds',
+            'fanbox.cc': 'Fanbox', 'furaffinity.net': 'FurAffinity', 'itaku.ee': 'Itaku', 'bsky.app': 'Bluesky', 'subscribestar.adult': 'SubscribeStar',
+            'gumroad.com': 'Gumroad', 'youtube.com': 'YouTube', 'iwara.tv': 'Iwara', 'kemono.su': 'Kemono' };
+        const key = Object.keys(known).find(k => host === k || host.endsWith('.' + k));
+        return key ? known[key] : host;
+    }
+
     function renderPopupInfo(state, info) {
         const box = state.overlay.querySelector('.s34-pv-info');
         if (!box) return;
@@ -13009,38 +13397,42 @@
         });
         box.appendChild(row);
 
-        // Row 2: posted date + uploader
-        if (info.posted || info.by) {
-            const p = document.createElement('div');
-            p.className = 's34-pv-line';
-            p.append('Posted ' + (info.posted || ''));
-            if (info.by) {
-                p.append(' by ');
-                const a = document.createElement('a');
-                a.textContent = info.by;
-                if (info.byUrl) { a.href = info.byUrl; a.target = '_blank'; a.rel = 'noopener'; }
-                p.appendChild(a);
+        // (Beta 3.9.2) Row 2 as chips: when (relative, exact on hover), who, where from
+        if (info.posted || info.by || info.source || info.sourceText) {
+            const chips = document.createElement('div');
+            chips.className = 's34-pv-chips2';
+            if (info.posted) {
+                const c = document.createElement('span');
+                c.className = 's34-pv-chip2';
+                const t = Date.parse(String(info.posted).replace(' ', 'T'));
+                c.textContent = '🕒 ' + (isNaN(t) ? info.posted : timeAgo(t));
+                c.title = 'Posted ' + info.posted;
+                chips.appendChild(c);
             }
-            box.appendChild(p);
-        }
-
-        // Row 3: source
-        if (info.source || info.sourceText) {
-            const s = document.createElement('div');
-            s.className = 's34-pv-line';
-            s.append('Source: ');
+            if (info.by) {
+                const a = document.createElement(info.byUrl ? 'a' : 'span');
+                a.className = 's34-pv-chip2';
+                a.textContent = '👤 ' + info.by;
+                a.title = 'Uploaded by ' + info.by;
+                if (info.byUrl) { a.href = info.byUrl; a.target = '_blank'; a.rel = 'noopener'; }
+                chips.appendChild(a);
+            }
             if (info.source) {
                 const a = document.createElement('a');
+                a.className = 's34-pv-chip2 s34-pv-source';
                 a.href = info.source;
                 a.target = '_blank';
                 a.rel = 'noopener noreferrer';
-                a.textContent = shortUrl(info.source);
-                a.title = info.source;
-                s.appendChild(a);
-            } else {
-                s.append(info.sourceText);
+                a.textContent = sourceName(info.source) + ' ↗';
+                a.title = 'Source: ' + info.source;
+                chips.appendChild(a);
+            } else if (info.sourceText) {
+                const c = document.createElement('span');
+                c.className = 's34-pv-chip2';
+                c.textContent = 'Source: ' + info.sourceText;
+                chips.appendChild(c);
             }
-            box.appendChild(s);
+            box.appendChild(chips);
         }
 
         // Parent / child / pool
@@ -13446,6 +13838,281 @@
 
     const namesText = names => names.length === 1 ? `"${names[0]}"` : names.length + ' collections';
 
+    // ---- (Beta 3.9.2) iCame and Watch later in the popup ----
+    // iCame: rule34's own counter (public/icame.php, once every 24 hours) - the
+    // site's answer is shown as it is; posts you did it on stay lit.
+    const SPLASH_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><g transform="rotate(38 12 12)">'
+        + '<path d="M14.5 1.5c3.4 4 5.6 7.4 5.6 10.2a5.6 5.6 0 0 1-11.2 0c0-2.8 2.2-6.2 5.6-10.2z"/>'
+        + '<path d="M5.6 9.5c2 2.4 3.3 4.4 3.3 6.1a3.3 3.3 0 0 1-6.6 0c0-1.7 1.3-3.7 3.3-6.1z"/>'
+        + '<path d="M13 16.4c1.6 1.9 2.6 3.4 2.6 4.7a2.6 2.6 0 0 1-5.2 0c0-1.3 1-2.8 2.6-4.7z"/></g></svg>';
+    const CLOCK_SVG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+    const ICAME_KEY = 'steamy34_icame';
+    function iCameDone(id) { try { return !!(GM_getValue(ICAME_KEY, {}) || {})[id]; } catch (e) { return false; } }
+    async function sendICame(btn) {
+        const id = popupState && postIdFrom(popupState.postUrl);
+        if (!id || (btn && btn.classList.contains('s34-busy'))) return;
+        // (Beta 3.9.2) rule34 allows one iCame every 24 hours - a second one isn't
+        // even sent (rule34 answered it with a whole page, which ended up in the message)
+        let m = {};
+        try { m = GM_getValue(ICAME_KEY, {}) || {}; } catch (e) {}
+        if (m[id]) { showToast('You already did iCame on this post.', 'Top list', () => window.open('index.php?page=icame', '_blank', 'noopener')); return; }
+        const last = Math.max(0, ...Object.values(m).map(Number).filter(Boolean));
+        const wait = last + 24 * 3600000 - Date.now();
+        if (wait > 0) { showToast(`rule34 allows one iCame every 24 hours – the next one in about ${Math.max(1, Math.ceil(wait / 3600000))} h.`); return; }
+        setBusy(btn, true);
+        let text = '';
+        try {
+            const r = await loadPage('public/icame.php?postid=' + encodeURIComponent(id), 'action');
+            const raw = String(r && r.html || '');
+            // only a short, plain answer is shown - a whole page never is
+            text = /<(html|head|body|style|script|!doctype)/i.test(raw) || raw.length > 300 ? '' : raw.replace(/<[^>]+>/g, '').trim();
+        } catch (e) { text = e && e.cloudflare ? 'Not sent – solve the quick check first.' : 'Not sent (' + (e.message || e) + ').'; }
+        setBusy(btn, false);
+        if (/not sent/i.test(text)) { showToast(text); return; }
+        try { m[id] = Date.now(); GM_setValue(ICAME_KEY, m); } catch (e) {}
+        styleICame(btn, id);
+        btn.classList.add('s34-pop');
+        setTimeout(() => btn.classList.remove('s34-pop'), 700);
+        showToast(text || 'iCame sent.', 'Top list', () => window.open('index.php?page=icame', '_blank', 'noopener'));
+    }
+    function styleICame(btn, id) {
+        if (!btn) return;
+        const on = iCameDone(id);
+        btn.classList.toggle('s34-on', on);
+        btn.title = on ? 'You did iCame on this post' : 'iCame – rule34\'s own counter (once every 24 hours)';
+    }
+
+    // Watch later: a collection of its own, made the first time it's used
+    const LATER_ID = 'watchlater';
+    function laterCollection(all) {
+        let c = all.find(x => x.id === LATER_ID);
+        if (!c) { c = { id: LATER_ID, name: 'Watch later', created: Date.now(), posts: [] }; all.unshift(c); }
+        return c;
+    }
+    function toggleLaterFor(id, thumb, tags) {
+        const all = getCollections();
+        const c = laterCollection(all);
+        const i = c.posts.findIndex(p => String(p.id) === String(id));
+        if (i >= 0) { c.posts.splice(i, 1); showToast('Taken off Watch later.'); }
+        else { c.posts.unshift({ id, thumb: thumb || '', time: Date.now(), tags: tags || '' }); showToast('On your Watch later list – it\'s in Collections.'); }
+        saveCollections(all);
+    }
+    function inWatchLater(id) { const c = getCollections().find(x => x.id === LATER_ID); return !!c && c.posts.some(p => String(p.id) === String(id)); }
+    function toggleWatchLater() {
+        const st = popupState;
+        if (!st) return;
+        const id = postIdFrom(st.postUrl);
+        const all = getCollections();
+        const c = laterCollection(all);
+        const i = c.posts.findIndex(p => String(p.id) === String(id));
+        if (i >= 0) { c.posts.splice(i, 1); showToast('Taken off Watch later.'); }
+        else {
+            c.posts.unshift({ id, thumb: popupThumbSrc(st), time: Date.now(), tags: [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag))).join(' ') });
+            showToast('On your Watch later list – it\'s in Collections.');
+        }
+        saveCollections(all);
+        stylePopupExtras();
+    }
+    // (Beta 3.9.3) A "More" row: Find source (SauceNAO), Similar (iqdb), Upscale
+    // (Waifu2x) - rule34's own links from the post page, opened in a new tab
+    // (Steamy34 itself only ever talks to rule34) - and Report.
+    function renderPopupMore() {
+        const st = popupState;
+        if (!st) return;
+        const side = st.overlay.querySelector('.s34-pv-row2');
+        if (!side) return;
+        let row = st.overlay.querySelector('.s34-pv-more');
+        if (!row) {
+            row = document.createElement('div');
+            row.className = 's34-pv-more';
+            side.after(row);
+        }
+        const abs = u => { try { return new URL(u, location.href).href; } catch (e) { return ''; } };
+        const thumb = abs(popupThumbSrc(st));
+        const media = abs(st.mediaUrl || '');
+        const isPic = media && !/\.(mp4|webm|mkv|mov)(\?|$)/i.test(media);
+        const links = [
+            ['🔍', 'Find source', thumb && 'https://saucenao.com/search.php?db=999&url=' + encodeURIComponent(thumb), 'Who made it? Reverse image search on SauceNAO (opens in a new tab)'],
+
+            ['⤢', 'Upscale', isPic && 'https://waifu2x.booru.pics/Home/fromlink?denoise=1&scale=2&url=' + encodeURIComponent(media), 'Twice the size with Waifu2x (opens in a new tab)']
+        ];
+        row.replaceChildren();
+        links.forEach(([ic, label, href, title]) => {
+            if (!href) return;
+            const a = document.createElement('a');
+            a.className = 's34-pv-morebtn';
+            a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = title;
+            a.textContent = ic + ' ' + label + ' ↗';
+            row.appendChild(a);
+        });
+        // (Beta 3.9.4) Similar: a filmstrip of rule34's own posts - same artist and character
+        const sim = document.createElement('button');
+        sim.type = 'button';
+        sim.className = 's34-pv-morebtn s34-pv-similar';
+        sim.textContent = '◫ Similar';
+        sim.title = 'Posts with the same artist and character, as a strip along the bottom';
+        sim.addEventListener('click', () => openSimilarStrip());
+        row.insertBefore(sim, row.firstChild ? row.children[1] || null : null);
+        const rep = document.createElement('button');
+        rep.type = 'button';
+        rep.className = 's34-pv-morebtn s34-pv-report';
+        rep.textContent = '⚑ Report';
+        rep.title = 'Report this post to rule34\'s moderators';
+        rep.addEventListener('click', () => reportPost(postIdFrom(st.postUrl)));
+        row.appendChild(rep);
+    }
+
+    // (Beta 3.9.4 / 3.9.5) Similar: a strip of rule34's own posts - same artist
+    // and character. It stays open while you browse: ← / → go on through the
+    // page (also from a strip post - from where you left the page), Shift + ← / →
+    // go through the strip, the wheel scrolls it sideways. A new page post
+    // fills it again with that post's similar ones.
+    async function openSimilarStrip(refresh) {
+        const st = popupState;
+        if (!st) return;
+        const stage = st.overlay.querySelector('.s34-pv-stage');
+        let strip = st.overlay.querySelector('.s34-pv-strip');
+        if (strip && !refresh) { strip.remove(); return; } // (a second click closes it)
+        if (!strip && refresh) return;
+        const pick = type => ((st.tags || {})[type] || []).map(x => x.tag)[0];
+        const words = [pick('artist'), pick('character') || pick('copyright')].filter(Boolean);
+        if (!words.length) {
+            if (!refresh) showToast('No artist or character on this post to look for.');
+            else if (strip) { strip._from = st.thumb; strip.querySelectorAll('.s34-on').forEach(x => x.classList.remove('s34-on')); }
+            return;
+        }
+        const q = words.join(' ');
+        if (!strip) {
+            strip = document.createElement('div');
+            strip.className = 's34-pv-strip';
+            strip.innerHTML = '<div class="s34-pv-strip-head"><b></b><span class="s34-pv-strip-keys"></span><button type="button" title="Close">✕</button></div><div class="s34-pv-strip-row"></div>';
+            strip.querySelector('.s34-pv-strip-keys').textContent = 'Shift + ' + browseKeyText() + ' through the strip · ' + browseKeyText() + ' the page';
+            strip.addEventListener('click', e => e.stopPropagation());
+            strip.querySelector('.s34-pv-strip-head button').addEventListener('click', () => strip.remove());
+            const rowEl = strip.querySelector('.s34-pv-strip-row');
+            // the mouse wheel scrolls the strip sideways
+            rowEl.addEventListener('wheel', e => {
+                if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+                e.preventDefault();
+                rowEl.scrollLeft += e.deltaY;
+            }, { passive: false });
+            stage.after(strip);
+        }
+        strip._from = st.thumb; // ← / → go on from this page post
+        if (strip._q === q) { strip.querySelectorAll('.s34-on').forEach(x => x.classList.remove('s34-on')); return; } // same artist + character: same strip
+        strip._q = q;
+        const myQ = q;
+        strip.querySelector('b').textContent = 'Similar: ' + words.map(w => w.replace(/_/g, ' ')).join(' + ');
+        const rowEl = strip.querySelector('.s34-pv-strip-row');
+        rowEl.innerHTML = '<span class="s34-pv-strip-wait">Looking for similar posts…</span>';
+        rowEl.scrollLeft = 0;
+        const here = postIdFrom(st.postUrl);
+        let thumbs = [];
+        try {
+            const r = await loadPage('index.php?page=post&s=list&tags=' + encodeURIComponent(q + ' sort:score'), 'popup');
+            const doc = new DOMParser().parseFromString(r.html, 'text/html');
+            thumbs = Array.from(doc.querySelectorAll('.image-list span.thumb')).map(t => document.adoptNode(t));
+        } catch (e) {
+            if (strip._q === myQ) rowEl.querySelector('.s34-pv-strip-wait').textContent = e && e.cloudflare ? 'Waiting for the Cloudflare check.' : 'Couldn\'t load similar posts.';
+            return;
+        }
+        if (strip._q !== myQ || !strip.isConnected) return; // (moved on meanwhile)
+        hideBlocklisted(thumbs);
+        thumbs = thumbs.filter(t => !t.classList.contains('s34-bl-hidden') && !t.classList.contains('s34-bl-soft') && thumbPostId(t) !== here).slice(0, 30);
+        rowEl.replaceChildren();
+        if (!thumbs.length) { rowEl.innerHTML = '<span class="s34-pv-strip-wait">Nothing similar found.</span>'; return; }
+        thumbs.forEach(t => {
+            const img = t.querySelector('img');
+            if (!img) return;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 's34-pv-strip-item';
+            b.title = 'Post #' + thumbPostId(t);
+            const im = new Image();
+            im.src = img.getAttribute('src');
+            im.alt = '';
+            im.loading = 'lazy';
+            b.appendChild(im);
+            b.addEventListener('click', () => {
+                rowEl.querySelectorAll('.s34-on').forEach(x => x.classList.remove('s34-on'));
+                b.classList.add('s34-on');
+                try { b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+                openPopup(t);
+                if (popupState) popupState.fromStrip = true; // (the strip stays as it is)
+            });
+            rowEl.appendChild(b);
+        });
+    }
+
+    // Shift + ← / → (or Shift + A / D): the next / previous post in the strip
+    function similarStripStep(e) {
+        const strip = popupState && popupState.overlay.querySelector('.s34-pv-strip');
+        if (!strip || !e.shiftKey || e.code === CONFIG.downloadKey) return false;
+        const mode = CONFIG.browseKeys;
+        let dir = 0;
+        if (mode !== 'wasd') { if (e.key === 'ArrowLeft') dir = -1; if (e.key === 'ArrowRight') dir = 1; }
+        if (mode !== 'arrows' && !dir) { if (e.code === 'KeyA') dir = -1; if (e.code === 'KeyD') dir = 1; }
+        if (!dir) return false;
+        const items = Array.from(strip.querySelectorAll('.s34-pv-strip-item'));
+        if (!items.length) return true;
+        const at = items.findIndex(x => x.classList.contains('s34-on'));
+        const next = items[at < 0 ? (dir > 0 ? 0 : items.length - 1) : at + dir];
+        if (next) next.click();
+        return true;
+    }
+
+    // Report: rule34's own (public/report.php), with a calm question instead of a browser prompt
+    function reportPost(id) {
+        if (!id || document.querySelector('.s34-report-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 's34-overlay s34-confirm-overlay s34-report-overlay';
+        overlay.innerHTML = `
+            <div class="s34-confirm" role="dialog" aria-modal="true">
+                <div class="s34-confirm-icon">⚑</div>
+                <div class="s34-confirm-title">Report this post?</div>
+                <div class="s34-confirm-text">Why does it break rule34's rules? (Not for copyright takedowns – rule34 asks you to use its DMCA page for those.)</div>
+                <textarea class="s34-report-why" rows="3" maxlength="500" placeholder="Reason…"></textarea>
+                <div class="s34-confirm-foot">
+                    <button type="button" class="s34-btn" data-act="no">Cancel</button>
+                    <button type="button" class="s34-btn s34-primary" data-act="yes">Send report</button>
+                </div>
+            </div>`;
+        const box = overlay.querySelector('textarea');
+        box.addEventListener('keydown', e => e.stopPropagation());
+        const done = () => overlay.remove();
+        overlay.addEventListener('click', async e => {
+            const act = e.target.closest('[data-act]');
+            if (e.target === overlay || (act && act.dataset.act === 'no')) { done(); return; }
+            if (!act) return;
+            const why = box.value.trim();
+            if (!why) { box.focus(); return; }
+            act.disabled = true;
+            let res = '';
+            try {
+                const r = await loadPage('public/report.php?type=post&rid=' + encodeURIComponent(id) + '&reason=' + encodeURIComponent(encodeURI(why)), 'action');
+                res = String(r && r.html || '').trim();
+            } catch (err) { res = err && err.cloudflare ? 'cf' : 'error'; }
+            done();
+            if (res === 'limit') showToast('Report limit reached – your report was NOT sent. Try again later.');
+            else if (res === 'cf') showToast('Not sent – solve the quick check first.', 'Solve check', openCloudflarePanel);
+            else if (res === 'error') showToast('The report couldn\'t be sent – try again in a moment.');
+            else showToast('Report sent – thanks.');
+        });
+        document.body.appendChild(overlay);
+        box.focus();
+    }
+
+    // The popup's Later / iCame buttons follow the post shown
+    function stylePopupExtras() {
+        const st = popupState;
+        if (!st) return;
+        try { renderPopupMore(); } catch (e) {}
+        const id = postIdFrom(st.postUrl);
+        const later = st.overlay.querySelector('.s34-pv-later');
+        if (later) { const on = inWatchLater(id); later.classList.toggle('s34-on', on); later.title = on ? 'On your Watch later list – click to take it off' : 'Watch later – a list for posts to look at properly later'; }
+        styleICame(st.overlay.querySelector('.s34-pv-icame'), id);
+    }
+
     // ---- Posts put into a collection are favourited too ----
     let collFavRunning = false;
     async function favouriteCollectionPosts(ids, loud) {
@@ -13790,6 +14457,7 @@
         let shown = DLW_PAGE;
         let lookups = 0;
         let showBlocked = false;      // (Beta 3.9.1) "Show blacklisted (N)"
+        let filterText = '';          // (Beta 3.9.2) filter by artist / character / series / #number
         const shownNow = new Set();
         // What's known about each download's tags: the download history (artist /
         // character / series) and collections that hold the post
@@ -13816,16 +14484,38 @@
             const blSet = blockedTagSet();
             const hitOf = id => (tagsOf[id] ? blockedTagsOf(tagsOf[id], blSet) : []);
             const blCount = list.filter(p => hitOf(p.id).length).length;
-            if (blCount) {
+            if (list.length) {
                 const bar = document.createElement('div');
                 bar.className = 's34-win-tools';
-                bar.innerHTML = '<span class="s34-grow"></span>';
+                bar.innerHTML = '<input type="search" class="s34-dlw-filter" placeholder="Filter: artist, character, series or #number" autocomplete="off" spellcheck="false"><span class="s34-grow"></span>';
+                const fi = bar.querySelector('input');
+                fi.value = filterText;
+                fi.addEventListener('keydown', e => e.stopPropagation());
+                fi.addEventListener('input', () => {
+                    filterText = fi.value;
+                    clearTimeout(fi._t);
+                    fi._t = setTimeout(() => { render(); const again = w.body.querySelector('.s34-dlw-filter'); if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); } }, 250);
+                });
                 blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; render(); });
                 w.body.appendChild(bar);
             }
+            // the filter: words in the known tags, or a post number
+            const q = filterText.trim().toLowerCase().replace(/^#/, '');
+            if (q) {
+                const words = q.split(/\s+/).map(x => x.replace(/ /g, '_'));
+                const keep = p => /^\d+$/.test(q) ? String(p.id).startsWith(q)
+                    : words.every(wd => (tagsOf[p.id] || '').toLowerCase().replace(/_/g, ' ').includes(wd.replace(/_/g, ' ')));
+                list.splice(0, list.length, ...list.filter(keep));
+                if (!list.length) {
+                    const e = document.createElement('div');
+                    e.className = 's34-win-empty';
+                    e.textContent = 'Nothing matches "' + filterText.trim() + '". (Older downloads only know their artist, characters and series.)';
+                    w.body.appendChild(e);
+                }
+            }
             const tiles = document.createElement('div');
             tiles.className = 's34-tiles';
-            if (!list.length) {
+            if (!list.length && !q) {
                 const e = document.createElement('div');
                 e.className = 's34-win-empty';
                 e.textContent = 'Nothing yet – download a post (popup, post page, or the ⬇ on a thumbnail) and it shows up here.';
@@ -14064,7 +14754,7 @@
         const g = readPostTags(doc);
         const names = k => (g[k] || []).map(x => x.tag);
         const tags = { copyright: names('copyright'), character: names('character'), artist: names('artist') };
-        const ok = await saveUrlAs(file, buildFilename(file, tags, readPostSize(doc), id), url);
+        const ok = await saveUrlAs(file, buildFilename(file, tags, readPostSize(doc), id), url, { artist: (tags.artist || [])[0] });
         if (ok) rememberDownload(id, { thumb, tags });
         return ok;
     }
@@ -14205,6 +14895,7 @@
     function saveCollections(list) {
         GM_setValue(COLL_KEY, list);
         updateHubCounts();
+        try { refreshCollThumbButtons(); } catch (e) {}
     }
 
     function createCollection(name) {
@@ -14217,10 +14908,14 @@
 
     // Small menu: tick collections for one post, or add several posts at once
     function openCollectMenu(anchor, posts) {
+        // (Beta 3.9.6) the same button again closes it
+        const open = document.querySelector('.s34-cmenu');
+        if (open && open._anchor === anchor) { open.remove(); return; }
         document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
         const single = posts.length === 1;
         const menu = document.createElement('div');
         menu.className = 's34-cmenu';
+        menu._anchor = anchor;
 
         function render() {
             menu.replaceChildren();
@@ -14371,7 +15066,10 @@
                 const cover = document.createElement('div');
                 cover.className = 's34-coll-cover';
                 const blSet = blockedTagSet();
-                c.posts.filter(p => !(p.tags && blockedTagsOf(p.tags, blSet).length)).slice(0, 4).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
+                const clean = c.posts.filter(p => !(p.tags && blockedTagsOf(p.tags, blSet).length));
+                // (Beta 3.10) a chosen cover fills the card; otherwise the first four
+                const chosen = c.cover && clean.find(p => String(p.id) === String(c.cover) && p.thumb);
+                (chosen ? [chosen] : clean.slice(0, 4)).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
                 if (!cover.childElementCount) cover.innerHTML = FOLDER_SVG;
                 cover.classList.toggle('s34-coll-cover-n' + Math.min(4, cover.querySelectorAll('img').length), true);
                 const name = document.createElement('div');
@@ -14381,6 +15079,12 @@
                 n.className = 's34-coll-n';
                 n.textContent = c.posts.length + (c.posts.length === 1 ? ' post' : ' posts');
                 card.append(cover, name, n);
+                if (c.note) {
+                    const note = document.createElement('div');
+                    note.className = 's34-coll-notep';
+                    note.textContent = c.note;
+                    card.appendChild(note);
+                }
                 card.addEventListener('click', () => renderOne(c.id));
                 grid.appendChild(card);
             });
@@ -14417,6 +15121,13 @@
             bar.className = 's34-win-tools';
             bar.innerHTML = `
                 <button type="button" data-a="back">← All collections</button>
+                <select class="s34-coll-sort" title="Order of the posts">
+                    <option value="mine">My order (drag to arrange)</option>
+                    <option value="new">Newest added first</option>
+                    <option value="old">Oldest added first</option>
+                    <option value="idhi">Post number, high → low</option>
+                    <option value="idlo">Post number, low → high</option>
+                </select>
                 <span class="s34-grow"></span>
                 <button type="button" data-a="rename">✎ Rename</button>
                 <button type="button" data-a="delete">Delete</button>
@@ -14472,11 +15183,49 @@
                     status.textContent = sum;
                 }
             });
+            // (Beta 3.10) order: your own (drag), by date added or by post number
+            const sort = c.sort || 'mine';
+            const sortSel = bar.querySelector('.s34-coll-sort');
+            sortSel.value = sort;
+            sortSel.addEventListener('change', () => {
+                const all = getCollections();
+                all.find(x => x.id === id).sort = sortSel.value;
+                saveCollections(all);
+                renderOne(id);
+            });
+            const shown = c.posts.slice();
+            if (sort === 'new') shown.sort((a, b) => (b.time || 0) - (a.time || 0));
+            else if (sort === 'old') shown.sort((a, b) => (a.time || 0) - (b.time || 0));
+            else if (sort === 'idhi') shown.sort((a, b) => b.id - a.id);
+            else if (sort === 'idlo') shown.sort((a, b) => a.id - b.id);
+            // a note for the collection (saved as you type)
+            const note = document.createElement('textarea');
+            note.className = 's34-coll-note';
+            note.rows = 1;
+            note.maxLength = 500;
+            note.placeholder = 'Add a note to this collection…';
+            note.value = c.note || '';
+            let noteTimer = null;
+            const fitNote = () => { note.style.height = 'auto'; note.style.height = Math.min(140, note.scrollHeight + 2) + 'px'; };
+            note.addEventListener('input', () => {
+                fitNote();
+                clearTimeout(noteTimer);
+                noteTimer = setTimeout(() => {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    if (!col) return;
+                    col.note = note.value.trim().slice(0, 500);
+                    if (!col.note) delete col.note;
+                    saveCollections(all);
+                }, 400);
+            });
+            note.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') note.blur(); });
+            setTimeout(fitNote, 0);
             const status = document.createElement('div');
             status.className = 's34-win-status';
             status.hidden = true;
             const tiles = document.createElement('div');
-            tiles.className = 's34-tiles';
+            tiles.className = 's34-tiles' + (sort === 'mine' && shown.length > 1 ? ' s34-tiles-drag' : '');
             if (!c.posts.length) {
                 const e = document.createElement('div');
                 e.className = 's34-win-empty';
@@ -14488,7 +15237,7 @@
             // middle click still does that). The popup gets a small stand-in
             // thumbnail per post; picture or video is learned from the post page
             // the first time and kept with the post.
-            const proxies = c.posts.map(p => {
+            const proxies = shown.map(p => {
                 const s = document.createElement('span');
                 s.className = 'thumb';
                 s.innerHTML = '<a></a>';
@@ -14512,9 +15261,41 @@
             const hitOf = p => (p.tags ? blockedTagsOf(p.tags, blSet) : []);
             const blCount = c.posts.filter(p => hitOf(p).length).length;
             blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; renderOne(id); });
-            c.posts.forEach((p, n) => {
+            let dragFrom = null;
+            shown.forEach((p, n) => {
                 const tile = document.createElement('div');
-                tile.className = 's34-tile';
+                tile.className = 's34-tile' + (String(c.cover) === String(p.id) ? ' s34-tile-iscover' : '');
+                // (Beta 3.10) drag to arrange (in "My order")
+                if (sort === 'mine' && shown.length > 1) {
+                    tile.draggable = true;
+                    tile.addEventListener('dragstart', e => { dragFrom = n; tile.classList.add('s34-dragging'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(p.id)); } catch (err) {} });
+                    tile.addEventListener('dragend', () => { tile.classList.remove('s34-dragging'); tiles.querySelectorAll('.s34-drop-before, .s34-drop-after').forEach(x => x.classList.remove('s34-drop-before', 's34-drop-after')); });
+                    tile.addEventListener('dragover', e => {
+                        if (dragFrom === null) return;
+                        e.preventDefault();
+                        const r = tile.getBoundingClientRect();
+                        const after = e.clientX > r.left + r.width / 2;
+                        tiles.querySelectorAll('.s34-drop-before, .s34-drop-after').forEach(x => { if (x !== tile) x.classList.remove('s34-drop-before', 's34-drop-after'); });
+                        tile.classList.toggle('s34-drop-after', after);
+                        tile.classList.toggle('s34-drop-before', !after);
+                    });
+                    tile.addEventListener('drop', e => {
+                        if (dragFrom === null) return;
+                        e.preventDefault();
+                        const after = tile.classList.contains('s34-drop-after');
+                        let to = n + (after ? 1 : 0);
+                        const from = dragFrom;
+                        dragFrom = null;
+                        if (from < to) to--;
+                        if (to === from) { renderOne(id); return; }
+                        const all = getCollections();
+                        const col = all.find(x => x.id === id);
+                        const [moved] = col.posts.splice(from, 1);
+                        col.posts.splice(to, 0, moved);
+                        saveCollections(all);
+                        renderOne(id);
+                    });
+                }
                 const link = document.createElement('a');
                 link.href = postPageUrl(p.id);
                 link.target = '_blank';
@@ -14527,6 +15308,8 @@
                     openPopup(proxies[n], list);
                 });
                 link.appendChild(thumbOrPlaceholder(p.thumb, p.id));
+                link.draggable = false;
+                link.querySelectorAll('img').forEach(i => { i.draggable = false; });
                 const cap = document.createElement('div');
                 cap.className = 's34-tile-cap';
                 cap.innerHTML = '<div class="s34-tile-title"></div><div class="s34-tile-sub"></div>';
@@ -14545,13 +15328,26 @@
                     saveCollections(all);
                     renderOne(id);
                 });
-                acts.appendChild(rm);
+                // (Beta 3.10) this post as the collection's cover
+                const cv = document.createElement('button');
+                cv.type = 'button';
+                cv.className = 's34-tile-cover' + (String(c.cover) === String(p.id) ? ' s34-on' : '');
+                cv.textContent = '★';
+                cv.title = String(c.cover) === String(p.id) ? 'The cover – click to go back to the first four posts' : 'Use as the collection\'s cover';
+                cv.addEventListener('click', () => {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    if (String(col.cover) === String(p.id)) delete col.cover; else col.cover = p.id;
+                    saveCollections(all);
+                    renderOne(id);
+                });
+                acts.append(cv, rm);
                 tile.append(link, cap, acts);
                 const hit = hitOf(p);
                 if (hit.length && !showBlocked && !shownNow.has(p.id)) coverBlockedTile(tile, link, hit, () => { shownNow.add(p.id); uncoverTile(tile); });
                 tiles.appendChild(tile);
             });
-            w.body.append(bar, status, tiles);
+            w.body.append(bar, note, status, tiles);
         }
 
         w.onClose = () => { if (downloading) downloading.stop = true; };
@@ -14754,7 +15550,7 @@
     // Shown once after installing (or updating to a version with new tips);
     // reopen it any time with the "?" in the popup or in the settings.
     const TIPS_KEY = 'steamy34_tips_seen';
-    const TIPS_VERSION = 10; // raise this when the tips get new entries -> shown once more
+    const TIPS_VERSION = 11; // raise this when the tips get new entries -> shown once more
 
     const MOUSE_MIDDLE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6" /><rect x="10.6" y="5.5" width="2.8" height="4.5" rx="1.4" fill="currentColor" stroke="none"/></svg>';
 
@@ -14790,7 +15586,7 @@
             [`${k('⬇ Batch download')}`, 'Tick posts (or "Select all new"), then download them – a panel shows progress with Pause / Cancel – or add them to a collection'],
             [`${k('Collections')} · ${k('Stats')}`, 'Your own folders · your top artists, characters & series'],
             [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – click one for their newest posts in the Following window. The bell next to an artist in a post follows them`],
-            [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted'],
+            [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted – click a tag to blur its posts instead of hiding them'],
             [`${k('Solve')}`, `${nu}A Cloudflare check came up (the pulsing notice at the bottom): Solve, tick the box – nothing new loads until it's done`],
             [`${k('⚙ Settings')}`, 'Every option, plus backup and what is stored on your device'],
             [`${k('Choose folder…')}`, `${nu}Settings → Downloads: save straight into any folder, e.g. Eagle's watch folder (computer)`]
@@ -14955,6 +15751,34 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.10', date: '2026-11-23', notify: true, items: [
+            'Blacklist: blur instead of hide, per tag. Click a tag in the Blacklist window → "Blur them, with Show". Its posts show blurred with the tag named and a Show button; a post with any other blacklisted tag still stays hidden.',
+            'Collections: choose a cover (★ on a post), sort the posts (your own order, date added or post number), drag them to arrange, and add a note to each collection.'
+        ] },
+        { v: 'Beta 3.9.6', date: '2026-11-23', items: [
+            'Collection button: clicking it again (or pressing C again) closes the little collections list.'
+        ] },
+        { v: 'Beta 3.9.5', date: '2026-11-23', items: [
+            'Similar strip: stays open while you browse and fills with each post\'s similar ones. Shift + ← / → go through the strip, ← / → stay on the page (also from a strip post), the mouse wheel scrolls it sideways.'
+        ] },
+        { v: 'Beta 3.9.4', date: '2026-11-23', items: [
+            'Popup → More → Similar: a filmstrip of posts with the same artist and character along the bottom – click one to see it, ← / → go through the strip.',
+            'Phones: hold a thumbnail for a moment – favourite, download, viewed, collection and Watch later come up as a sheet.',
+            'With your API key: versions of the same picture (parent / child) show as one thumbnail with "+N versions" – click to unfold them.'
+        ] },
+        { v: 'Beta 3.9.3', date: '2026-11-23', items: [
+            'Popup: a "More" row – Find source (SauceNAO), Similar (iqdb) and Upscale (Waifu2x) open in a new tab with the post, and Report sends rule34\'s own report with a reason.',
+            'Videos: frame by frame (⏮ ⏭ or the , and . keys) and A–B – loop just a part of a video.',
+            'Artists, Wiki, Aliases and iCame Top 100 in Steamy34\'s look: calmer tables, a follow bell next to every artist, a leaderboard with medals and bars for iCame (Settings → Look & feel to switch it off).'
+        ] },
+        { v: 'Beta 3.9.2', date: '2026-11-23', items: [
+            'Thumbnails: a collection button next to ♥ / 👁 / ⬇ – amber and always there when the post is in a collection (own switch in Settings → Posts page).',
+            'Popup: when, who and where from as chips – "3 years ago", the uploader, and the source as a button with the site\'s name ("Twitter ↗").',
+            'Popup: an iCame button (rule34\'s own counter, once every 24 hours) and "Later" – your Watch later list, kept in Collections.',
+            'Your favourites page keeps the Posts menu row (My Favorites highlighted) instead of jumping to My Account.',
+            'Downloads: a subfolder per artist (own download folder, Settings → Downloads), and a filter in the Downloads window – artist, character, series or #number.',
+            'Random sort: a "Shuffle again" button, and no post shows up twice while you scroll on.'
+        ] },
         { v: 'Beta 3.9.1', date: '2026-11-23', items: [
             'Blocked stays blocked – the last gaps: posts with a blacklisted tag are hidden on the comments page too ("Show them" if you want), and covered in your Collections and the Downloads window – "Show" on one post, or "Show blacklisted (N)" for all of them, since you saved those yourself.',
             'Mute a tag for a while: in the Blacklist, pick "Mute 24 hours" or "Mute 7 days" next to Add – the tag is hidden until then and comes back by itself.'
@@ -15894,6 +16718,27 @@
                 });
                 menu.appendChild(b);
             });
+            // (Beta 3.10) hide the post, or blur it with a Show button
+            const head2 = document.createElement('div');
+            head2.className = 's34-blm-typemenu-head s34-blm-typemenu-head2';
+            head2.textContent = 'Posts with this tag';
+            menu.appendChild(head2);
+            const soft = getSoftTags().has(tag.toLowerCase());
+            [['hide', '⊘ Hide them', false], ['soft', '◐ Blur them, with Show', true]].forEach(([k, label, on]) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 's34-blm-mode' + (soft === on ? ' s34-on' : '');
+                b.dataset.mode = k;
+                b.textContent = label;
+                b.addEventListener('click', () => {
+                    setSoftTag(tag, on);
+                    closeTypeMenu();
+                    render();
+                    refreshBlockStates();
+                    if (opts.onChange) opts.onChange();
+                });
+                menu.appendChild(b);
+            });
             box.appendChild(menu);
             const r = chip.getBoundingClientRect();
             const br = box.getBoundingClientRect();
@@ -15918,8 +16763,16 @@
             chip.classList.add('s34-blm-item');
             const type = blType(tag);
             const typeName = type !== 'other' ? (type === 'metadata' ? 'Meta' : type.charAt(0).toUpperCase() + type.slice(1)) : 'Type not known yet';
-            chip.title = [typeName, when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates', unsaved ? 'not on your account yet' : '']
-                .filter(Boolean).join(' · ') + '\nClick to set its type';
+            const soft = getSoftTags().has(tag.toLowerCase());
+            if (soft) {
+                chip.classList.add('s34-blm-softchip');
+                const m = document.createElement('span');
+                m.className = 's34-blm-softmark';
+                m.textContent = '◐';
+                chip.insertBefore(m, chip.firstChild);
+            }
+            chip.title = [typeName, soft ? 'posts blurred (with Show), not hidden' : '', when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates', unsaved ? 'not on your account yet' : '']
+                .filter(Boolean).join(' · ') + '\nClick to set its type, or to blur instead of hide';
             chip.querySelector('.s34-blm-name').addEventListener('click', () => openTypeMenu(chip, tag));
             const x = document.createElement('button');
             x.type = 'button';
@@ -17038,6 +17891,165 @@
     };
     const accIcon = name => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACC_SVG[name] || ACC_SVG.link}</svg>`;
 
+    // ---- (Beta 3.9.3) rule34's other pages in Steamy34's look ----
+    // Artists, Wiki, Aliases, iCame Top 100: calmer tables in the colour mode's
+    // own colours (so White / Dark / OLED all work), plus a few helpers. Every
+    // site link and form stays as it is. Setting sitePages.
+    const SITE_PAGE = (params.get('page') || '').toLowerCase();
+    if (CONFIG.sitePages && ['artist', 'wiki', 'alias', 'icame'].includes(SITE_PAGE) && !isPhoneLayout()) {
+        document.documentElement.classList.add('s34-pg', 's34-pg-' + SITE_PAGE);
+        const st = document.createElement('style');
+        st.id = 's34-site-pages';
+        st.textContent = `
+            html.s34-pg table.highlightable { border-collapse: separate !important; border-spacing: 0 6px !important; width: 100% !important; max-width: 1100px; }
+            html.s34-pg table.highlightable tr.tableheader th, html.s34-pg table.highlightable thead th { text-align: left; padding: 4px 14px !important; font: 600 11px/1.2 system-ui, sans-serif; text-transform: uppercase; letter-spacing: 1px; color: var(--s34-muted, #999) !important; background: none !important; border: 0 !important; }
+            html.s34-pg table.highlightable tr:not(.tableheader) td { padding: 10px 14px !important; background: var(--s34-panel, #1c1c20) !important; border-top: 1px solid var(--s34-border, #33333b) !important; border-bottom: 1px solid var(--s34-border, #33333b) !important; vertical-align: middle; }
+            html.s34-pg table.highlightable tr:not(.tableheader) td:first-child { border-left: 1px solid var(--s34-border, #33333b) !important; border-radius: 10px 0 0 10px; }
+            html.s34-pg table.highlightable tr:not(.tableheader) td:last-child { border-right: 1px solid var(--s34-border, #33333b) !important; border-radius: 0 10px 10px 0; }
+            html.s34-pg table.highlightable tr:not(.tableheader):hover td { background: var(--s34-panel-2, #24242a) !important; }
+            html.s34-pg table.highlightable a { text-decoration: none !important; }
+            html.s34-pg-artist table.highlightable td:nth-child(2) a { font-size: 15px; font-weight: 700; }
+            html.s34-pg-artist table.highlightable td:first-child { width: 96px; white-space: nowrap; }
+            html.s34-pg-artist table.highlightable td:first-child a, html.s34-pg-artist .s34-pg-off { display: inline-block; min-width: 18px; margin-right: 3px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--s34-border, #33333b); font-size: 11px; text-align: center; }
+            html.s34-pg-artist .s34-pg-off { opacity: .35; cursor: default; }
+            html.s34-pg-artist .s34-pg-bell { margin-left: 8px; vertical-align: middle; }
+            html.s34-pg-alias table.highlightable td:first-child::after { content: '→'; float: right; opacity: .5; font-weight: 700; }
+            html.s34-pg-alias table.highlightable td:nth-child(3) { color: var(--s34-muted, #999) !important; font-style: italic; }
+            html.s34-pg-alias details.s34-pg-add { margin: 14px 0; max-width: 1100px; }
+            html.s34-pg-alias details.s34-pg-add summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+            html.s34-pg-wiki table.highlightable td h3 { margin: 0; display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; border: 1px solid var(--s34-border, #33333b); color: var(--s34-muted, #999); }
+            html.s34-pg-wiki table.highlightable td:nth-child(2) > a { font-size: 15px; font-weight: 700; }
+            html.s34-pg-icame table.highlightable tr td { font-size: 14px; }
+            html.s34-pg-icame table.highlightable tr td:first-child { width: 64px; text-align: center; font-weight: 800; }
+            html.s34-pg-icame table.highlightable tr.s34-medal-1 td:first-child::before { content: '🥇 '; }
+            html.s34-pg-icame table.highlightable tr.s34-medal-2 td:first-child::before { content: '🥈 '; }
+            html.s34-pg-icame table.highlightable tr.s34-medal-3 td:first-child::before { content: '🥉 '; }
+            html.s34-pg-icame table.highlightable td.s34-ic-count { position: relative; min-width: 200px; font-weight: 700; }
+            html.s34-pg-icame td.s34-ic-count .s34-ic-bar { display: block; height: 6px; margin-top: 5px; border-radius: 99px; background: linear-gradient(90deg, #ff5f8f, #8b3dff); width: var(--p, 0%); }
+            html.s34-pg-icame h1 .s34-ic-icon svg { width: 26px; height: 26px; vertical-align: -3px; margin-right: 8px; }
+        `;
+        (document.head || document.documentElement).appendChild(st);
+        onReady(() => setTimeout(() => {
+            try {
+                if (SITE_PAGE === 'artist') {
+                    // rule34 writes "P" as plain text when an artist has no posts - same shape, greyed
+                    document.querySelectorAll('table.highlightable tr[id^="artist-"] td:first-child').forEach(td => {
+                        Array.from(td.childNodes).forEach(n => {
+                            if (n.nodeType !== 3 || !n.textContent.trim()) return;
+                            const sp = document.createElement('span');
+                            sp.className = 's34-pg-off';
+                            sp.textContent = n.textContent.trim();
+                            sp.title = 'No posts yet';
+                            n.replaceWith(sp);
+                        });
+                    });
+                    // a follow bell next to every artist
+                    const following = CONFIG.followButtons ? getFollowing() : null;
+                    if (following) document.querySelectorAll('table.highlightable tr[id^="artist-"] td:nth-child(2) a').forEach(a => {
+                        const tag = a.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+                        if (!tag || a.parentElement.querySelector('.s34-pg-bell')) return;
+                        const b = makeFollowButton(tag, 's34-chip-follow s34-pg-bell', following);
+                        a.after(b);
+                    });
+                }
+                if (SITE_PAGE === 'alias') {
+                    // the "Add Alias" form folded away
+                    const head = Array.from(document.querySelectorAll('#content h2, #content h3, #content h4, #content h5')).find(h => /add alias/i.test(h.textContent));
+                    const form = head && (head.nextElementSibling && head.nextElementSibling.tagName === 'FORM' ? head.nextElementSibling : head.parentElement.querySelector('form:not([action*="search"])'));
+                    if (head && form) {
+                        const det = document.createElement('details');
+                        det.className = 's34-pg-add';
+                        det.innerHTML = '<summary>+ Suggest an alias</summary>';
+                        head.before(det);
+                        det.append(head, form);
+                    }
+                }
+                if (SITE_PAGE === 'icame') {
+                    const h1 = document.querySelector('h1');
+                    if (h1 && !h1.querySelector('.s34-ic-icon')) h1.insertAdjacentHTML('afterbegin', '<span class="s34-ic-icon">' + SPLASH_SVG + '</span>');
+                    const rows = Array.from(document.querySelectorAll('table.highlightable tbody tr')).filter(r => r.cells.length >= 3);
+                    const num = r => parseInt(String(r.cells[r.cells.length - 1].textContent).replace(/[^0-9]/g, ''), 10) || 0;
+                    const max = Math.max(1, ...rows.map(num));
+                    rows.forEach((r, i) => {
+                        if (i < 3) r.classList.add('s34-medal-' + (i + 1));
+                        const cell = r.cells[r.cells.length - 1];
+                        cell.classList.add('s34-ic-count');
+                        if (!cell.querySelector('.s34-ic-bar')) {
+                            const bar = document.createElement('span');
+                            bar.className = 's34-ic-bar';
+                            bar.style.setProperty('--p', Math.round(num(r) / max * 100) + '%');
+                            cell.appendChild(bar);
+                        }
+                        // the character: a click searches its posts
+                        const name = r.cells[1];
+                        if (name && !name.querySelector('a')) {
+                            const t = name.textContent.trim();
+                            if (t) { const a = document.createElement('a'); a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(t.replace(/\s+/g, '_')); a.textContent = t; name.replaceChildren(a); }
+                        }
+                    });
+                }
+            } catch (e) { console.warn('[Steamy34] Page look:', e); }
+        }, 0));
+    }
+
+    // ---- (Beta 3.9.2) The top menu stays put on your favourites ----
+    // rule34 switches to the "My Account" tab there, so the Posts row (Video,
+    // Upload, … My Favorites, Random …) disappears. Steamy34 keeps the Posts
+    // tab and its row, with My Favorites highlighted. The row is remembered
+    // from the last posts page (it has your own favourites link).
+    const POSTS_ROW_KEY = 'steamy34_posts_row';
+    function rememberPostsRow() {
+        const sub = document.querySelector('#subnavbar');
+        if (!sub || params.get('page') !== 'post' || !sub.querySelector('a[href*="page=favorites"]')) return;
+        try { GM_setValue(POSTS_ROW_KEY, sub.innerHTML); } catch (e) {}
+    }
+    function keepPostsMenuOnFavourites() {
+        if (params.get('page') !== 'favorites') return;
+        const nav = document.querySelector('#navbar');
+        if (!nav) return;
+        let sub = document.querySelector('#subnavbar');
+        if (!sub) {
+            // (rule34's favourites page has no second row at all)
+            sub = document.createElement('ul');
+            sub.className = 'flat-list';
+            sub.id = 'subnavbar';
+            nav.after(sub);
+        }
+        let row = '';
+        try { row = GM_getValue(POSTS_ROW_KEY, ''); } catch (e) {}
+        if (!row) return;
+        const postsLi = Array.from(nav.querySelectorAll('li')).find(li => li.querySelector('a[href*="page=post"][href*="s=list"]'));
+        if (!postsLi) return;
+        nav.querySelectorAll('li.current-page').forEach(li => li.classList.remove('current-page'));
+        postsLi.classList.add('current-page');
+        sub.innerHTML = row;
+        const fav = sub.querySelector('a[href*="page=favorites"]');
+        if (fav) fav.closest('li').classList.add('s34-sub-current');
+    }
+    // The page you're on, marked in the second row (rule34 doesn't): the link
+    // whose page / s (and tags, if it has any) match this address
+    function markCurrentSubnav() {
+        const sub = document.querySelector('#subnavbar');
+        if (!sub) return;
+        const here = new URL(location.href);
+        const want = k => (here.searchParams.get(k) || '').toLowerCase();
+        let best = null, bestScore = 0;
+        sub.querySelectorAll('li a[href]').forEach(a => {
+            let u;
+            try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+            if (u.origin !== here.origin) return;
+            const page = (u.searchParams.get('page') || '').toLowerCase(), s = (u.searchParams.get('s') || '').toLowerCase(), tags = (u.searchParams.get('tags') || '').toLowerCase();
+            if (!page || page !== want('page')) return;
+            if (s && s !== want('s')) return;
+            if (tags && tags !== want('tags').trim()) return;
+            const score = 1 + (s ? 1 : 0) + (tags ? 1 : 0);
+            if (score > bestScore) { best = a; bestScore = score; }
+        });
+        if (best && bestScore > 1) best.closest('li').classList.add('s34-sub-current');
+    }
+    onReady(() => { try { rememberPostsRow(); keepPostsMenuOnFavourites(); markCurrentSubnav(); } catch (e) {} });
+    window.addEventListener('load', () => setTimeout(() => document.documentElement.classList.add('s34-nav-ready'), 50));
+
     // ---- rule34's own cookies, written the way the site writes them ----
     function readSiteCookie(name) {
         const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
@@ -17614,6 +18626,8 @@
                 <div class="s34-pv-row2">
                     <button type="button" class="s34-pv-fav" data-act="fav"></button>
                     <button type="button" class="s34-pv-collect" data-act="collect" title="Save this post in one of your own collections (${keyLabel(CONFIG.collectKey)})">${FOLDER_SVG}<span>Collection</span></button>
+                    <button type="button" class="s34-pv-later" data-act="later" title="Watch later – a list for posts to look at properly later">${CLOCK_SVG}<span>Later</span></button>
+                    <button type="button" class="s34-pv-icame" data-act="icame" title="iCame – rule34's own counter (once every 24 hours)">${SPLASH_SVG}<span>iCame</span></button>
                 </div>
                 <div class="s34-auto">
                     <button type="button" class="s34-auto-toggle"></button>
@@ -17655,6 +18669,8 @@
             else if (act === 'fav') popupFavourite();
             else if (act === 'tips') openQuickTips();
             else if (act === 'theater') setTheater(!overlay.classList.contains('s34-pv-theater'));
+            else if (act === 'later') toggleWatchLater();
+            else if (act === 'icame') sendICame(actEl);
             else if (act === 'collect') {
                 const s = popupState;
                 if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
@@ -17714,7 +18730,9 @@
         const st = popupState;
         if (!st) return;
         const all = [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag)));
-        const hit = st.blockShown ? [] : blockedTagsOf(all);
+        let hit = st.blockShown ? [] : blockedTagsOf(all);
+        // (Beta 3.10) a soft-blocked thumbnail you already uncovered: only other tags cover it
+        if (hit.length && st.thumb && st.thumb.classList.contains('s34-bl-unblur')) { const soft = getSoftTags(); hit = hit.filter(t => !soft.has(t)); }
         const stage = st.overlay.querySelector('.s34-pv-stage');
         const old = stage && stage.querySelector('.s34-blcover');
         if (!hit.length) {
@@ -17766,6 +18784,7 @@
                 box.appendChild(wrap);
             });
         coverIfBlocked(blockedSet);
+        try { stylePopupExtras(); } catch (e) {}
         if (!popupState.tagsFromPost) {
             const note = document.createElement('div');
             note.className = 's34-pv-note';
@@ -17949,6 +18968,7 @@
             if (Object.keys(tags).length) {
                 popupState.tags = tags;
                 popupState.tagsFromPost = true;
+                if (!popupState.fromStrip) openSimilarStrip(true); // Similar open: this post's similar ones
             }
             renderPopupTags();
         });
@@ -18002,7 +19022,10 @@
     function popupStep(dir) {
         if (!popupState) return;
         const list = visibleThumbs();
-        const i = list.indexOf(popupState.thumb);
+        let i = list.indexOf(popupState.thumb);
+        // a post from the Similar strip: go on from the page post you left
+        if (i < 0) { const strip = popupState.overlay.querySelector('.s34-pv-strip'); if (strip && strip._from) i = list.indexOf(strip._from); }
+        if (i < 0) return;
         const target = list[i + dir];
         if (target) {
             openPopup(target);
@@ -18106,6 +19129,7 @@
         if (document.querySelector('.s34-follow-menu')) return; // "Follow which artist?" handles its own keys
         if (e.key === 'Escape') { e.preventDefault(); closePopup(); return; }
         if (e.ctrlKey || e.metaKey || e.altKey) return;          // Ctrl+D etc. stay the browser's
+        if (similarStripStep(e)) { e.preventDefault(); return; } // Shift + ← / →: through the Similar strip
         const dir = browseDirection(e);
         if (dir) { e.preventDefault(); popupStep(dir); return; }
         if (e.code === CONFIG.downloadKey || e.repeat) return;    // the download key wins
@@ -18346,6 +19370,7 @@
         addFavButtons();
         setupFavouritesPage(); // your favourites page: every ♥ filled, ♥ removes (the site's Remove links step aside)
         setupCollectionsSync(); // collections on all devices (opt-in): "Favourites & Collections", background checks
+        setupThumbLongPress();  // phones: hold a thumbnail for its buttons (Beta 3.9.4)
         setupHoverInfo();
         learnTagTypes(document); // remember tag types from this page's tag list
         if (isPostView) {

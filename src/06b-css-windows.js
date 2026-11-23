@@ -529,6 +529,10 @@
         }
         .s34-blm .s34-blm-typemenu button:hover { background-color: rgba(255,255,255,0.07) !important; }
         .s34-blm .s34-blm-typemenu button.s34-on { border-color: currentColor !important; }
+        .s34-blm-typemenu-head2 { margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .s34-blm .s34-blm-typemenu button.s34-blm-mode { color: #dcdce4 !important; }
+        .s34-blm-softmark { margin-right: 4px; opacity: .8; }
+        .s34-blm-softchip { border-style: dashed !important; }
 
         /* Settings: privacy & your data */
         .s34-privacy { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; font-size: 12.5px; }

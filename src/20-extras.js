@@ -171,6 +171,18 @@
         btn.setAttribute('aria-label', seen ? 'Viewed – click to mark as not viewed' : 'Mark as viewed');
     }
 
+    // Collection button: lit (amber) and always there when the post is in a collection
+    function styleCollThumbButton(btn, id) {
+        if (!btn) return;
+        const names = typeof collectionNamesOf === 'function' ? collectionNamesOf(id) : [];
+        btn.classList.toggle('s34-on', names.length > 0);
+        btn.title = names.length ? 'In ' + names.join(', ') + ' – click to change' : 'Save to a collection';
+        btn.setAttribute('aria-label', btn.title);
+    }
+    function refreshCollThumbButtons() {
+        document.querySelectorAll('.s34-tcoll').forEach(b => { const t = b.closest('span.thumb'); if (t) styleCollThumbButton(b, thumbPostId(t)); });
+    }
+
     // On = green and always there
     function styleDlThumbButton(btn, done) {
         if (!btn || btn.dataset.done === String(done)) return;
@@ -199,9 +211,67 @@
         showToast(ok ? 'Downloaded' : 'The download didn\'t work – try it in the popup.');
     }
 
+    // (Beta 3.9.4) Phones have no hover: hold a thumbnail for a moment and its
+    // buttons come up as a sheet (favourite, download, viewed, collection, later)
+    let longPressDone = 0;
+    function setupThumbLongPress() {
+        if (!thumbButtonsHidden()) return; // (computers: the hover buttons)
+        let timer = null, start = null;
+        document.addEventListener('touchstart', e => {
+            const t = e.target.closest && e.target.closest('.image-list span.thumb');
+            if (!t || e.touches.length !== 1) return;
+            start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            clearTimeout(timer);
+            timer = setTimeout(() => { longPressDone = Date.now(); try { navigator.vibrate && navigator.vibrate(12); } catch (err) {} openThumbSheet(t); }, 480);
+        }, { passive: true });
+        document.addEventListener('touchmove', e => {
+            if (!start || !e.touches[0]) return;
+            if (Math.abs(e.touches[0].clientX - start.x) + Math.abs(e.touches[0].clientY - start.y) > 12) clearTimeout(timer);
+        }, { passive: true });
+        document.addEventListener('touchend', () => clearTimeout(timer), { passive: true });
+        // the tap that ends a long press doesn't open the post; no browser menu either
+        document.addEventListener('click', e => {
+            if (Date.now() - longPressDone < 700 && e.target.closest && e.target.closest('.image-list span.thumb')) { e.preventDefault(); e.stopImmediatePropagation(); }
+        }, true);
+        document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.image-list span.thumb')) e.preventDefault(); });
+    }
+
+    function openThumbSheet(thumb) {
+        if (document.querySelector('.s34-tsheet-overlay')) return;
+        const id = thumbPostId(thumb);
+        const img = thumb.querySelector('img');
+        const overlay = document.createElement('div');
+        overlay.className = 's34-overlay s34-tsheet-overlay';
+        const sheet = document.createElement('div');
+        sheet.className = 's34-tsheet';
+        const fav = isFav(id), seen = CONFIG.trackViewed && isSeen(id, CONFIG.trackDownloads && isDownloaded(id));
+        const inLater = typeof inWatchLater === 'function' && inWatchLater(id);
+        sheet.innerHTML = `<div class="s34-tsheet-head"><b>Post #${id}</b><button type="button" data-a="close">✕</button></div>
+            <button type="button" data-a="fav">${fav ? '♥ Remove from favourites' : '♡ Add to favourites'}</button>
+            <button type="button" data-a="dl">⬇ Download</button>
+            ${CONFIG.trackViewed ? `<button type="button" data-a="seen">${seen ? '👁 Mark as not viewed' : '👁 Mark as viewed'}</button>` : ''}
+            <button type="button" data-a="coll">📁 Save to collection</button>
+            <button type="button" data-a="later">${inLater ? '🕒 Take off Watch later' : '🕒 Watch later'}</button>`;
+        overlay.appendChild(sheet);
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) { close(); return; }
+            const b = e.target.closest('[data-a]');
+            if (!b) return;
+            const a = b.dataset.a;
+            if (a === 'close') close();
+            else if (a === 'fav') { close(); toggleFavourite(id, thumb.querySelector('.s34-fav-btn')); }
+            else if (a === 'dl') { close(); thumbDownload(thumb, thumb.querySelector('.s34-tdl') || document.createElement('button')); }
+            else if (a === 'seen') { close(); setThumbViewed(id, !seen); showDownloadedState([thumb]); }
+            else if (a === 'coll') { openCollectMenu(b, [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]); close(); }
+            else if (a === 'later') { close(); toggleLaterFor(id, img ? img.getAttribute('src') : '', img ? thumbTags(img).trim() : ''); }
+        });
+        document.body.appendChild(overlay);
+    }
+
     function addThumbButtons(thumbs) {
-        const wantDl = CONFIG.thumbDlButton, wantSeen = CONFIG.thumbSeenButton && CONFIG.trackViewed;
-        if (!wantDl && !wantSeen) return;
+        const wantDl = CONFIG.thumbDlButton, wantSeen = CONFIG.thumbSeenButton && CONFIG.trackViewed, wantColl = CONFIG.thumbCollButton;
+        if (!wantDl && !wantSeen && !wantColl) return;
         const made = [];
         thumbs.forEach(thumb => {
             if (thumb.querySelector('.s34-tbtns')) return;
@@ -216,6 +286,20 @@
             styleDlThumbButton(dl, !!(CONFIG.trackDownloads && isDownloaded(id)));
             dl.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); thumbDownload(thumb, dl); });
             if (wantDl) box.appendChild(dl);
+            if (wantColl) {
+                // (Beta 3.9.2) Save to a collection right from the thumbnail
+                const cb = document.createElement('button');
+                cb.type = 'button';
+                cb.className = 's34-tbtn s34-tcoll';
+                cb.innerHTML = FOLDER_SVG.replace('width="15" height="15"', 'width="13" height="13"');
+                styleCollThumbButton(cb, id);
+                cb.addEventListener('click', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    const img = thumb.querySelector('img');
+                    openCollectMenu(cb, [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]);
+                });
+                box.appendChild(cb);
+            }
             if (wantSeen) {
                 // (Beta 3.8) The eye opens a small strip to its left while
                 // hovering: "Viewed" and "Downloaded" - the second only marks

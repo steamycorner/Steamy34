@@ -139,6 +139,21 @@
         .s34-coll-cover.s34-coll-cover-n3 img:first-child { grid-row: 1 / 3; }
         .s34-coll-name { font-weight: 700; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 2px 0; }
         .s34-coll-n { font-size: 11px; opacity: .55; padding: 0 2px; }
+        /* (Beta 3.10) collection tools: note, sort, cover, drag to arrange */
+        .s34-coll-notep { font-size: 11px; opacity: .7; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
+        .s34-win textarea.s34-coll-note { display: block; width: 100%; box-sizing: border-box; margin: 0 0 12px; padding: 8px 12px; min-height: 36px; resize: none; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1) !important; background: rgba(255,255,255,0.03) !important; color: inherit !important; font: 13px/1.45 system-ui, sans-serif; }
+        .s34-win textarea.s34-coll-note:focus { outline: none; border-color: rgba(255,95,143,.6) !important; }
+        .s34-win select.s34-coll-sort { height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12) !important; background: rgba(255,255,255,0.04) !important; color: inherit !important; font: 600 12px system-ui, sans-serif; }
+        .s34-win select.s34-coll-sort option { background: #1c1c22; color: #e8e8ee; }
+        .s34-tiles-drag .s34-tile { cursor: grab; }
+        .s34-tile.s34-dragging { opacity: .35; }
+        .s34-tile.s34-drop-before { box-shadow: -4px 0 0 #ff5f8f; }
+        .s34-tile.s34-drop-after { box-shadow: 4px 0 0 #ff5f8f; }
+        .s34-win .s34-tile-acts button.s34-tile-cover.s34-on { background-color: #f5b301 !important; color: #111 !important; }
+        .s34-tile.s34-tile-iscover .s34-tile-acts { opacity: 1; }
+        .s34-tile.s34-tile-iscover .s34-tile-acts button:not(.s34-on) { opacity: 0; }
+        .s34-tile.s34-tile-iscover:hover .s34-tile-acts button { opacity: 1; }
         .s34-coll-new { cursor: default; justify-content: center; gap: 8px !important; }
         .s34-coll-plus { font-size: 26px; font-weight: 300; text-align: center; opacity: .5; }
         .s34-coll-new input { flex: none; width: 100%; }
@@ -228,6 +243,10 @@
         .s34-collsync-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
         .s34-favcoll-bar { margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; background: var(--s34-panel, rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.08); }
         .s34-favcoll-bar h2 { margin: 0; font-size: 20px; }
+        .s34-dlw-filter { flex: 1 1 240px; min-width: 0; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(0,0,0,.25) !important; color: inherit !important; font: inherit; font-size: 13px; }
+        .s34-shuffle { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 10px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(255,255,255,.05) !important; color: inherit !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+        .s34-shuffle:hover { border-color: #ff5f8f !important; }
+        .s34-shuffle.s34-shuffle-sb { display: flex; width: 100%; justify-content: center; margin: 8px 0 0; box-sizing: border-box; }
         .s34-win-more { display: block; margin: 14px auto 4px; padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
         .s34-win-more:hover { border-color: #ff5f8f; }
         .s34-favcoll-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }

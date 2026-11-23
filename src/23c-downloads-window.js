@@ -51,6 +51,7 @@
         let shown = DLW_PAGE;
         let lookups = 0;
         let showBlocked = false;      // (Beta 3.9.1) "Show blacklisted (N)"
+        let filterText = '';          // (Beta 3.9.2) filter by artist / character / series / #number
         const shownNow = new Set();
         // What's known about each download's tags: the download history (artist /
         // character / series) and collections that hold the post
@@ -77,16 +78,38 @@
             const blSet = blockedTagSet();
             const hitOf = id => (tagsOf[id] ? blockedTagsOf(tagsOf[id], blSet) : []);
             const blCount = list.filter(p => hitOf(p.id).length).length;
-            if (blCount) {
+            if (list.length) {
                 const bar = document.createElement('div');
                 bar.className = 's34-win-tools';
-                bar.innerHTML = '<span class="s34-grow"></span>';
+                bar.innerHTML = '<input type="search" class="s34-dlw-filter" placeholder="Filter: artist, character, series or #number" autocomplete="off" spellcheck="false"><span class="s34-grow"></span>';
+                const fi = bar.querySelector('input');
+                fi.value = filterText;
+                fi.addEventListener('keydown', e => e.stopPropagation());
+                fi.addEventListener('input', () => {
+                    filterText = fi.value;
+                    clearTimeout(fi._t);
+                    fi._t = setTimeout(() => { render(); const again = w.body.querySelector('.s34-dlw-filter'); if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); } }, 250);
+                });
                 blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; render(); });
                 w.body.appendChild(bar);
             }
+            // the filter: words in the known tags, or a post number
+            const q = filterText.trim().toLowerCase().replace(/^#/, '');
+            if (q) {
+                const words = q.split(/\s+/).map(x => x.replace(/ /g, '_'));
+                const keep = p => /^\d+$/.test(q) ? String(p.id).startsWith(q)
+                    : words.every(wd => (tagsOf[p.id] || '').toLowerCase().replace(/_/g, ' ').includes(wd.replace(/_/g, ' ')));
+                list.splice(0, list.length, ...list.filter(keep));
+                if (!list.length) {
+                    const e = document.createElement('div');
+                    e.className = 's34-win-empty';
+                    e.textContent = 'Nothing matches "' + filterText.trim() + '". (Older downloads only know their artist, characters and series.)';
+                    w.body.appendChild(e);
+                }
+            }
             const tiles = document.createElement('div');
             tiles.className = 's34-tiles';
-            if (!list.length) {
+            if (!list.length && !q) {
                 const e = document.createElement('div');
                 e.className = 's34-win-empty';
                 e.textContent = 'Nothing yet – download a post (popup, post page, or the ⬇ on a thumbnail) and it shows up here.';

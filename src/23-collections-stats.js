@@ -105,7 +105,7 @@
         const g = readPostTags(doc);
         const names = k => (g[k] || []).map(x => x.tag);
         const tags = { copyright: names('copyright'), character: names('character'), artist: names('artist') };
-        const ok = await saveUrlAs(file, buildFilename(file, tags, readPostSize(doc), id), url);
+        const ok = await saveUrlAs(file, buildFilename(file, tags, readPostSize(doc), id), url, { artist: (tags.artist || [])[0] });
         if (ok) rememberDownload(id, { thumb, tags });
         return ok;
     }
@@ -246,6 +246,7 @@
     function saveCollections(list) {
         GM_setValue(COLL_KEY, list);
         updateHubCounts();
+        try { refreshCollThumbButtons(); } catch (e) {}
     }
 
     function createCollection(name) {
@@ -258,10 +259,14 @@
 
     // Small menu: tick collections for one post, or add several posts at once
     function openCollectMenu(anchor, posts) {
+        // (Beta 3.9.6) the same button again closes it
+        const open = document.querySelector('.s34-cmenu');
+        if (open && open._anchor === anchor) { open.remove(); return; }
         document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
         const single = posts.length === 1;
         const menu = document.createElement('div');
         menu.className = 's34-cmenu';
+        menu._anchor = anchor;
 
         function render() {
             menu.replaceChildren();
@@ -412,7 +417,10 @@
                 const cover = document.createElement('div');
                 cover.className = 's34-coll-cover';
                 const blSet = blockedTagSet();
-                c.posts.filter(p => !(p.tags && blockedTagsOf(p.tags, blSet).length)).slice(0, 4).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
+                const clean = c.posts.filter(p => !(p.tags && blockedTagsOf(p.tags, blSet).length));
+                // (Beta 3.10) a chosen cover fills the card; otherwise the first four
+                const chosen = c.cover && clean.find(p => String(p.id) === String(c.cover) && p.thumb);
+                (chosen ? [chosen] : clean.slice(0, 4)).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
                 if (!cover.childElementCount) cover.innerHTML = FOLDER_SVG;
                 cover.classList.toggle('s34-coll-cover-n' + Math.min(4, cover.querySelectorAll('img').length), true);
                 const name = document.createElement('div');
@@ -422,6 +430,12 @@
                 n.className = 's34-coll-n';
                 n.textContent = c.posts.length + (c.posts.length === 1 ? ' post' : ' posts');
                 card.append(cover, name, n);
+                if (c.note) {
+                    const note = document.createElement('div');
+                    note.className = 's34-coll-notep';
+                    note.textContent = c.note;
+                    card.appendChild(note);
+                }
                 card.addEventListener('click', () => renderOne(c.id));
                 grid.appendChild(card);
             });
@@ -458,6 +472,13 @@
             bar.className = 's34-win-tools';
             bar.innerHTML = `
                 <button type="button" data-a="back">← All collections</button>
+                <select class="s34-coll-sort" title="Order of the posts">
+                    <option value="mine">My order (drag to arrange)</option>
+                    <option value="new">Newest added first</option>
+                    <option value="old">Oldest added first</option>
+                    <option value="idhi">Post number, high → low</option>
+                    <option value="idlo">Post number, low → high</option>
+                </select>
                 <span class="s34-grow"></span>
                 <button type="button" data-a="rename">✎ Rename</button>
                 <button type="button" data-a="delete">Delete</button>
@@ -513,11 +534,49 @@
                     status.textContent = sum;
                 }
             });
+            // (Beta 3.10) order: your own (drag), by date added or by post number
+            const sort = c.sort || 'mine';
+            const sortSel = bar.querySelector('.s34-coll-sort');
+            sortSel.value = sort;
+            sortSel.addEventListener('change', () => {
+                const all = getCollections();
+                all.find(x => x.id === id).sort = sortSel.value;
+                saveCollections(all);
+                renderOne(id);
+            });
+            const shown = c.posts.slice();
+            if (sort === 'new') shown.sort((a, b) => (b.time || 0) - (a.time || 0));
+            else if (sort === 'old') shown.sort((a, b) => (a.time || 0) - (b.time || 0));
+            else if (sort === 'idhi') shown.sort((a, b) => b.id - a.id);
+            else if (sort === 'idlo') shown.sort((a, b) => a.id - b.id);
+            // a note for the collection (saved as you type)
+            const note = document.createElement('textarea');
+            note.className = 's34-coll-note';
+            note.rows = 1;
+            note.maxLength = 500;
+            note.placeholder = 'Add a note to this collection…';
+            note.value = c.note || '';
+            let noteTimer = null;
+            const fitNote = () => { note.style.height = 'auto'; note.style.height = Math.min(140, note.scrollHeight + 2) + 'px'; };
+            note.addEventListener('input', () => {
+                fitNote();
+                clearTimeout(noteTimer);
+                noteTimer = setTimeout(() => {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    if (!col) return;
+                    col.note = note.value.trim().slice(0, 500);
+                    if (!col.note) delete col.note;
+                    saveCollections(all);
+                }, 400);
+            });
+            note.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') note.blur(); });
+            setTimeout(fitNote, 0);
             const status = document.createElement('div');
             status.className = 's34-win-status';
             status.hidden = true;
             const tiles = document.createElement('div');
-            tiles.className = 's34-tiles';
+            tiles.className = 's34-tiles' + (sort === 'mine' && shown.length > 1 ? ' s34-tiles-drag' : '');
             if (!c.posts.length) {
                 const e = document.createElement('div');
                 e.className = 's34-win-empty';
@@ -529,7 +588,7 @@
             // middle click still does that). The popup gets a small stand-in
             // thumbnail per post; picture or video is learned from the post page
             // the first time and kept with the post.
-            const proxies = c.posts.map(p => {
+            const proxies = shown.map(p => {
                 const s = document.createElement('span');
                 s.className = 'thumb';
                 s.innerHTML = '<a></a>';
@@ -553,9 +612,41 @@
             const hitOf = p => (p.tags ? blockedTagsOf(p.tags, blSet) : []);
             const blCount = c.posts.filter(p => hitOf(p).length).length;
             blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; renderOne(id); });
-            c.posts.forEach((p, n) => {
+            let dragFrom = null;
+            shown.forEach((p, n) => {
                 const tile = document.createElement('div');
-                tile.className = 's34-tile';
+                tile.className = 's34-tile' + (String(c.cover) === String(p.id) ? ' s34-tile-iscover' : '');
+                // (Beta 3.10) drag to arrange (in "My order")
+                if (sort === 'mine' && shown.length > 1) {
+                    tile.draggable = true;
+                    tile.addEventListener('dragstart', e => { dragFrom = n; tile.classList.add('s34-dragging'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(p.id)); } catch (err) {} });
+                    tile.addEventListener('dragend', () => { tile.classList.remove('s34-dragging'); tiles.querySelectorAll('.s34-drop-before, .s34-drop-after').forEach(x => x.classList.remove('s34-drop-before', 's34-drop-after')); });
+                    tile.addEventListener('dragover', e => {
+                        if (dragFrom === null) return;
+                        e.preventDefault();
+                        const r = tile.getBoundingClientRect();
+                        const after = e.clientX > r.left + r.width / 2;
+                        tiles.querySelectorAll('.s34-drop-before, .s34-drop-after').forEach(x => { if (x !== tile) x.classList.remove('s34-drop-before', 's34-drop-after'); });
+                        tile.classList.toggle('s34-drop-after', after);
+                        tile.classList.toggle('s34-drop-before', !after);
+                    });
+                    tile.addEventListener('drop', e => {
+                        if (dragFrom === null) return;
+                        e.preventDefault();
+                        const after = tile.classList.contains('s34-drop-after');
+                        let to = n + (after ? 1 : 0);
+                        const from = dragFrom;
+                        dragFrom = null;
+                        if (from < to) to--;
+                        if (to === from) { renderOne(id); return; }
+                        const all = getCollections();
+                        const col = all.find(x => x.id === id);
+                        const [moved] = col.posts.splice(from, 1);
+                        col.posts.splice(to, 0, moved);
+                        saveCollections(all);
+                        renderOne(id);
+                    });
+                }
                 const link = document.createElement('a');
                 link.href = postPageUrl(p.id);
                 link.target = '_blank';
@@ -568,6 +659,8 @@
                     openPopup(proxies[n], list);
                 });
                 link.appendChild(thumbOrPlaceholder(p.thumb, p.id));
+                link.draggable = false;
+                link.querySelectorAll('img').forEach(i => { i.draggable = false; });
                 const cap = document.createElement('div');
                 cap.className = 's34-tile-cap';
                 cap.innerHTML = '<div class="s34-tile-title"></div><div class="s34-tile-sub"></div>';
@@ -586,13 +679,26 @@
                     saveCollections(all);
                     renderOne(id);
                 });
-                acts.appendChild(rm);
+                // (Beta 3.10) this post as the collection's cover
+                const cv = document.createElement('button');
+                cv.type = 'button';
+                cv.className = 's34-tile-cover' + (String(c.cover) === String(p.id) ? ' s34-on' : '');
+                cv.textContent = '★';
+                cv.title = String(c.cover) === String(p.id) ? 'The cover – click to go back to the first four posts' : 'Use as the collection\'s cover';
+                cv.addEventListener('click', () => {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    if (String(col.cover) === String(p.id)) delete col.cover; else col.cover = p.id;
+                    saveCollections(all);
+                    renderOne(id);
+                });
+                acts.append(cv, rm);
                 tile.append(link, cap, acts);
                 const hit = hitOf(p);
                 if (hit.length && !showBlocked && !shownNow.has(p.id)) coverBlockedTile(tile, link, hit, () => { shownNow.add(p.id); uncoverTile(tile); });
                 tiles.appendChild(tile);
             });
-            w.body.append(bar, status, tiles);
+            w.body.append(bar, note, status, tiles);
         }
 
         w.onClose = () => { if (downloading) downloading.stop = true; };

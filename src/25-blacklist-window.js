@@ -205,6 +205,27 @@
                 });
                 menu.appendChild(b);
             });
+            // (Beta 3.10) hide the post, or blur it with a Show button
+            const head2 = document.createElement('div');
+            head2.className = 's34-blm-typemenu-head s34-blm-typemenu-head2';
+            head2.textContent = 'Posts with this tag';
+            menu.appendChild(head2);
+            const soft = getSoftTags().has(tag.toLowerCase());
+            [['hide', '⊘ Hide them', false], ['soft', '◐ Blur them, with Show', true]].forEach(([k, label, on]) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 's34-blm-mode' + (soft === on ? ' s34-on' : '');
+                b.dataset.mode = k;
+                b.textContent = label;
+                b.addEventListener('click', () => {
+                    setSoftTag(tag, on);
+                    closeTypeMenu();
+                    render();
+                    refreshBlockStates();
+                    if (opts.onChange) opts.onChange();
+                });
+                menu.appendChild(b);
+            });
             box.appendChild(menu);
             const r = chip.getBoundingClientRect();
             const br = box.getBoundingClientRect();
@@ -229,8 +250,16 @@
             chip.classList.add('s34-blm-item');
             const type = blType(tag);
             const typeName = type !== 'other' ? (type === 'metadata' ? 'Meta' : type.charAt(0).toUpperCase() + type.slice(1)) : 'Type not known yet';
-            chip.title = [typeName, when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates', unsaved ? 'not on your account yet' : '']
-                .filter(Boolean).join(' · ') + '\nClick to set its type';
+            const soft = getSoftTags().has(tag.toLowerCase());
+            if (soft) {
+                chip.classList.add('s34-blm-softchip');
+                const m = document.createElement('span');
+                m.className = 's34-blm-softmark';
+                m.textContent = '◐';
+                chip.insertBefore(m, chip.firstChild);
+            }
+            chip.title = [typeName, soft ? 'posts blurred (with Show), not hidden' : '', when ? 'blacklisted ' + timeAgo(when) : 'blacklisted before Steamy34 tracked dates', unsaved ? 'not on your account yet' : '']
+                .filter(Boolean).join(' · ') + '\nClick to set its type, or to blur instead of hide';
             chip.querySelector('.s34-blm-name').addEventListener('click', () => openTypeMenu(chip, tag));
             const x = document.createElement('button');
             x.type = 'button';

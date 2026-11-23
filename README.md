@@ -77,11 +77,13 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Your account keeps a copy: tags not on it yet are marked, and Save on Options puts the list there
 - **Blocked stays blocked:** Steamy34 checks every post against your whole blacklist itself – on every list, while scrolling, in the popup and the Following window. A blacklisted post you open anyway (a link, a post page) is covered, with "Show anyway" if you really want to see it
 - **Mute for a while:** hide a tag for 24 hours or 7 days – it comes back by itself
+- **Blur instead of hide**, per tag: its posts show blurred with the tag named and a Show button (any other blacklisted tag still hides the post)
 
 **Organising**
 - Download and viewed buttons on the thumbnails: green = downloaded, blue = viewed. Hover the eye to mark a post as viewed – or as downloaded without downloading it. Every thumbnail item (♥, download, viewed, marks, tags) has its own switch
 - Hides viewed or downloaded posts if you like
 - Collections (your own folders of posts) – **optionally on all your devices**: their posts are favourited too, so they're on your phone, and your favourites page becomes "Favourites & Collections". Un-favourite a post anywhere and it leaves its collections
+- Collection tools: pick a cover, sort the posts or drag them into your own order, add a note
 - Your favourites page: mark all as viewed or downloaded, or select posts to download, put into a collection or unfavourite in one go
 - A Downloads window with every post you downloaded, newest first
 - Stats: your top artists, characters and series

@@ -31,6 +31,9 @@
         thumbHeart: true,        // the ♥ on thumbnails (favButtons switches all ♥ - popup too)
         thumbDlButton: true,     // download button on thumbnails (hover)
         thumbSeenButton: true,   // "viewed" button on thumbnails (hover)
+        thumbCollButton: true,   // collection button on thumbnails (hover; lit when in a collection)
+        groupVariants: true,     // versions of one picture (parent / child) as one thumbnail - needs the API key
+        dlArtistFolders: false,  // own download folder: a subfolder per artist
         thumbMarks: true,        // viewed / downloaded marks on thumbnails (tracking goes on either way)
         favButtons: true,        // ♥ favourite button on thumbnails and in the popup
         popupPreload: true,      // popup: load the next post in advance (once you stay on a post for a moment)
@@ -71,6 +74,7 @@
         roundCorners: false,     // false -> square corners everywhere (thumbnails, sidebar, chips, windows)
         homePage: true,          // rule34's start page as Steamy34's home (Beta 3.6): search, continue, recent, following
         accountPages: true,      // My Account and Options in Steamy34's look (Beta 3.7)
+        sitePages: true,         // Artists, Wiki, Aliases, iCame Top 100 in Steamy34's look (Beta 3.9.3)
         matchSiteTheme: true,    // keep rule34's own Light / Dark theme in step with the colour mode (no white flash)
         videoServer: 'default',  // rule34's 'Preferred CDN location': default, eu, cusa, eusa, wusa, api
         siteSuggestions: false,  // rule34's own tag suggestion list (Steamy34 has its own in the search box)
@@ -161,6 +165,7 @@
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
             ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
             ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],
             ['homePage', 'Steamy34 start page', { hint: 'rule34\'s start page with your search, where you left off, your recent searches and the newest posts from who you follow – off: the site\'s own start page' }],
@@ -185,6 +190,8 @@
             ['thumbHeart', '♥ on thumbnails', { hint: 'Your favourites page keeps it – it\'s how posts are removed there' }],
             ['thumbDlButton', 'Download button on thumbnails', { hint: 'While hovering, next to the ♥. Computers only' }],
             ['thumbSeenButton', '"Viewed" button on thumbnails', { hint: 'While hovering: mark a post as viewed / not viewed. Computers only' }],
+            ['groupVariants', 'Group versions of the same picture', { hint: 'Posts that are versions of each other (parent / child) show as one thumbnail with "+N versions". Needs your API key (Settings → API key) – rule34 only says which posts belong together there' }],
+            ['thumbCollButton', 'Collection button on thumbnails', { hint: 'While hovering: save the post to a collection. Lit (and always there) when it\'s in one. Computers only' }],
             ['thumbMarks', 'Show viewed / downloaded without hovering', { hint: 'The green download and blue eye stay on thumbnails you downloaded or viewed (on phones: a small corner icon). Off: only while hovering. Steamy34 keeps remembering either way' }],
             ['infiniteScroll', 'Infinite scrolling', { hint: 'The next page loads when you reach the bottom' }],
             ['resumeOffer', 'Offer to continue where you left off', { hint: 'Back on a search you had scrolled deep into? A small "Continue at page N" button takes you back there' }],
@@ -230,6 +237,7 @@
         ] },
         { id: 'downloads', title: 'Downloads', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 20h14"/></svg>', rows: [
             ['downloadKey', 'Download hotkey', { hotkey: true, hint: 'Click the box, then press a key' }],
+            ['dlArtistFolders', 'A subfolder per artist', { hint: 'Only with your own download folder: files go into folder / artist / … (posts without an artist: "unknown artist")' }],
             ['dlFolder', 'Download folder', { folder: true, hint: 'Save straight into any folder – e.g. Eagle\'s watch folder. The browser asks once per session whether Steamy34 may write there' }],
             ['showDownloadButton', 'Show the Download button'],
             ['trackDownloads', 'Remember downloaded posts', { hint: 'Download mark on thumbnails, green Download button' }],

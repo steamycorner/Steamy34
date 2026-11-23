@@ -52,12 +52,38 @@
     // so new thumbnails are checked against the blocklist here.
     // Uses its own class, so posts can be shown again after an Undo.
     function hideBlocklisted(thumbs) {
-        const set = blockedTagSet();
+        const set = blockedTagSet(), mutes = getMutes();
         thumbs.forEach(thumb => {
             const img = thumb.querySelector('img');
             if (!img) return;
-            thumb.classList.toggle('s34-bl-hidden', blockedTagsOf(thumbTags(img).trim(), set).length > 0);
+            const hit = blockedTagsOf(thumbTags(img).trim(), set);
+            const mode = blockModeOf(hit, mutes);
+            thumb.classList.toggle('s34-bl-hidden', mode === 'hide');
+            if (mode === 'soft') markSoft(thumb, hit);
         });
+    }
+
+    // (Beta 3.10) Soft block: blurred, its tags named, "Show" uncovers it
+    function markSoft(thumb, hit) {
+        thumb.classList.add('s34-bl-marked', 's34-bl-soft');
+        let label = thumb.querySelector('.s34-bl-label');
+        if (!label) {
+            label = document.createElement('div');
+            label.className = 's34-bl-label';
+            thumb.appendChild(label);
+        }
+        if (label.dataset.soft === hit.join(' ')) return;
+        label.dataset.soft = hit.join(' ');
+        label.replaceChildren();
+        const t = document.createElement('span');
+        t.textContent = 'Blurred: ' + hit.map(prettyTag).join(', ');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 's34-bl-show';
+        b.textContent = 'Show';
+        b.title = 'Show this post (it stays blurred elsewhere)';
+        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); thumb.classList.add('s34-bl-unblur'); });
+        label.append(t, b);
     }
 
     // Beta 3.7: rule34 hides only the tags in its cookie. The ones that didn't
@@ -75,7 +101,10 @@
         const check = img => {
             const thumb = img.closest('span.thumb');
             if (!thumb || thumb.classList.contains('s34-bl-hidden')) return;
-            if (blockedTagsOf(thumbTags(img).trim(), extra).length) thumb.classList.add('s34-bl-hidden');
+            const hit = blockedTagsOf(thumbTags(img).trim(), extra);
+            const mode = blockModeOf(hit);
+            if (mode === 'hide') thumb.classList.add('s34-bl-hidden');
+            else if (mode === 'soft') markSoft(thumb, hit);
         };
         const all = () => document.querySelectorAll('span.thumb img').forEach(check);
         all();
@@ -143,6 +172,27 @@
     }
     if (onCommentsPage) onReady(() => setTimeout(hideBlockedCommentPosts, 0));
 
+    // (Beta 3.9.2) Random sort: "Shuffle again" above the posts
+    function addShuffleButton() {
+        if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list') return;
+        if (!/(^|\s)sort:random(\s|$)/i.test((params.get('tags') || '').replace(/\+/g, ' '))) return;
+        const list = document.querySelector('.image-list');
+        if (!list || document.querySelector('.s34-shuffle')) return;
+        const goRow = document.querySelector('.s34-sb-gorow'); // (under the Search button)
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 's34-shuffle';
+        b.textContent = '🔀 Shuffle again';
+        b.title = 'New random posts for this search';
+        b.addEventListener('click', () => {
+            const u = new URL(location.href);
+            u.searchParams.delete('pid');
+            location.href = u.href;
+        });
+        if (goRow) { b.classList.add('s34-shuffle-sb'); goRow.after(b); } else list.before(b);
+    }
+    onReady(() => setTimeout(() => { try { addShuffleButton(); } catch (e) {} }, 50));
+
     // (Beta 3.9) rule34's "Nobody here but us chickens!" where there should be
     // posts: say what's going on instead of leaving it a mystery. After a
     // Cloudflare check rule34 sends empty pages for a little while; a damaged
@@ -172,6 +222,49 @@
     onReady(() => setTimeout(() => { try { explainEmptyPage(); } catch (e) {} }, 0));
     try { hideExtraBlocklisted(); } catch (e) { console.warn('[Steamy34] Blacklist:', e); }
 
+    // (Beta 3.9.4) Versions of one picture (parent / child) as one thumbnail:
+    // the first one stays, the others fold into "+N versions". Only rule34's
+    // API says which posts belong together, so this needs the API key.
+    async function groupVariants(thumbs) {
+        if (!CONFIG.groupVariants || isPostView || !hasApiKey() || !thumbs.length) return;
+        const ids = thumbs.map(t => parseInt(thumbPostId(t), 10)).filter(Boolean);
+        if (ids.length < 2) return;
+        const tags = (params.get('tags') || '').replace(/\+/g, ' ').trim();
+        const q = (tags === 'all' ? '' : tags) + ' id:>=' + Math.min(...ids) + ' id:<=' + Math.max(...ids);
+        let posts = [];
+        try { posts = await apiPosts(q.trim(), 100); } catch (e) { return; }
+        const parentOf = {};
+        posts.forEach(p => { parentOf[p.id] = p.parent || 0; });
+        // a group: the parent and its children - by the parent's number
+        const groups = {};
+        document.querySelectorAll('.image-list span.thumb').forEach(t => {
+            const id = parseInt(thumbPostId(t), 10);
+            if (!id || !(id in parentOf || Object.values(parentOf).includes(id))) return;
+            const key = parentOf[id] || id;
+            (groups[key] = groups[key] || []).push(t);
+        });
+        Object.entries(groups).forEach(([key, members]) => {
+            members = members.filter(t => !t.classList.contains('s34-bl-hidden'));
+            if (members.length < 2) return;
+            const [first, ...rest] = members;
+            if (first.querySelector('.s34-var-badge')) return;
+            rest.forEach(t => t.classList.add('s34-var-hidden'));
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 's34-var-badge';
+            b.textContent = '+' + rest.length + (rest.length === 1 ? ' version' : ' versions');
+            b.title = 'Other versions of this picture – click to show them';
+            b.addEventListener('click', e => {
+                e.preventDefault(); e.stopPropagation();
+                const open = !first.classList.toggle('s34-var-open') ? false : true;
+                rest.forEach(t => t.classList.toggle('s34-var-open', open));
+                b.textContent = open ? 'Hide versions' : '+' + rest.length + (rest.length === 1 ? ' version' : ' versions');
+            });
+            first.appendChild(b);
+        });
+    }
+    onReady(() => setTimeout(() => { try { groupVariants(Array.from(document.querySelectorAll('.image-list span.thumb'))); } catch (e) {} }, 300));
+
     // A newly loaded page: set up only its thumbnails, not every one again
     function enhanceThumbs(thumbs) {
         removeTagTooltips(thumbs);
@@ -184,5 +277,6 @@
         showCollectionChips(thumbs);
         setupHoverInfo(thumbs);
         markFeedNew(thumbs); // Following feed: NEW on later pages too
+        groupVariants(thumbs).catch(() => {});
     }
 

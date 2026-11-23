@@ -5,7 +5,13 @@
     //  sidebar is not affected. Enter still searches.
     // =====================================================================
 
+    // (Beta 3.9.3) Steamy34's search box only where you search for posts. On
+    // Tags (and other lists) the "tags" field searches tag names - the bubbles
+    // and pinned filters (e.g. 1080p+) made it find nothing there.
+    const POST_SEARCH_PAGE = ['', 'post', 'favorites', 'pool'].includes((params.get('page') || '').toLowerCase());
+
     function setupMultilineSearch() {
+        if (!POST_SEARCH_PAGE) return;
         const input = document.querySelector(
             '.tag-search input[name="tags"], .sidebar input[name="tags"], input[name="tags"][type="text"], input[name="tags"]:not([type])'
         );
@@ -245,6 +251,7 @@
     })();
 
     function setupChipSearch() {
+        if (!POST_SEARCH_PAGE) return;
         const input = document.querySelector(
             '.tag-search input[name="tags"], .sidebar input[name="tags"], input[name="tags"][type="text"], input[name="tags"]:not([type])'
         );

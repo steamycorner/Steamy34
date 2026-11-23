@@ -2,7 +2,7 @@
     // Shown once after installing (or updating to a version with new tips);
     // reopen it any time with the "?" in the popup or in the settings.
     const TIPS_KEY = 'steamy34_tips_seen';
-    const TIPS_VERSION = 10; // raise this when the tips get new entries -> shown once more
+    const TIPS_VERSION = 11; // raise this when the tips get new entries -> shown once more
 
     const MOUSE_MIDDLE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6" /><rect x="10.6" y="5.5" width="2.8" height="4.5" rx="1.4" fill="currentColor" stroke="none"/></svg>';
 
@@ -38,7 +38,7 @@
             [`${k('⬇ Batch download')}`, 'Tick posts (or "Select all new"), then download them – a panel shows progress with Pause / Cancel – or add them to a collection'],
             [`${k('Collections')} · ${k('Stats')}`, 'Your own folders · your top artists, characters & series'],
             [`${k(BELL_SVG.replace('width="16" height="16"', 'width="13" height="13"') + ' Following')}`, `${nu}Everything you follow, each with a count of its new posts – click one for their newest posts in the Following window. The bell next to an artist in a post follows them`],
-            [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted'],
+            [`${k('Blacklist')}`, 'See, sort and edit everything you blacklisted – click a tag to blur its posts instead of hiding them'],
             [`${k('Solve')}`, `${nu}A Cloudflare check came up (the pulsing notice at the bottom): Solve, tick the box – nothing new loads until it's done`],
             [`${k('⚙ Settings')}`, 'Every option, plus backup and what is stored on your device'],
             [`${k('Choose folder…')}`, `${nu}Settings → Downloads: save straight into any folder, e.g. Eagle's watch folder (computer)`]
@@ -203,6 +203,34 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.10', date: '2026-11-23', notify: true, items: [
+            'Blacklist: blur instead of hide, per tag. Click a tag in the Blacklist window → "Blur them, with Show". Its posts show blurred with the tag named and a Show button; a post with any other blacklisted tag still stays hidden.',
+            'Collections: choose a cover (★ on a post), sort the posts (your own order, date added or post number), drag them to arrange, and add a note to each collection.'
+        ] },
+        { v: 'Beta 3.9.6', date: '2026-11-23', items: [
+            'Collection button: clicking it again (or pressing C again) closes the little collections list.'
+        ] },
+        { v: 'Beta 3.9.5', date: '2026-11-23', items: [
+            'Similar strip: stays open while you browse and fills with each post\'s similar ones. Shift + ← / → go through the strip, ← / → stay on the page (also from a strip post), the mouse wheel scrolls it sideways.'
+        ] },
+        { v: 'Beta 3.9.4', date: '2026-11-23', items: [
+            'Popup → More → Similar: a filmstrip of posts with the same artist and character along the bottom – click one to see it, ← / → go through the strip.',
+            'Phones: hold a thumbnail for a moment – favourite, download, viewed, collection and Watch later come up as a sheet.',
+            'With your API key: versions of the same picture (parent / child) show as one thumbnail with "+N versions" – click to unfold them.'
+        ] },
+        { v: 'Beta 3.9.3', date: '2026-11-23', items: [
+            'Popup: a "More" row – Find source (SauceNAO), Similar (iqdb) and Upscale (Waifu2x) open in a new tab with the post, and Report sends rule34\'s own report with a reason.',
+            'Videos: frame by frame (⏮ ⏭ or the , and . keys) and A–B – loop just a part of a video.',
+            'Artists, Wiki, Aliases and iCame Top 100 in Steamy34\'s look: calmer tables, a follow bell next to every artist, a leaderboard with medals and bars for iCame (Settings → Look & feel to switch it off).'
+        ] },
+        { v: 'Beta 3.9.2', date: '2026-11-23', items: [
+            'Thumbnails: a collection button next to ♥ / 👁 / ⬇ – amber and always there when the post is in a collection (own switch in Settings → Posts page).',
+            'Popup: when, who and where from as chips – "3 years ago", the uploader, and the source as a button with the site\'s name ("Twitter ↗").',
+            'Popup: an iCame button (rule34\'s own counter, once every 24 hours) and "Later" – your Watch later list, kept in Collections.',
+            'Your favourites page keeps the Posts menu row (My Favorites highlighted) instead of jumping to My Account.',
+            'Downloads: a subfolder per artist (own download folder, Settings → Downloads), and a filter in the Downloads window – artist, character, series or #number.',
+            'Random sort: a "Shuffle again" button, and no post shows up twice while you scroll on.'
+        ] },
         { v: 'Beta 3.9.1', date: '2026-11-23', items: [
             'Blocked stays blocked – the last gaps: posts with a blacklisted tag are hidden on the comments page too ("Show them" if you want), and covered in your Collections and the Downloads window – "Show" on one post, or "Show blacklisted (N)" for all of them, since you saved those yourself.',
             'Mute a tag for a while: in the Blacklist, pick "Mute 24 hours" or "Mute 7 days" next to Add – the tag is hidden until then and comes back by itself.'

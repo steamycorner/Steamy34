@@ -69,6 +69,8 @@
                 <div class="s34-pv-row2">
                     <button type="button" class="s34-pv-fav" data-act="fav"></button>
                     <button type="button" class="s34-pv-collect" data-act="collect" title="Save this post in one of your own collections (${keyLabel(CONFIG.collectKey)})">${FOLDER_SVG}<span>Collection</span></button>
+                    <button type="button" class="s34-pv-later" data-act="later" title="Watch later – a list for posts to look at properly later">${CLOCK_SVG}<span>Later</span></button>
+                    <button type="button" class="s34-pv-icame" data-act="icame" title="iCame – rule34's own counter (once every 24 hours)">${SPLASH_SVG}<span>iCame</span></button>
                 </div>
                 <div class="s34-auto">
                     <button type="button" class="s34-auto-toggle"></button>
@@ -110,6 +112,8 @@
             else if (act === 'fav') popupFavourite();
             else if (act === 'tips') openQuickTips();
             else if (act === 'theater') setTheater(!overlay.classList.contains('s34-pv-theater'));
+            else if (act === 'later') toggleWatchLater();
+            else if (act === 'icame') sendICame(actEl);
             else if (act === 'collect') {
                 const s = popupState;
                 if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
@@ -169,7 +173,9 @@
         const st = popupState;
         if (!st) return;
         const all = [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag)));
-        const hit = st.blockShown ? [] : blockedTagsOf(all);
+        let hit = st.blockShown ? [] : blockedTagsOf(all);
+        // (Beta 3.10) a soft-blocked thumbnail you already uncovered: only other tags cover it
+        if (hit.length && st.thumb && st.thumb.classList.contains('s34-bl-unblur')) { const soft = getSoftTags(); hit = hit.filter(t => !soft.has(t)); }
         const stage = st.overlay.querySelector('.s34-pv-stage');
         const old = stage && stage.querySelector('.s34-blcover');
         if (!hit.length) {
@@ -221,6 +227,7 @@
                 box.appendChild(wrap);
             });
         coverIfBlocked(blockedSet);
+        try { stylePopupExtras(); } catch (e) {}
         if (!popupState.tagsFromPost) {
             const note = document.createElement('div');
             note.className = 's34-pv-note';
@@ -404,6 +411,7 @@
             if (Object.keys(tags).length) {
                 popupState.tags = tags;
                 popupState.tagsFromPost = true;
+                if (!popupState.fromStrip) openSimilarStrip(true); // Similar open: this post's similar ones
             }
             renderPopupTags();
         });
@@ -457,7 +465,10 @@
     function popupStep(dir) {
         if (!popupState) return;
         const list = visibleThumbs();
-        const i = list.indexOf(popupState.thumb);
+        let i = list.indexOf(popupState.thumb);
+        // a post from the Similar strip: go on from the page post you left
+        if (i < 0) { const strip = popupState.overlay.querySelector('.s34-pv-strip'); if (strip && strip._from) i = list.indexOf(strip._from); }
+        if (i < 0) return;
         const target = list[i + dir];
         if (target) {
             openPopup(target);
@@ -561,6 +572,7 @@
         if (document.querySelector('.s34-follow-menu')) return; // "Follow which artist?" handles its own keys
         if (e.key === 'Escape') { e.preventDefault(); closePopup(); return; }
         if (e.ctrlKey || e.metaKey || e.altKey) return;          // Ctrl+D etc. stay the browser's
+        if (similarStripStep(e)) { e.preventDefault(); return; } // Shift + ← / →: through the Similar strip
         const dir = browseDirection(e);
         if (dir) { e.preventDefault(); popupStep(dir); return; }
         if (e.code === CONFIG.downloadKey || e.repeat) return;    // the download key wins

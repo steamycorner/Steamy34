@@ -216,6 +216,42 @@
         .s34-cm-more:hover { border-color: #ff5f8f !important; }
         .s34-cm-more:disabled { opacity: .6; cursor: progress; }
 
+        /* (Beta 3.9.2) Info as chips: when, who, where from */
+        .s34-pv-chips2 { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .s34-pv-chip2 { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; border: 1px solid rgba(255,255,255,.12) !important;
+            background: rgba(255,255,255,.05) !important; color: #dcdce4 !important; font: 500 12px/1.4 system-ui, sans-serif; text-decoration: none !important; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        a.s34-pv-chip2:hover { border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-pv-source { font-weight: 700; }
+        /* (Beta 3.9.2) Favourite · Collection / Later · iCame: two even rows */
+        .s34-pv-row2 { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .s34-pv-row2 > button { width: auto !important; min-width: 0; justify-content: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .s34-pv-row2 > button span { overflow: hidden; text-overflow: ellipsis; }
+        /* (Beta 3.9.3) More: Find source · Similar · Upscale · Report */
+        .s34-pv-more { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+        .s34-pv-morebtn { display: flex; align-items: center; justify-content: center; height: 30px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12) !important;
+            background: rgba(255,255,255,.04) !important; color: #cfcfd8 !important; font: 600 12px/1 system-ui, sans-serif; text-decoration: none !important; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; }
+        .s34-pv-morebtn:hover { border-color: #ff5f8f !important; color: #fff !important; }
+        .s34-pv-report:hover { border-color: #ff6b6b !important; }
+        .s34-report-why { width: 100%; box-sizing: border-box; margin: 4px 0 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid #3a3a44 !important; background: #121216 !important; color: #eee !important; font: 14px system-ui, sans-serif; resize: vertical; }
+        /* (Beta 3.9.4) Similar: a filmstrip along the bottom of the picture */
+        .s34-pv-strip { position: sticky; bottom: 0; z-index: 6; margin-top: -132px; height: 132px; box-sizing: border-box; padding: 8px 10px; background: linear-gradient(to top, rgba(10,10,14,.96), rgba(10,10,14,.82)) !important; border-top: 1px solid rgba(255,255,255,.12); }
+        .s34-pv-strip-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font: 600 12px system-ui, sans-serif; color: #dcdce4; }
+        .s34-pv-strip-head b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .s34-pv-strip-keys { flex: none; font-weight: 500; font-size: 11px; color: #9a9aa6; }
+        @media (max-width: 700px) { .s34-pv-strip-keys { display: none; } }
+        .s34-pv-strip-head button { border: none !important; background: none !important; color: #ccc !important; cursor: pointer; font-size: 14px; }
+        .s34-pv-strip-row { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; height: 90px; align-items: center; scrollbar-width: thin; overscroll-behavior: contain; }
+        .s34-pv-strip-item { flex: none; height: 86px; width: 86px; padding: 0 !important; border-radius: 8px; overflow: hidden; border: 2px solid transparent !important; background: #1b1b20 !important; cursor: pointer; }
+        .s34-pv-strip-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .s34-pv-strip-item:hover, .s34-pv-strip-item.s34-on { border-color: #ff5f8f !important; }
+        .s34-pv-strip-wait { color: #aaa; font-size: 12px; }
+        /* Later / iCame next to Collection */
+        .s34-pv-later.s34-on { border-color: #8ab4f8 !important; color: #cfe0ff !important; }
+        .s34-pv-icame svg { width: 17px; height: 17px; }
+        .s34-pv-icame.s34-on { color: #9fd8ff !important; border-color: rgba(159,216,255,.6) !important; }
+        .s34-pv-icame.s34-pop svg { animation: s34-splash .6s ease-out; }
+        @keyframes s34-splash { 0% { transform: scale(1); } 35% { transform: scale(1.45) rotate(-8deg); } 100% { transform: scale(1); } }
+
         /* Popup: zoom */
         .s34-pv-overlay { grid-template-rows: minmax(0, 1fr); }
         .s34-pv-stage img.s34-pv-media:not(.s34-pv-placeholder) { cursor: zoom-in; }

@@ -117,7 +117,7 @@
             artist: names('artist')
         };
         const filename = buildFilename(url, tags, readPostSize(doc), postIdFrom(a.href));
-        const ok = await saveUrlAs(url, filename, a.href);
+        const ok = await saveUrlAs(url, filename, a.href, { artist: (tags.artist || [])[0] });
         const img = thumb.querySelector('img');
         if (ok) rememberDownload(thumbPostId(thumb), { thumb: img ? img.getAttribute('src') : '', tags });
         return ok;
@@ -288,6 +288,40 @@
             if (v) { v.defaultPlaybackRate = r; v.playbackRate = r; }
             sel.blur();
         });
+        // (Beta 3.9.3) Frame by frame (also , and . keys) and a loop between two points (A–B)
+        const tools = document.createElement('div');
+        tools.className = 's34-vopt-tools';
+        tools.innerHTML = '<button type="button" data-v="back" title="One frame back (,)">⏮</button><button type="button" data-v="fwd" title="One frame on (.)">⏭</button><button type="button" data-v="ab" title="Loop a part: click at the start, click at the end, click again to stop">A–B</button>';
+        const ab = { a: null, b: null };
+        const abBtn = tools.querySelector('[data-v="ab"]');
+        const showAb = () => {
+            abBtn.textContent = ab.a == null ? 'A–B' : ab.b == null ? 'A ' + ab.a.toFixed(1) + 's – B?' : 'A–B ' + ab.a.toFixed(1) + '–' + ab.b.toFixed(1) + 's';
+            abBtn.classList.toggle('s34-on', ab.a != null);
+        };
+        const step = dir => { const v = getVideo(); if (!v) return; v.pause(); v.currentTime = Math.max(0, Math.min((v.duration || 1e9), v.currentTime + dir / 30)); };
+        tools.addEventListener('click', e => {
+            const b = e.target.closest('[data-v]');
+            if (!b) return;
+            const v = getVideo();
+            if (b.dataset.v === 'back') step(-1);
+            else if (b.dataset.v === 'fwd') step(1);
+            else if (v) {
+                if (ab.a == null) ab.a = v.currentTime;
+                else if (ab.b == null) { ab.b = Math.max(ab.a + 0.2, v.currentTime); v.currentTime = ab.a; v.play().catch(() => {}); }
+                else { ab.a = ab.b = null; }
+                showAb();
+            }
+        });
+        const keepLoop = () => { const v = getVideo(); if (v && ab.a != null && ab.b != null && v.currentTime >= ab.b) v.currentTime = ab.a; };
+        setInterval(() => { if (box.isConnected) keepLoop(); }, 100);
+        document.addEventListener('keydown', e => {
+            if (!box.isConnected || !getVideo() || e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+            if (e.key === ',') { e.preventDefault(); step(-1); }
+            else if (e.key === '.') { e.preventDefault(); step(1); }
+        }, true);
+        showAb();
+        box.appendChild(tools);
         showLoop();
         return box;
     }
@@ -502,6 +536,7 @@
         ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
         ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
+        ['steamy34_bl_soft', 'Blurred blacklist tags', 'Blacklisted tags whose posts are blurred with a Show button instead of hidden', []],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],
         ['steamy34_auto', 'Auto next timer', 'Seconds per post for "Auto next"', {}],
         ['steamy34_theater', 'Theater mode', 'Whether the popup opens without its sidebar', false],

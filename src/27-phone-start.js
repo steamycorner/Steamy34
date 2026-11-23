@@ -183,6 +183,7 @@
         addFavButtons();
         setupFavouritesPage(); // your favourites page: every ♥ filled, ♥ removes (the site's Remove links step aside)
         setupCollectionsSync(); // collections on all devices (opt-in): "Favourites & Collections", background checks
+        setupThumbLongPress();  // phones: hold a thumbnail for its buttons (Beta 3.9.4)
         setupHoverInfo();
         learnTagTypes(document); // remember tag types from this page's tag list
         if (isPostView) {

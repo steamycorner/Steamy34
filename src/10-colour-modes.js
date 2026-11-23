@@ -116,6 +116,7 @@
     const THEME_FIX_CSS = {
         white: `
             html.s34-theme-white #navbar li a:hover, html.s34-theme-white #subnavbar li a:hover { color: #1d1f24 !important; }
+            html.s34-theme-white #subnavbar li.s34-sub-current a { color: #1d1f24 !important; }
             html.s34-theme-white .s34-cm-user, html.s34-theme-white .s34-cm-head h3,
             html.s34-theme-white .s34-auto-sec, html.s34-theme-white .s34-tipslink button:hover { color: #1d1f24 !important; }
             html.s34-theme-white .s34-set-head h2, html.s34-theme-white .s34-set-nav nav button:hover,

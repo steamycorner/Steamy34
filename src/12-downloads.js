@@ -544,7 +544,8 @@
 
     let folderAskShown = false;
 
-    async function saveUrlAs(url, filename, referer) {
+    // (Beta 3.9.2) opts.artist: with "A subfolder per artist", files go into folder / artist /
+    async function saveUrlAs(url, filename, referer, opts = {}) {
         const video = /\.(mp4|webm|mkv|mov)(\?|$)/i.test(url);
         const timeout = video ? DL_BIG_TIMEOUT_MS : DL_TIMEOUT_MS;
         const folder = await getFolderHandle().catch(() => null);
@@ -554,7 +555,12 @@
                 const blob = await fetchBlob(url, referer, timeout);
                 if (!blob) return false;
                 try {
-                    const name = await writeToFolder(folder, filename, blob);
+                    let dir = folder;
+                    if (CONFIG.dlArtistFolders) {
+                        const sub = String(opts.artist || 'unknown artist').replace(/_/g, ' ').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'unknown artist';
+                        dir = await folder.getDirectoryHandle(sub, { create: true });
+                    }
+                    const name = await writeToFolder(dir, filename, blob);
                     console.log('[Steamy34] Saved into folder "' + folder.name + '":', name);
                     return true;
                 } catch (e) {
@@ -727,7 +733,7 @@
         console.log('[Steamy34] Downloading:', url, '→', filename);
 
         // Same saving as batch downloads: time limit, big files via the downloader
-        const ok = await saveUrlAs(url, filename, location.href);
+        const ok = await saveUrlAs(url, filename, location.href, { artist: ((historyInfo.tags || {}).artist || [])[0] });
         if (ok) {
             rememberDownload(id, historyInfo);
             console.log('[Steamy34] Download complete:', filename);

@@ -64,6 +64,8 @@
         .s34-tbtn:hover { opacity: 1 !important; transform: scale(1.12); }
         .s34-tdl.s34-on { background-color: rgba(31,122,62,0.92) !important; }
         .s34-tseen.s34-on { background-color: rgba(52,98,196,0.92) !important; }
+        .s34-tcoll.s34-on { background-color: rgba(201,138,26,0.92) !important; }
+        .s34-tcoll:not(.s34-on):hover { color: #ffd27a !important; }
         .s34-tdl:not(.s34-on):hover { color: #6ee7a8 !important; }
         .s34-tseen:not(.s34-on):hover { color: #8ab4f8 !important; }
         .s34-tbtn svg { display: block; pointer-events: none; }
@@ -310,7 +312,7 @@
         .s34-batch button:disabled { opacity: .45; cursor: default; }
 
         /* Video options (popup and single post) */
-        .s34-vopts { display: flex; gap: 6px; align-items: center; }
+        .s34-vopts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .s34-vopts[hidden], .s34-pv-vopts[hidden] { display: none !important; }
         .s34-vopts button, .s34-vopts select {
             height: 28px;
@@ -321,7 +323,7 @@
             border: 1px solid #3a3a44 !important;
             color: #e8e8ec !important;
         }
-        .s34-vopts button { flex: 1; padding: 0 8px !important; }
+        .s34-vopts button { flex: 1; padding: 0 8px !important; white-space: nowrap; }
         .s34-vopts button.s34-on { border-color: #3a6fd4 !important; }
         .s34-vopt-speed { display: flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; }
         .s34-vopt-speed select { padding: 0 4px !important; }

@@ -62,6 +62,33 @@
     // (Beta 3.9.1) Muted tags: hidden like blacklisted ones, but only until a
     // time - then they come back by themselves. Steamy34 hides them itself
     // (they never go into rule34's cookie).
+    // (Beta 3.10) Soft block: blacklisted tags you'd rather see blurred (with
+    // a Show button) than hidden. A post is only blurred when ALL its
+    // blacklisted tags are soft ones - any other one still hides it.
+    const SOFT_KEY = 'steamy34_bl_soft';
+    let softCache = null, softAt = 0;
+    function getSoftTags() {
+        if (softCache && Date.now() - softAt < 2000) return softCache;
+        let v = [];
+        try { v = GM_getValue(SOFT_KEY, []); } catch (e) {}
+        softCache = new Set(Array.isArray(v) ? v.map(t => unescapeHtml(String(t)).toLowerCase()) : []);
+        softAt = Date.now();
+        return softCache;
+    }
+    function setSoftTag(tag, on) {
+        const s = new Set(getSoftTags());
+        const k = unescapeHtml(String(tag)).toLowerCase();
+        if (on) s.add(k); else s.delete(k);
+        try { GM_setValue(SOFT_KEY, Array.from(s)); } catch (e) {}
+        softCache = s; softAt = Date.now();
+    }
+    // the blacklisted tags a post has, and whether they only blur it
+    function blockModeOf(hit, mutes) {
+        if (!hit.length) return '';
+        const soft = getSoftTags(), m = mutes || getMutes();
+        return hit.every(t => soft.has(t) && !(t in m)) ? 'soft' : 'hide';
+    }
+
     const MUTE_KEY = 'steamy34_muted';
     function getMutes() {
         let m = {};

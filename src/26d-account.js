@@ -30,6 +30,165 @@
     };
     const accIcon = name => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACC_SVG[name] || ACC_SVG.link}</svg>`;
 
+    // ---- (Beta 3.9.3) rule34's other pages in Steamy34's look ----
+    // Artists, Wiki, Aliases, iCame Top 100: calmer tables in the colour mode's
+    // own colours (so White / Dark / OLED all work), plus a few helpers. Every
+    // site link and form stays as it is. Setting sitePages.
+    const SITE_PAGE = (params.get('page') || '').toLowerCase();
+    if (CONFIG.sitePages && ['artist', 'wiki', 'alias', 'icame'].includes(SITE_PAGE) && !isPhoneLayout()) {
+        document.documentElement.classList.add('s34-pg', 's34-pg-' + SITE_PAGE);
+        const st = document.createElement('style');
+        st.id = 's34-site-pages';
+        st.textContent = `
+            html.s34-pg table.highlightable { border-collapse: separate !important; border-spacing: 0 6px !important; width: 100% !important; max-width: 1100px; }
+            html.s34-pg table.highlightable tr.tableheader th, html.s34-pg table.highlightable thead th { text-align: left; padding: 4px 14px !important; font: 600 11px/1.2 system-ui, sans-serif; text-transform: uppercase; letter-spacing: 1px; color: var(--s34-muted, #999) !important; background: none !important; border: 0 !important; }
+            html.s34-pg table.highlightable tr:not(.tableheader) td { padding: 10px 14px !important; background: var(--s34-panel, #1c1c20) !important; border-top: 1px solid var(--s34-border, #33333b) !important; border-bottom: 1px solid var(--s34-border, #33333b) !important; vertical-align: middle; }
+            html.s34-pg table.highlightable tr:not(.tableheader) td:first-child { border-left: 1px solid var(--s34-border, #33333b) !important; border-radius: 10px 0 0 10px; }
+            html.s34-pg table.highlightable tr:not(.tableheader) td:last-child { border-right: 1px solid var(--s34-border, #33333b) !important; border-radius: 0 10px 10px 0; }
+            html.s34-pg table.highlightable tr:not(.tableheader):hover td { background: var(--s34-panel-2, #24242a) !important; }
+            html.s34-pg table.highlightable a { text-decoration: none !important; }
+            html.s34-pg-artist table.highlightable td:nth-child(2) a { font-size: 15px; font-weight: 700; }
+            html.s34-pg-artist table.highlightable td:first-child { width: 96px; white-space: nowrap; }
+            html.s34-pg-artist table.highlightable td:first-child a, html.s34-pg-artist .s34-pg-off { display: inline-block; min-width: 18px; margin-right: 3px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--s34-border, #33333b); font-size: 11px; text-align: center; }
+            html.s34-pg-artist .s34-pg-off { opacity: .35; cursor: default; }
+            html.s34-pg-artist .s34-pg-bell { margin-left: 8px; vertical-align: middle; }
+            html.s34-pg-alias table.highlightable td:first-child::after { content: '→'; float: right; opacity: .5; font-weight: 700; }
+            html.s34-pg-alias table.highlightable td:nth-child(3) { color: var(--s34-muted, #999) !important; font-style: italic; }
+            html.s34-pg-alias details.s34-pg-add { margin: 14px 0; max-width: 1100px; }
+            html.s34-pg-alias details.s34-pg-add summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+            html.s34-pg-wiki table.highlightable td h3 { margin: 0; display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; border: 1px solid var(--s34-border, #33333b); color: var(--s34-muted, #999); }
+            html.s34-pg-wiki table.highlightable td:nth-child(2) > a { font-size: 15px; font-weight: 700; }
+            html.s34-pg-icame table.highlightable tr td { font-size: 14px; }
+            html.s34-pg-icame table.highlightable tr td:first-child { width: 64px; text-align: center; font-weight: 800; }
+            html.s34-pg-icame table.highlightable tr.s34-medal-1 td:first-child::before { content: '🥇 '; }
+            html.s34-pg-icame table.highlightable tr.s34-medal-2 td:first-child::before { content: '🥈 '; }
+            html.s34-pg-icame table.highlightable tr.s34-medal-3 td:first-child::before { content: '🥉 '; }
+            html.s34-pg-icame table.highlightable td.s34-ic-count { position: relative; min-width: 200px; font-weight: 700; }
+            html.s34-pg-icame td.s34-ic-count .s34-ic-bar { display: block; height: 6px; margin-top: 5px; border-radius: 99px; background: linear-gradient(90deg, #ff5f8f, #8b3dff); width: var(--p, 0%); }
+            html.s34-pg-icame h1 .s34-ic-icon svg { width: 26px; height: 26px; vertical-align: -3px; margin-right: 8px; }
+        `;
+        (document.head || document.documentElement).appendChild(st);
+        onReady(() => setTimeout(() => {
+            try {
+                if (SITE_PAGE === 'artist') {
+                    // rule34 writes "P" as plain text when an artist has no posts - same shape, greyed
+                    document.querySelectorAll('table.highlightable tr[id^="artist-"] td:first-child').forEach(td => {
+                        Array.from(td.childNodes).forEach(n => {
+                            if (n.nodeType !== 3 || !n.textContent.trim()) return;
+                            const sp = document.createElement('span');
+                            sp.className = 's34-pg-off';
+                            sp.textContent = n.textContent.trim();
+                            sp.title = 'No posts yet';
+                            n.replaceWith(sp);
+                        });
+                    });
+                    // a follow bell next to every artist
+                    const following = CONFIG.followButtons ? getFollowing() : null;
+                    if (following) document.querySelectorAll('table.highlightable tr[id^="artist-"] td:nth-child(2) a').forEach(a => {
+                        const tag = a.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+                        if (!tag || a.parentElement.querySelector('.s34-pg-bell')) return;
+                        const b = makeFollowButton(tag, 's34-chip-follow s34-pg-bell', following);
+                        a.after(b);
+                    });
+                }
+                if (SITE_PAGE === 'alias') {
+                    // the "Add Alias" form folded away
+                    const head = Array.from(document.querySelectorAll('#content h2, #content h3, #content h4, #content h5')).find(h => /add alias/i.test(h.textContent));
+                    const form = head && (head.nextElementSibling && head.nextElementSibling.tagName === 'FORM' ? head.nextElementSibling : head.parentElement.querySelector('form:not([action*="search"])'));
+                    if (head && form) {
+                        const det = document.createElement('details');
+                        det.className = 's34-pg-add';
+                        det.innerHTML = '<summary>+ Suggest an alias</summary>';
+                        head.before(det);
+                        det.append(head, form);
+                    }
+                }
+                if (SITE_PAGE === 'icame') {
+                    const h1 = document.querySelector('h1');
+                    if (h1 && !h1.querySelector('.s34-ic-icon')) h1.insertAdjacentHTML('afterbegin', '<span class="s34-ic-icon">' + SPLASH_SVG + '</span>');
+                    const rows = Array.from(document.querySelectorAll('table.highlightable tbody tr')).filter(r => r.cells.length >= 3);
+                    const num = r => parseInt(String(r.cells[r.cells.length - 1].textContent).replace(/[^0-9]/g, ''), 10) || 0;
+                    const max = Math.max(1, ...rows.map(num));
+                    rows.forEach((r, i) => {
+                        if (i < 3) r.classList.add('s34-medal-' + (i + 1));
+                        const cell = r.cells[r.cells.length - 1];
+                        cell.classList.add('s34-ic-count');
+                        if (!cell.querySelector('.s34-ic-bar')) {
+                            const bar = document.createElement('span');
+                            bar.className = 's34-ic-bar';
+                            bar.style.setProperty('--p', Math.round(num(r) / max * 100) + '%');
+                            cell.appendChild(bar);
+                        }
+                        // the character: a click searches its posts
+                        const name = r.cells[1];
+                        if (name && !name.querySelector('a')) {
+                            const t = name.textContent.trim();
+                            if (t) { const a = document.createElement('a'); a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(t.replace(/\s+/g, '_')); a.textContent = t; name.replaceChildren(a); }
+                        }
+                    });
+                }
+            } catch (e) { console.warn('[Steamy34] Page look:', e); }
+        }, 0));
+    }
+
+    // ---- (Beta 3.9.2) The top menu stays put on your favourites ----
+    // rule34 switches to the "My Account" tab there, so the Posts row (Video,
+    // Upload, … My Favorites, Random …) disappears. Steamy34 keeps the Posts
+    // tab and its row, with My Favorites highlighted. The row is remembered
+    // from the last posts page (it has your own favourites link).
+    const POSTS_ROW_KEY = 'steamy34_posts_row';
+    function rememberPostsRow() {
+        const sub = document.querySelector('#subnavbar');
+        if (!sub || params.get('page') !== 'post' || !sub.querySelector('a[href*="page=favorites"]')) return;
+        try { GM_setValue(POSTS_ROW_KEY, sub.innerHTML); } catch (e) {}
+    }
+    function keepPostsMenuOnFavourites() {
+        if (params.get('page') !== 'favorites') return;
+        const nav = document.querySelector('#navbar');
+        if (!nav) return;
+        let sub = document.querySelector('#subnavbar');
+        if (!sub) {
+            // (rule34's favourites page has no second row at all)
+            sub = document.createElement('ul');
+            sub.className = 'flat-list';
+            sub.id = 'subnavbar';
+            nav.after(sub);
+        }
+        let row = '';
+        try { row = GM_getValue(POSTS_ROW_KEY, ''); } catch (e) {}
+        if (!row) return;
+        const postsLi = Array.from(nav.querySelectorAll('li')).find(li => li.querySelector('a[href*="page=post"][href*="s=list"]'));
+        if (!postsLi) return;
+        nav.querySelectorAll('li.current-page').forEach(li => li.classList.remove('current-page'));
+        postsLi.classList.add('current-page');
+        sub.innerHTML = row;
+        const fav = sub.querySelector('a[href*="page=favorites"]');
+        if (fav) fav.closest('li').classList.add('s34-sub-current');
+    }
+    // The page you're on, marked in the second row (rule34 doesn't): the link
+    // whose page / s (and tags, if it has any) match this address
+    function markCurrentSubnav() {
+        const sub = document.querySelector('#subnavbar');
+        if (!sub) return;
+        const here = new URL(location.href);
+        const want = k => (here.searchParams.get(k) || '').toLowerCase();
+        let best = null, bestScore = 0;
+        sub.querySelectorAll('li a[href]').forEach(a => {
+            let u;
+            try { u = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+            if (u.origin !== here.origin) return;
+            const page = (u.searchParams.get('page') || '').toLowerCase(), s = (u.searchParams.get('s') || '').toLowerCase(), tags = (u.searchParams.get('tags') || '').toLowerCase();
+            if (!page || page !== want('page')) return;
+            if (s && s !== want('s')) return;
+            if (tags && tags !== want('tags').trim()) return;
+            const score = 1 + (s ? 1 : 0) + (tags ? 1 : 0);
+            if (score > bestScore) { best = a; bestScore = score; }
+        });
+        if (best && bestScore > 1) best.closest('li').classList.add('s34-sub-current');
+    }
+    onReady(() => { try { rememberPostsRow(); keepPostsMenuOnFavourites(); markCurrentSubnav(); } catch (e) {} });
+    window.addEventListener('load', () => setTimeout(() => document.documentElement.classList.add('s34-nav-ready'), 50));
+
     // ---- rule34's own cookies, written the way the site writes them ----
     function readSiteCookie(name) {
         const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
