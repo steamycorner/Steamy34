@@ -6,9 +6,9 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 
 > **About the code.** Steamy34 is designed by steamycorner, a designer (web design, corporate identity, 3D) rather than a programmer. The code is written with AI (Claude), and bug fixes are made the same way, so mistakes are possible. Each version is tested before release. Problems can be reported on Discord or in the Feedback tab.
 
-> **New in Beta 3.9: blocked stays blocked – everywhere.** Steamy34 now checks every post against your whole blacklist itself: on every list, while scrolling, in the popup, on the comments page, in your Collections and the Downloads window. A blacklisted post you open anyway is covered ("Show anyway" if you really want to). Tags can be **muted** for 24 hours or 7 days. Backups now **combine**, so two devices stay in step. Plus: the Cloudflare check is explained right where it appears, and empty pages say what's going on.
+> **New in Beta 3.10: blur instead of hide, and better collections.** Any blacklisted tag can now **blur** its posts instead of hiding them: the tag is named and a **Show** button uncovers the post. A post with any other blacklisted tag still stays hidden. Collections get a **cover**, **sorting**, **drag to arrange** and a **note**. Plus: a **Similar** strip in the popup (more from the same artist and character, Shift + ← / → to go through it), buttons on phones by **holding a thumbnail**, and versions of the same picture grouped into one (with your API key).
 
-> **Since Beta 3.8:** collections on all your devices (optional), download and viewed buttons on the thumbnails, a Downloads window, Steamy34 Settings in rule34's top menu, long comic strips that fit the width. **Since 3.7:** blacklists as long as you like, saved searches, an optional API key for fewer Cloudflare checks.
+> **Since Beta 3.9:** blocked stays blocked everywhere (lists, popup, comments, Collections, Downloads), tags **muted** for 24 hours or 7 days, backups that **combine**, Watch later, iCame in the popup, Find source / Upscale / Report, download subfolders per artist, calmer Artists, Wiki, Aliases and iCame pages. **Since 3.8:** collections on all your devices (optional), download and viewed buttons on the thumbnails, a Downloads window. **Since 3.7:** blacklists as long as you like, saved searches, an optional API key for fewer Cloudflare checks.
 
 ## Features
 
@@ -25,6 +25,7 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - Popup viewer: open posts without leaving the page, browse with ← / → or WASD (at the end of the list the next page loads by itself), F / C / T for favourite, collection and theater mode, L to follow the artist, close with Esc or a middle click
 - Comments (all of them, with "More comments"), votes, favourites, post info and parent / child / pool links inside the popup
 - ♥ favourites both ways: ♥ again removes a favourite (with Undo) – on thumbnails, in the popup and right on your favourites page
+- **Similar** strip in the popup: more posts from the same artist and character, Shift + ← / → to go through it while ← / → stay on the page
 - Slideshow (auto next post) with a timer, theater mode, zoom and video options
 - Hover previews: videos play and score / resolution show when you hover a thumbnail
 - Post pages: a click on the picture shows it at its real size; long comic strips fit the width and read from the top
@@ -46,11 +47,13 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - Your account keeps a copy: tags not on it yet are marked, and Save on Options puts the list there
 - **Blocked stays blocked:** Steamy34 checks every post against your whole blacklist itself – on every list, while scrolling, in the popup and the Following window. A blacklisted post you open anyway is covered ("Show anyway" if you really want to)
 - **Mute for a while:** hide a tag for 24 hours or 7 days – it comes back by itself
+- **Blur instead of hide**, per tag: its posts show blurred with the tag named and a Show button (any other blacklisted tag still hides the post)
 
 **Organising**
 - Download and viewed buttons on the thumbnails: green = downloaded, blue = viewed. Hover the eye to mark a post as viewed – or as downloaded without downloading it. Every thumbnail item has its own switch
 - Hides viewed or downloaded posts if you like
 - Collections: your own folders of posts – optionally on all your devices (their posts are favourited too, so they're on your phone)
+- Collection tools: pick a cover, sort the posts or drag them into your own order, add a note
 - Your favourites page: mark all as viewed or downloaded, or select posts to download, put into a collection or unfavourite in one go
 - A Downloads window with every post you downloaded, newest first
 - Your stats: top artists, characters and series you've downloaded
