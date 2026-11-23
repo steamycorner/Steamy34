@@ -70,9 +70,11 @@
     function accountDiff(list) {
         const acc = getAccountBlacklist();
         if (!acc) return null;
-        const here = new Set(list.map(t => t.toLowerCase()));
-        const there = new Set(acc.tags.map(t => t.toLowerCase()));
-        return { add: list.filter(t => !there.has(t.toLowerCase())), gone: acc.tags.filter(t => !here.has(t.toLowerCase())) };
+        // (both compared as real names - "&#039;" or ' makes no difference)
+        const key = t => unescapeHtml(String(t)).toLowerCase();
+        const here = new Set(list.map(key));
+        const there = new Set(acc.tags.map(key));
+        return { add: list.filter(t => !there.has(key(t))), gone: acc.tags.filter(t => !here.has(key(t))) };
     }
 
     // ---- The blacklist panel ----

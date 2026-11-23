@@ -40,7 +40,7 @@
         if (blFullCache && Date.now() - blFullAt < 2000) return blFullCache;
         let v = null;
         try { v = GM_getValue(BL_FULL_KEY, null); } catch (e) {}
-        blFullCache = Array.isArray(v) ? v.filter(t => typeof t === 'string' && t) : [];
+        blFullCache = Array.isArray(v) ? v.filter(t => typeof t === 'string' && t).map(unescapeHtml) : [];
         blFullAt = Date.now();
         return blFullCache;
     }
@@ -135,7 +135,7 @@
         // The full list in Steamy34's storage, what fits into the cookie -
         // in the same format the site itself writes (see readBlocklist)
         const seen = new Set();
-        list = list.filter(t => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
+        list = list.map(t => unescapeHtml(String(t || ''))).filter(t => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
         try { GM_setValue(BL_FULL_KEY, list); blFullCache = list.slice(); blFullAt = Date.now(); } catch (e) {}
         const maxAge = 60 * 60 * 24 * 365 * 5; // 5 years
         document.cookie = `${BL_COOKIE}=${blCookieValue(blCookieFit(list))}; path=/; max-age=${maxAge}; SameSite=Lax`;
@@ -164,6 +164,12 @@
     // list and writes it fresh when it's damaged, missing or out of step.
     let blCookieRepaired = '';
     function repairBlacklistCookie() {
+        let stored = null;
+        try { stored = GM_getValue(BL_FULL_KEY, null); } catch (e) {}
+        if (Array.isArray(stored) && stored.some(t => typeof t === 'string' && /&(#0*39|#x0*27|amp|quot|lt|gt);/i.test(t))) {
+            console.log('[Steamy34] Blacklist: tag names with "&#039;" cleaned up.');
+            writeBlocklist(stored, true); // (writeBlocklist stores the real names)
+        }
         const full = readFullBlocklist();
         if (!full.length) return;
         const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + BL_COOKIE + '=([^;]*)'));

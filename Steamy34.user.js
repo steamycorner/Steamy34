@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.8.3-beta
+// @version      3.8.4-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -6929,7 +6929,7 @@
         if (blFullCache && Date.now() - blFullAt < 2000) return blFullCache;
         let v = null;
         try { v = GM_getValue(BL_FULL_KEY, null); } catch (e) {}
-        blFullCache = Array.isArray(v) ? v.filter(t => typeof t === 'string' && t) : [];
+        blFullCache = Array.isArray(v) ? v.filter(t => typeof t === 'string' && t).map(unescapeHtml) : [];
         blFullAt = Date.now();
         return blFullCache;
     }
@@ -7024,7 +7024,7 @@
         // The full list in Steamy34's storage, what fits into the cookie -
         // in the same format the site itself writes (see readBlocklist)
         const seen = new Set();
-        list = list.filter(t => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
+        list = list.map(t => unescapeHtml(String(t || ''))).filter(t => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
         try { GM_setValue(BL_FULL_KEY, list); blFullCache = list.slice(); blFullAt = Date.now(); } catch (e) {}
         const maxAge = 60 * 60 * 24 * 365 * 5; // 5 years
         document.cookie = `${BL_COOKIE}=${blCookieValue(blCookieFit(list))}; path=/; max-age=${maxAge}; SameSite=Lax`;
@@ -7053,6 +7053,12 @@
     // list and writes it fresh when it's damaged, missing or out of step.
     let blCookieRepaired = '';
     function repairBlacklistCookie() {
+        let stored = null;
+        try { stored = GM_getValue(BL_FULL_KEY, null); } catch (e) {}
+        if (Array.isArray(stored) && stored.some(t => typeof t === 'string' && /&(#0*39|#x0*27|amp|quot|lt|gt);/i.test(t))) {
+            console.log('[Steamy34] Blacklist: tag names with "&#039;" cleaned up.');
+            writeBlocklist(stored, true); // (writeBlocklist stores the real names)
+        }
         const full = readFullBlocklist();
         if (!full.length) return;
         const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + BL_COOKIE + '=([^;]*)'));
@@ -14705,6 +14711,9 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.8.4', date: '2026-11-23', items: [
+            'Fixed: Options kept saying some tags were "not on your account yet" even after Save – tags with an apostrophe that were blacklisted before 3.8.1 were stored in a coded form. They\'re cleaned up by themselves now.'
+        ] },
         { v: 'Beta 3.8.3', date: '2026-11-23', items: [
             'Fixed: searches could suddenly come back empty ("Nobody here but us chickens!") – rule34 now uses your blacklist cookie inside every search, and a damaged cookie (seen after reloading during a Cloudflare check) broke them. Steamy34 now checks the cookie on every page and writes it fresh when needed.'
         ] },
@@ -15479,9 +15488,11 @@
     function accountDiff(list) {
         const acc = getAccountBlacklist();
         if (!acc) return null;
-        const here = new Set(list.map(t => t.toLowerCase()));
-        const there = new Set(acc.tags.map(t => t.toLowerCase()));
-        return { add: list.filter(t => !there.has(t.toLowerCase())), gone: acc.tags.filter(t => !here.has(t.toLowerCase())) };
+        // (both compared as real names - "&#039;" or ' makes no difference)
+        const key = t => unescapeHtml(String(t)).toLowerCase();
+        const here = new Set(list.map(key));
+        const there = new Set(acc.tags.map(key));
+        return { add: list.filter(t => !there.has(key(t))), gone: acc.tags.filter(t => !here.has(key(t))) };
     }
 
     // ---- The blacklist panel ----
