@@ -473,7 +473,7 @@
             bar.innerHTML = `
                 <button type="button" data-a="back">← All collections</button>
                 <select class="s34-coll-sort" title="Order of the posts">
-                    <option value="mine">My order (drag to arrange)</option>
+                    <option value="mine">${thumbButtonsHidden() ? 'My order (hold a post, then drag)' : 'My order (drag to arrange)'}</option>
                     <option value="new">Newest added first</option>
                     <option value="old">Oldest added first</option>
                     <option value="idhi">Post number, high → low</option>
@@ -613,6 +613,71 @@
             const blCount = c.posts.filter(p => hitOf(p).length).length;
             blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; renderOne(id); });
             let dragFrom = null;
+            // move a post (in "My order") to a place in front of index "to"
+            const movePost = (from, to) => {
+                if (from < to) to--;
+                if (to === from) { renderOne(id); return; }
+                const all = getCollections();
+                const col = all.find(x => x.id === id);
+                const [moved] = col.posts.splice(from, 1);
+                col.posts.splice(to, 0, moved);
+                saveCollections(all);
+                renderOne(id);
+            };
+            // (Beta 3.10.1) phones: hold a post for a moment, then drag it with the finger
+            if (sort === 'mine' && shown.length > 1) {
+                let hold = null, drag = null, start = null;
+                const tileList = () => Array.from(tiles.querySelectorAll('.s34-tile'));
+                const clearMarks = () => tiles.querySelectorAll('.s34-drop-before, .s34-drop-after').forEach(x => x.classList.remove('s34-drop-before', 's34-drop-after'));
+                tiles.addEventListener('touchstart', e => {
+                    const tile = e.target.closest('.s34-tile');
+                    if (!tile || e.touches.length !== 1 || e.target.closest('.s34-tile-acts, .s34-tile-blcover')) return;
+                    start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    clearTimeout(hold);
+                    hold = setTimeout(() => {
+                        hold = null;
+                        drag = { from: tileList().indexOf(tile), tile, over: null, after: false };
+                        tile.classList.add('s34-dragging');
+                        try { navigator.vibrate && navigator.vibrate(12); } catch (err) {}
+                    }, 380);
+                }, { passive: true });
+                tiles.addEventListener('touchmove', e => {
+                    const t = e.touches[0];
+                    if (!drag) {
+                        if (hold && start && Math.abs(t.clientX - start.x) + Math.abs(t.clientY - start.y) > 10) { clearTimeout(hold); hold = null; }
+                        return;
+                    }
+                    e.preventDefault(); // (the finger moves the post, not the page)
+                    const el = document.elementFromPoint(t.clientX, t.clientY);
+                    const over = el && el.closest && el.closest('.s34-tile');
+                    clearMarks();
+                    drag.over = over && over !== drag.tile && tiles.contains(over) ? over : null;
+                    if (drag.over) {
+                        const r = drag.over.getBoundingClientRect();
+                        drag.after = t.clientX > r.left + r.width / 2;
+                        drag.over.classList.add(drag.after ? 's34-drop-after' : 's34-drop-before');
+                    }
+                    // near the top / bottom edge: the list scrolls along
+                    const sc = w.body;
+                    const br = sc.getBoundingClientRect();
+                    if (t.clientY < br.top + 60) sc.scrollTop -= 14;
+                    else if (t.clientY > br.bottom - 60) sc.scrollTop += 14;
+                }, { passive: false });
+                const end = e => {
+                    clearTimeout(hold); hold = null;
+                    if (!drag) return;
+                    const d = drag; drag = null;
+                    d.tile.classList.remove('s34-dragging');
+                    clearMarks();
+                    if (e.cancelable) e.preventDefault(); // (no tap on the post afterwards)
+                    tiles._s34NoClick = Date.now();
+                    if (e.type === 'touchend' && d.over) movePost(d.from, tileList().indexOf(d.over) + (d.after ? 1 : 0));
+                };
+                tiles.addEventListener('touchend', end);
+                tiles.addEventListener('touchcancel', end);
+                tiles.addEventListener('click', e => { if (Date.now() - (tiles._s34NoClick || 0) < 600) { e.preventDefault(); e.stopPropagation(); } }, true);
+                tiles.addEventListener('contextmenu', e => { if (e.target.closest('.s34-tile')) e.preventDefault(); });
+            }
             shown.forEach((p, n) => {
                 const tile = document.createElement('div');
                 tile.className = 's34-tile' + (String(c.cover) === String(p.id) ? ' s34-tile-iscover' : '');
@@ -634,17 +699,9 @@
                         if (dragFrom === null) return;
                         e.preventDefault();
                         const after = tile.classList.contains('s34-drop-after');
-                        let to = n + (after ? 1 : 0);
                         const from = dragFrom;
                         dragFrom = null;
-                        if (from < to) to--;
-                        if (to === from) { renderOne(id); return; }
-                        const all = getCollections();
-                        const col = all.find(x => x.id === id);
-                        const [moved] = col.posts.splice(from, 1);
-                        col.posts.splice(to, 0, moved);
-                        saveCollections(all);
-                        renderOne(id);
+                        movePost(from, n + (after ? 1 : 0));
                     });
                 }
                 const link = document.createElement('a');

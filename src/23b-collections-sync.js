@@ -12,6 +12,7 @@
     // only those can be taken out when they go missing from the list.
     const COLLSYNC_ASKED_KEY = 'steamy34_collsync_asked';
     const COLLSYNC_LAST_KEY = 'steamy34_collsync_last';
+    const COLLFAV_FAILED_KEY = 'steamy34_collfav_failed'; // (when adding collection posts to favourites last failed)
     const USER_ID_KEY = 'steamy34_user_id';
     const COLLSYNC_EVERY_MS = 4 * 3600000;
     const COLLSYNC_MAX_PAGES = 80;
@@ -130,16 +131,7 @@
     function toggleWatchLater() {
         const st = popupState;
         if (!st) return;
-        const id = postIdFrom(st.postUrl);
-        const all = getCollections();
-        const c = laterCollection(all);
-        const i = c.posts.findIndex(p => String(p.id) === String(id));
-        if (i >= 0) { c.posts.splice(i, 1); showToast('Taken off Watch later.'); }
-        else {
-            c.posts.unshift({ id, thumb: popupThumbSrc(st), time: Date.now(), tags: [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag))).join(' ') });
-            showToast('On your Watch later list – it\'s in Collections.');
-        }
-        saveCollections(all);
+        toggleLaterFor(postIdFrom(st.postUrl), popupThumbSrc(st), popupTagList(st).join(' '));
         stylePopupExtras();
     }
     // (Beta 3.9.3) A "More" row: Find source (SauceNAO), Similar (iqdb), Upscale
@@ -200,7 +192,7 @@
         const st = popupState;
         if (!st) return;
         const stage = st.overlay.querySelector('.s34-pv-stage');
-        let strip = st.overlay.querySelector('.s34-pv-strip');
+        let strip = st.overlay.querySelector('.s34-pv-simstrip');
         if (strip && !refresh) { strip.remove(); return; } // (a second click closes it)
         if (!strip && refresh) return;
         const pick = type => ((st.tags || {})[type] || []).map(x => x.tag)[0];
@@ -213,7 +205,7 @@
         const q = words.join(' ');
         if (!strip) {
             strip = document.createElement('div');
-            strip.className = 's34-pv-strip';
+            strip.className = 's34-pv-simstrip';
             strip.innerHTML = '<div class="s34-pv-strip-head"><b></b><span class="s34-pv-strip-keys"></span><button type="button" title="Close">✕</button></div><div class="s34-pv-strip-row"></div>';
             strip.querySelector('.s34-pv-strip-keys').textContent = 'Shift + ' + browseKeyText() + ' through the strip · ' + browseKeyText() + ' the page';
             strip.addEventListener('click', e => e.stopPropagation());
@@ -268,6 +260,7 @@
                 try { b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (e) {}
                 openPopup(t);
                 if (popupState) popupState.fromStrip = true; // (the strip stays as it is)
+                if (isPhoneLayout() && popupState) { try { popupState.overlay.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {} }
             });
             rowEl.appendChild(b);
         });
@@ -275,7 +268,7 @@
 
     // Shift + ← / → (or Shift + A / D): the next / previous post in the strip
     function similarStripStep(e) {
-        const strip = popupState && popupState.overlay.querySelector('.s34-pv-strip');
+        const strip = popupState && popupState.overlay.querySelector('.s34-pv-simstrip');
         if (!strip || !e.shiftKey || e.code === CONFIG.downloadKey) return false;
         const mode = CONFIG.browseKeys;
         let dir = 0;
@@ -380,16 +373,22 @@
         if (known.length) markCollectionFavs(known, true);
         const todo = ids.filter(id => !favs[id]);
         if (!todo.length) return;
+        // (Beta 3.11.1) It didn't work a moment ago (not logged in, a Cloudflare
+        // check)? Then not again on every page - in a few hours
+        let failedAt = 0;
+        try { failedAt = GM_getValue(COLLFAV_FAILED_KEY, 0) || 0; } catch (e) {}
+        if (Date.now() - failedAt < 6 * 3600000) return;
         collFavRunning = true;
         showToast(`Adding ${todo.length} collection post${todo.length === 1 ? '' : 's'} to your favourites in the background…`);
         let done = 0;
         for (const id of todo) {
             if (!CONFIG.collectionsSync) break;
             const ok = await addFavourite(id, { quiet: true, kind: 'batch' });
-            if (!ok) break;
+            if (!ok) { try { GM_setValue(COLLFAV_FAILED_KEY, Date.now()); } catch (e) {} break; }
             markCollectionFavs([id], true);
             done++;
         }
+        if (done === todo.length) { try { GM_deleteValue(COLLFAV_FAILED_KEY); } catch (e) {} }
         collFavRunning = false;
         if (done) showToast(`${done} collection post${done === 1 ? ' is' : 's are'} in your favourites now – on all your devices.`);
     }

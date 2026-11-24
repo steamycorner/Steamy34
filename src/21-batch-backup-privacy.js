@@ -313,13 +313,22 @@
             }
         });
         const keepLoop = () => { const v = getVideo(); if (v && ab.a != null && ab.b != null && v.currentTime >= ab.b) v.currentTime = ab.a; };
-        setInterval(() => { if (box.isConnected) keepLoop(); }, 100);
-        document.addEventListener('keydown', e => {
+        const onFrameKey = e => {
             if (!box.isConnected || !getVideo() || e.ctrlKey || e.metaKey || e.altKey) return;
             if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
             if (e.key === ',') { e.preventDefault(); step(-1); }
             else if (e.key === '.') { e.preventDefault(); step(1); }
-        }, true);
+        };
+        document.addEventListener('keydown', onFrameKey, true);
+        // (Beta 3.11.1) the popup builds new video tools each time it opens - once
+        // these are gone, their timer and key listener go too (before, they ran on)
+        let wasShown = false;
+        const loopTimer = setInterval(() => {
+            if (box.isConnected) { wasShown = true; keepLoop(); return; }
+            if (!wasShown) return; // (not on the page yet)
+            clearInterval(loopTimer);
+            document.removeEventListener('keydown', onFrameKey, true);
+        }, 100);
         showAb();
         box.appendChild(tools);
         showLoop();
@@ -354,6 +363,7 @@
             theater: GM_getValue(THEATER_KEY, false) === true,
             blacklist: readBlocklist(),
             blacklistDates: getBlTimes(),
+            blurTags: Array.from(getSoftTags()), // (Beta 3.11.1: "blur instead of hide")
             tagTypes: Object.fromEntries(tagTypes),
             following: getFollowing(),
             savedSearches: getSavedSearches(),
@@ -431,7 +441,8 @@
             const obj = x => (x && typeof x === 'object' && !Array.isArray(x)) ? x : {};
             const arr = x => Array.isArray(x) ? x : [];
 
-            if (d.settings && choice === 'settings') GM_setValue(SETTINGS_KEY, obj(d.settings));
+            const takeSettings = choice === 'settings';
+            if (d.settings && takeSettings) GM_setValue(SETTINGS_KEY, obj(d.settings));
             try {
                 const pics = getDlThumbs();
                 Object.entries(obj(d.downloadPictures)).forEach(([id, src]) => { if (!pics[id] && typeof src === 'string') pics[id] = src; });
@@ -452,12 +463,16 @@
             if (d.pinnedFilters) setPins(obj(d.pinnedFilters));
 
             // Collections: add the ones you don't have; same name -> posts merged
+            // (their note, cover and order come along - this device's win if it has one)
             const colls = getCollections();
+            const extras = c => { const x = {}; if (typeof c.note === 'string' && c.note) x.note = c.note.slice(0, 500); if (c.cover) x.cover = c.cover; if (typeof c.sort === 'string') x.sort = c.sort; return x; };
             arr(d.collections).forEach(c => {
                 if (!c || !c.name || !Array.isArray(c.posts)) return;
                 const same = colls.find(x => x.name === c.name);
-                if (same) c.posts.forEach(p => { if (p && p.id && !same.posts.some(q => q.id === p.id)) same.posts.push(p); });
-                else colls.push({ id: c.id || 'c' + Date.now().toString(36) + colls.length, name: c.name, created: c.created || Date.now(), posts: c.posts.filter(p => p && p.id) });
+                if (same) {
+                    c.posts.forEach(p => { if (p && p.id && !same.posts.some(q => q.id === p.id)) same.posts.push(p); });
+                    Object.entries(extras(c)).forEach(([k, v]) => { if (same[k] == null || same[k] === '') same[k] = v; });
+                } else colls.push(Object.assign({ id: c.id || 'c' + Date.now().toString(36) + colls.length, name: c.name, created: c.created || Date.now(), posts: c.posts.filter(p => p && p.id) }, extras(c)));
             });
             GM_setValue(COLL_KEY, colls);
 
@@ -471,9 +486,13 @@
             GM_setValue(VIEWED_KEY, Object.assign({}, obj(d.viewed), loadViewed()));
             GM_setValue(FAVS_KEY, Object.assign({}, obj(d.favs), getFavs()));
             GM_setValue(VOTES_KEY, Object.assign({}, obj(d.votes), GM_getValue(VOTES_KEY, {}) || {}));
-            if (d.video) GM_setValue(VIDEO_KEY, obj(d.video));
-            if (d.autoNext) GM_setValue(AUTO_KEY, obj(d.autoNext));
-            if (typeof d.theater === 'boolean') GM_setValue(THEATER_KEY, d.theater);
+            // (Beta 3.11.1) video options, the Auto next timer and theater mode are
+            // settings too: only taken over when you ticked that box
+            if (takeSettings) {
+                if (d.video) GM_setValue(VIDEO_KEY, obj(d.video));
+                if (d.autoNext) GM_setValue(AUTO_KEY, obj(d.autoNext));
+                if (typeof d.theater === 'boolean') GM_setValue(THEATER_KEY, d.theater);
+            }
             try {
                 GM_setValue(TAGTYPE_KEY, Object.assign({}, obj(d.tagTypes), GM_getValue(TAGTYPE_KEY, {}) || {}));
             } catch (e) {}
@@ -486,6 +505,7 @@
             writeBlocklist(bl);
             // Restore the real "blacklisted on" dates (writeBlocklist just stamped them "now")
             GM_setValue(BL_TIMES_KEY, Object.assign(getBlTimes(), obj(d.blacklistDates)));
+            arr(d.blurTags).forEach(t => { if (typeof t === 'string' && t) setSoftTag(t, true); });
 
             // Following: add the artists you don't follow yet. Searches from older
             // backups (followed searches, "saved" searches) go into Recent - since
@@ -536,6 +556,7 @@
         ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
         ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
+        ['steamy34_collfav_failed', 'Collections → favourites pause', 'When adding collection posts to your favourites last failed (it waits a few hours before trying again)', 0],
         ['steamy34_bl_soft', 'Blurred blacklist tags', 'Blacklisted tags whose posts are blurred with a Show button instead of hidden', []],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],
         ['steamy34_auto', 'Auto next timer', 'Seconds per post for "Auto next"', {}],

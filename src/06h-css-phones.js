@@ -16,6 +16,7 @@
             }
             span.thumb .s34-fav-btn { opacity: .85; }
             .s34-tile-acts { opacity: 1; }
+            .s34-tile.s34-tile-iscover .s34-tile-acts button { opacity: 1; }
             .image-list span.thumb:hover { transform: none; }
         }
         @media (max-width: 760px), (pointer: coarse) and (max-width: 1000px) {
@@ -64,6 +65,15 @@
                 border-top: 1px solid #2a2a31 !important;
             }
             .s34-pv-overlay .s34-cm-section { order: 3; flex: none; width: 100%; padding: 20px 14px 70px; }
+            /* (Beta 3.10.1) Similar: a row right under the picture (not floating over it) */
+            .s34-pv-overlay .s34-pv-simstrip { order: 1; flex: none; position: relative; margin: 0; height: auto; padding: 10px 12px 12px; border-top: 1px solid #2a2a31; }
+            .s34-pv-overlay .s34-pv-strip-row { height: 80px; gap: 10px; -webkit-overflow-scrolling: touch; }
+            .s34-pv-overlay .s34-pv-strip-item { width: 76px; height: 76px; }
+            .s34-pv-overlay .s34-pv-strip-head button { font-size: 18px; padding: 4px 8px !important; }
+            /* Collections: hold a post, then drag it (no mouse) */
+            .s34-tiles-drag .s34-tile { -webkit-touch-callout: none; user-select: none; }
+            .s34-tile.s34-dragging { transform: scale(1.04); }
+            .s34-win textarea.s34-coll-note { font-size: 16px; } /* (smaller text makes phones zoom in) */
             .s34-cm-head { flex-wrap: wrap; }
             .s34-cm-write { margin-left: 0; align-items: flex-start; }
             /* Floating buttons over the picture: previous, next, close */

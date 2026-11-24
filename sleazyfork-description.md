@@ -80,7 +80,7 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - With an ad blocker on, no empty ad spaces next to or above the posts (without one, every ad stays as rule34 shows it)
 - Gentle on the site: page loads are spaced out, so Cloudflare checks come much less often. When one does come, a clear notice at the bottom of the screen shows it with a *Solve* button (and a *?* that explains why it matters) – without the check, rule34 loads nothing new. The check window also points to the optional API key, which makes checks rarer
 - Steamy34 Settings sits in rule34's top menu, on every page
-- A short welcome tour on first start, quick tips with all the shortcuts, and a short "What's new" after notable updates
+- A welcome guide on first start – every feature in chapters, a keyboard map of all keys and every touch gesture – quick tips with all the shortcuts, and a short "What's new" after notable updates
 - Censored mode: press X and every picture, video and comment is blurred – share a screenshot safely
 - Settings with a search box: type a word and jump straight to the right option
 - Works with the keyboard (Tab, Enter) as well

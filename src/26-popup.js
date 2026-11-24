@@ -29,6 +29,11 @@
         return groups;
     }
 
+    // Every tag of the post in the popup, as a plain list
+    function popupTagList(st) {
+        return [].concat(...Object.values((st && st.tags) || {}).map(l => (l || []).map(x => x.tag)));
+    }
+
     // Instant first guess from the thumbnail (types we already know)
     function tagsFromThumb(thumb) {
         const groups = {};
@@ -117,7 +122,7 @@
             else if (act === 'collect') {
                 const s = popupState;
                 if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
-                    tags: [].concat(...Object.values(s.tags || {}).map(l => (l || []).map(x => x.tag))).join(' ') }]);
+                    tags: popupTagList(s).join(' ') }]);
             }
         });
         setTheater(GM_getValue(THEATER_KEY, false) === true, overlay);
@@ -172,7 +177,7 @@
     function coverIfBlocked(blockedSet) {
         const st = popupState;
         if (!st) return;
-        const all = [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag)));
+        const all = popupTagList(st);
         let hit = st.blockShown ? [] : blockedTagsOf(all);
         // (Beta 3.10) a soft-blocked thumbnail you already uncovered: only other tags cover it
         if (hit.length && st.thumb && st.thumb.classList.contains('s34-bl-unblur')) { const soft = getSoftTags(); hit = hit.filter(t => !soft.has(t)); }
@@ -467,7 +472,7 @@
         const list = visibleThumbs();
         let i = list.indexOf(popupState.thumb);
         // a post from the Similar strip: go on from the page post you left
-        if (i < 0) { const strip = popupState.overlay.querySelector('.s34-pv-strip'); if (strip && strip._from) i = list.indexOf(strip._from); }
+        if (i < 0) { const strip = popupState.overlay.querySelector('.s34-pv-simstrip'); if (strip && strip._from) i = list.indexOf(strip._from); }
         if (i < 0) return;
         const target = list[i + dir];
         if (target) {
@@ -529,6 +534,7 @@
     async function popupDownload() {
         if (!popupState) return;
         const state = popupState;
+        const thumbSrc = popupThumbSrc(state);
         let url = state.mediaUrl;
         if (!url) {
             // Media not shown yet: ask the post page for the original
@@ -548,7 +554,7 @@
             copyright: names('copyright'),
             character: names('character'),
             artist: names('artist')
-        }, postIdFrom(state.postUrl), false, size);
+        }, postIdFrom(state.postUrl), false, size, thumbSrc);
     }
 
     // Posts always open in the popup (Ctrl / middle click still opens the

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.10-beta
+// @version      3.11.1-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -61,8 +61,8 @@
  *    click closes, click to zoom. F favourite, C collection, T theater
  *    (all changeable); with WASD, W / S scroll.
  *  - Settings have a search field.
- *  - First start: a welcome tour of the best features (again any time:
- *    Settings → Help → Welcome tour).
+ *  - First start: a welcome guide to every feature, keys and gestures (again
+ *    any time: Settings → Help → Welcome guide).
  *  - Auto next (slideshow), theater mode, video loop & speed,
  *    the next / previous post loaded in advance.
  *
@@ -3490,7 +3490,7 @@
         .s34-pv-report:hover { border-color: #ff6b6b !important; }
         .s34-report-why { width: 100%; box-sizing: border-box; margin: 4px 0 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid #3a3a44 !important; background: #121216 !important; color: #eee !important; font: 14px system-ui, sans-serif; resize: vertical; }
         /* (Beta 3.9.4) Similar: a filmstrip along the bottom of the picture */
-        .s34-pv-strip { position: sticky; bottom: 0; z-index: 6; margin-top: -132px; height: 132px; box-sizing: border-box; padding: 8px 10px; background: linear-gradient(to top, rgba(10,10,14,.96), rgba(10,10,14,.82)) !important; border-top: 1px solid rgba(255,255,255,.12); }
+        .s34-pv-simstrip { position: sticky; bottom: 0; z-index: 6; margin-top: -132px; height: 132px; box-sizing: border-box; padding: 8px 10px; background: linear-gradient(to top, rgba(10,10,14,.96), rgba(10,10,14,.82)) !important; border-top: 1px solid rgba(255,255,255,.12); }
         .s34-pv-strip-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font: 600 12px system-ui, sans-serif; color: #dcdce4; }
         .s34-pv-strip-head b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .s34-pv-strip-keys { flex: none; font-weight: 500; font-size: 11px; color: #9a9aa6; }
@@ -3774,6 +3774,7 @@
             }
             span.thumb .s34-fav-btn { opacity: .85; }
             .s34-tile-acts { opacity: 1; }
+            .s34-tile.s34-tile-iscover .s34-tile-acts button { opacity: 1; }
             .image-list span.thumb:hover { transform: none; }
         }
         @media (max-width: 760px), (pointer: coarse) and (max-width: 1000px) {
@@ -3822,6 +3823,15 @@
                 border-top: 1px solid #2a2a31 !important;
             }
             .s34-pv-overlay .s34-cm-section { order: 3; flex: none; width: 100%; padding: 20px 14px 70px; }
+            /* (Beta 3.10.1) Similar: a row right under the picture (not floating over it) */
+            .s34-pv-overlay .s34-pv-simstrip { order: 1; flex: none; position: relative; margin: 0; height: auto; padding: 10px 12px 12px; border-top: 1px solid #2a2a31; }
+            .s34-pv-overlay .s34-pv-strip-row { height: 80px; gap: 10px; -webkit-overflow-scrolling: touch; }
+            .s34-pv-overlay .s34-pv-strip-item { width: 76px; height: 76px; }
+            .s34-pv-overlay .s34-pv-strip-head button { font-size: 18px; padding: 4px 8px !important; }
+            /* Collections: hold a post, then drag it (no mouse) */
+            .s34-tiles-drag .s34-tile { -webkit-touch-callout: none; user-select: none; }
+            .s34-tile.s34-dragging { transform: scale(1.04); }
+            .s34-win textarea.s34-coll-note { font-size: 16px; } /* (smaller text makes phones zoom in) */
             .s34-cm-head { flex-wrap: wrap; }
             .s34-cm-write { margin-left: 0; align-items: flex-start; }
             /* Floating buttons over the picture: previous, next, close */
@@ -4078,6 +4088,120 @@
             .s34-wel-foot { flex-wrap: wrap; }
             .s34-wel-dots { flex-basis: 100%; justify-content: center; margin: 0 0 4px; }
             .s34-wel-foot .s34-wel-next { margin-left: auto; }
+        }
+
+        /* (Beta 3.11) The big welcome guide: chapters on the left, Computer / Phone on top */
+        .s34-wel-big .s34-win { width: min(1120px, calc(100vw - 32px)) !important; height: min(860px, calc(100vh - 40px)); max-height: none; }
+        .s34-wel-big .s34-win-body { flex: 1; min-height: 0; overflow: hidden; padding: 0; gap: 0; }
+        .s34-wel-shell { flex: 1; min-height: 0; display: grid; grid-template-columns: 220px minmax(0, 1fr); border-top: 1px solid rgba(255,255,255,0.07); }
+        .s34-wel-nav { overflow-y: auto; padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid rgba(255,255,255,0.07); scrollbar-width: thin; }
+        .s34-win .s34-wel-nav button { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px !important; border-radius: 10px; border: none !important;
+            background: transparent !important; color: #b9b9c3 !important; font: 600 13.5px system-ui, -apple-system, Segoe UI, sans-serif; text-align: left; cursor: pointer; flex: none; }
+        .s34-win .s34-wel-nav button:hover { background-color: rgba(255,255,255,0.05) !important; color: #fff !important; }
+        .s34-win .s34-wel-nav button.s34-on { background: linear-gradient(90deg, rgba(255,95,143,0.2), rgba(139,61,255,0.12)) !important; color: #fff !important; }
+        .s34-wel-navico { flex: none; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;
+            background-color: rgba(255,255,255,0.05) !important; color: #ff8fb0 !important; }
+        .s34-wel-nav button.s34-on .s34-wel-navico { background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; }
+        .s34-wel-navico svg { width: 16px; height: 16px; color: inherit !important; }
+        .s34-wel-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+        .s34-wel-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 26px 0; }
+        .s34-wel-devices { display: inline-flex; padding: 3px; border-radius: 12px; background-color: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
+        .s34-win .s34-wel-devices button { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 16px !important; border-radius: 9px; border: none !important; cursor: pointer;
+            background: transparent !important; color: #b9b9c3 !important; font: 700 13px system-ui, -apple-system, Segoe UI, sans-serif; }
+        .s34-win .s34-wel-devices button.s34-on { background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; }
+        .s34-wel-count { font-size: 12px; font-weight: 700; opacity: .5; }
+        .s34-wel-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px 26px 26px; scrollbar-width: thin; }
+        .s34-wel-big .s34-wel-stage { gap: 18px; }
+        .s34-wel-big .s34-wel-hero { padding: 28px 30px; gap: 22px; }
+        .s34-wel-big .s34-wel-art { width: 78px; height: 78px; border-radius: 22px; }
+        .s34-wel-big .s34-wel-art svg { width: 40px; height: 40px; }
+        .s34-wel-big .s34-wel-art img { width: 78px; height: 78px; border-radius: 22px; }
+        .s34-wel-big .s34-wel-hero h3 { font-size: 28px !important; }
+        .s34-wel-big .s34-wel-hero p { font-size: 15px; max-width: 680px; }
+        .s34-wel-big .s34-wel-cards { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+        .s34-wel-big .s34-wel-card { padding: 14px 16px; }
+        .s34-wel-big .s34-wel-ico { width: 36px; height: 36px; border-radius: 11px; font-size: 17px; }
+        .s34-wel-big .s34-wel-ico svg { width: 19px; height: 19px; }
+        .s34-wel-big .s34-wel-card b { font-size: 14px; }
+        .s34-wel-big .s34-wel-card span { font-size: 13px; }
+        .s34-wel-big .s34-wel-promise span { font-size: 13px; padding: 6px 12px; }
+        .s34-wel-note { margin: 0 !important; font-size: 12px; opacity: .6; }
+        /* Welcome: everything at a glance, each tile opens its chapter */
+        .s34-wel-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+        .s34-win .s34-wel-otile { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px !important; border-radius: 14px; cursor: pointer; text-align: left;
+            background-color: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.08) !important; color: inherit !important; font: inherit; transition: border-color .15s, transform .15s; }
+        .s34-win .s34-wel-otile:hover { border-color: #ff5f8f !important; transform: translateY(-2px); }
+        .s34-wel-otile b { font-size: 14px; }
+        .s34-wel-otile > span:last-child { font-size: 12px; line-height: 1.45; color: #b9b9c3 !important; }
+        /* Controls: the keyboard */
+        .s34-kb { display: flex; gap: 22px; justify-content: center; align-items: flex-end; padding: 20px; border-radius: 18px; overflow-x: auto;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015)) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
+        .s34-kb-row { display: flex; gap: 6px; margin-bottom: 6px; }
+        .s34-kb-pad { flex: none; width: 18px; }
+        .s34-kb-key { position: relative; flex: none; width: 50px; height: 50px; box-sizing: border-box; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+            background-color: #24232c !important; border: 1px solid #33313d !important; box-shadow: 0 3px 0 #121117; color: #6f6e80 !important; transition: transform .1s, box-shadow .1s; }
+        .s34-kb-key b { font: 700 14px/1 system-ui, -apple-system, Segoe UI, sans-serif; }
+        .s34-kb-key i { font: 700 8.5px/1.1 system-ui, -apple-system, Segoe UI, sans-serif; font-style: normal; max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--kc) !important; }
+        .s34-kb-key.s34-kb-lit { background-color: color-mix(in srgb, var(--kc) 20%, #24232c) !important; border-color: var(--kc) !important; color: #fff !important; cursor: help; }
+        .s34-kb-key.s34-kb-lit i { color: #fff !important; opacity: .85; }
+        .s34-kb-key.s34-kb-hot, .s34-kb-key.s34-kb-press { transform: translateY(2px); box-shadow: 0 1px 0 #121117, 0 0 0 3px var(--kc, #8a8a99); }
+        .s34-kb-key.s34-kb-press:not(.s34-kb-lit) { --kc: #6f6e80; }
+        .s34-kb-wide { width: 76px; }
+        .s34-kb-wider { width: 92px; }
+        .s34-kb-space { width: 330px; }
+        .s34-kb-arrows .s34-kb-row { justify-content: center; }
+        .s34-kb-try { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 30px; font-size: 14px; font-weight: 600; text-align: center; }
+        .s34-kb-try > span:only-child { opacity: .45; font-weight: 500; }
+        .s34-kb-try .s34-kb-none { opacity: .55; font-weight: 500; }
+        .s34-kb-try kbd, .s34-wel-ckeys kbd {
+            display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 6px; text-align: center;
+            font: 700 12px/22px system-ui, -apple-system, Segoe UI, sans-serif;
+            background-color: #2a2a31 !important; border: 1px solid #3c3c46 !important; border-bottom-width: 2px !important; color: #f0f0f4 !important;
+        }
+        .s34-wel-ckeys kbd svg { width: 13px; height: 13px; vertical-align: -2px; }
+        .s34-wel-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; }
+        .s34-wel-cgroup { padding: 12px 16px; border-radius: 14px; background-color: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.07) !important; border-left: 3px solid var(--gc) !important; }
+        .s34-wel-cgtitle { margin-bottom: 6px; font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--gc) !important; }
+        .s34-wel-crow { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        .s34-wel-cgtitle + .s34-wel-crow { border-top: none; }
+        .s34-wel-ckeys { flex: none; width: 150px; font-size: 12px; color: #b9b9c3 !important; }
+        .s34-wel-cwhat { font-size: 13px; line-height: 1.45; }
+        /* Controls: the phone gestures */
+        .s34-wel-gestures { display: flex; flex-direction: column; gap: 14px; }
+        .s34-wel-gcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+        .s34-wel-gcard { display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 10px; border-radius: 14px; background-color: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.07) !important; }
+        .s34-wel-gcard svg { flex: none; width: 72px; height: 72px; }
+        .s34-wel-gcard b { display: block; font-size: 14px; margin-bottom: 3px; }
+        .s34-wel-gcard span { display: block; font-size: 13px; line-height: 1.45; color: #b9b9c3 !important; }
+        .s34-wel-big .s34-wel-themes { flex-wrap: wrap; }
+        .s34-wel-big .s34-wel-themes button { min-width: 120px; }
+        .s34-wel-big .s34-wel-foot { padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.07); }
+        .s34-wel-progress { flex: 1; height: 4px; margin: 0 6px; border-radius: 4px; overflow: hidden; background-color: rgba(255,255,255,0.08) !important; }
+        .s34-wel-progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ff5f8f, #8b3dff) !important; transition: width .3s; }
+        @media (max-width: 900px) {
+            .s34-kb-key { width: 38px; height: 40px; border-radius: 8px; }
+            .s34-kb-key i { display: none; }
+            .s34-kb-wide { width: 58px; } .s34-kb-wider { width: 70px; } .s34-kb-space { width: 220px; }
+            .s34-kb { justify-content: flex-start; padding: 14px; gap: 14px; }
+        }
+        /* Phones: the window fills the screen, chapters become a row of chips */
+        @media (max-width: 760px) {
+            .s34-wel-big .s34-win { width: 100vw !important; height: 100vh; height: 100dvh; border-radius: 0; }
+            .s34-wel-shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+            .s34-wel-nav { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 8px 12px; gap: 6px; scrollbar-width: none; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+            .s34-win .s34-wel-nav button { min-height: 36px; padding: 0 12px 0 6px !important; border-radius: 99px; white-space: nowrap; font-size: 13px; background-color: rgba(255,255,255,0.04) !important; }
+            .s34-wel-navico { width: 24px; height: 24px; border-radius: 99px; }
+            .s34-wel-topbar { padding: 10px 14px 0; }
+            .s34-wel-scroll { padding: 12px 14px 18px; }
+            .s34-wel-big .s34-wel-hero { padding: 18px; gap: 14px; }
+            .s34-wel-big .s34-wel-hero h3 { font-size: 21px !important; }
+            .s34-wel-big .s34-wel-hero p { font-size: 14px; }
+            .s34-wel-big .s34-wel-art, .s34-wel-big .s34-wel-art img { width: 54px; height: 54px; border-radius: 16px; }
+            .s34-wel-big .s34-wel-art svg { width: 28px; height: 28px; }
+            .s34-wel-big .s34-wel-cards, .s34-wel-gcards, .s34-wel-legend { grid-template-columns: minmax(0, 1fr); }
+            .s34-wel-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .s34-wel-big .s34-wel-foot { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
+            .s34-wel-ckeys { width: 118px; }
         }
     `;
 
@@ -6790,7 +6914,9 @@
     }
 
     // size: the post's resolution ("1920x1080") when called from the popup
-    async function downloadOriginal(givenUrl, tagsByType, postId, confirmed, size) {
+    // thumbSrc: its thumbnail for the Downloads window (taken when the key was
+    // pressed - the popup may be on another post by the time the file arrives)
+    async function downloadOriginal(givenUrl, tagsByType, postId, confirmed, size, thumbSrc) {
         if (typeof givenUrl !== 'string') givenUrl = null; // called as a click handler
         const url = givenUrl || getOriginalUrl();
         if (!url) {
@@ -6810,7 +6936,7 @@
             tags: givenUrl ? (tagsByType || {}) : {
                 artist: getTags('artist'), character: getTags('character'), copyright: getTags('copyright')
             },
-            thumb: givenUrl ? popupThumbSrc(popupState) : ((document.querySelector('#image') || {}).src || '')
+            thumb: thumbSrc != null ? thumbSrc : givenUrl ? popupThumbSrc(popupState) : ((document.querySelector('#image') || {}).src || '')
         };
         showToast('Downloading ' + filename.slice(0, 80) + (filename.length > 80 ? '…' : ''));
         console.log('[Steamy34] Downloading:', url, '→', filename);
@@ -6822,7 +6948,7 @@
             console.log('[Steamy34] Download complete:', filename);
         } else {
             showToast('Download failed – the server didn\'t answer in time or refused it. Try again in a moment.',
-                      'Retry', () => downloadOriginal(url, historyInfo.tags, id, true, size), 12000);
+                      'Retry', () => downloadOriginal(url, historyInfo.tags, id, true, size, historyInfo.thumb), 12000);
         }
     }
 
@@ -7484,6 +7610,14 @@
 
     const mediaCache = new Map(); // post URL -> Promise<{ video, image } | null>
     const postDocCache = new Map(); // post URL -> Promise<Document | null>
+    // (Beta 3.11.1) Only the most recent ones stay in memory - before, every
+    // post page opened or preloaded stayed parsed for the whole visit
+    const POST_DOC_KEEP = 60, MEDIA_KEEP = 1500;
+    function cacheSet(map, key, value, keep) {
+        map.delete(key);
+        map.set(key, value);
+        while (map.size > keep) map.delete(map.keys().next().value); // (the oldest first)
+    }
 
     // Load and parse a post page once; everything that needs it shares the result.
     // Every loaded post page also teaches us the types of its tags.
@@ -7870,7 +8004,7 @@
                 postDocCache.delete(postUrl); // allow a retry later
                 return null;
             });
-        postDocCache.set(postUrl, p);
+        cacheSet(postDocCache, postUrl, p, POST_DOC_KEEP);
         return p;
     }
 
@@ -7915,7 +8049,7 @@
                     mediaCache.delete(postUrl); // allow a retry later
                     return null;
                 })); // (the API's answer, or else the page's)
-            mediaCache.set(postUrl, p);
+            cacheSet(mediaCache, postUrl, p, MEDIA_KEEP);
         }
         return mediaCache.get(postUrl);
     }
@@ -9276,7 +9410,7 @@
         siteHiddenWatched = true;
         document.addEventListener('click', e => {
             if (!e.target.closest || !e.target.closest('#blacklisted-sidebar a, a[onclick*="showHideBlacklistedPosts"]')) return;
-            const reveal = !document.documentElement.classList.toggle('s34-bl-reveal') ? false : true;
+            const reveal = document.documentElement.classList.toggle('s34-bl-reveal');
             document.querySelectorAll(reveal ? '.image-list span.thumb.s34-bl-hidden' : '.image-list span.thumb.s34-bl-revealed').forEach(t => {
                 t.classList.toggle('s34-bl-hidden', !reveal);
                 t.classList.toggle('s34-bl-revealed', reveal);
@@ -9312,7 +9446,7 @@
             note.innerHTML = '<span></span><button type="button">Show them</button>';
             note.querySelector('span').textContent = hidden.length + (hidden.length === 1 ? ' post with a blacklisted tag is hidden here.' : ' posts with blacklisted tags are hidden here.');
             note.querySelector('button').addEventListener('click', () => {
-                const show = !root.classList.toggle('s34-bl-posts-shown') ? false : true;
+                const show = root.classList.toggle('s34-bl-posts-shown');
                 note.querySelector('button').textContent = show ? 'Hide them again' : 'Show them';
             });
             const list = document.querySelector('#comment-list') || hidden[0].parentElement;
@@ -9407,14 +9541,14 @@
             b.title = 'Other versions of this picture – click to show them';
             b.addEventListener('click', e => {
                 e.preventDefault(); e.stopPropagation();
-                const open = !first.classList.toggle('s34-var-open') ? false : true;
+                const open = first.classList.toggle('s34-var-open');
                 rest.forEach(t => t.classList.toggle('s34-var-open', open));
                 b.textContent = open ? 'Hide versions' : '+' + rest.length + (rest.length === 1 ? ' version' : ' versions');
             });
             first.appendChild(b);
         });
     }
-    onReady(() => setTimeout(() => { try { groupVariants(Array.from(document.querySelectorAll('.image-list span.thumb'))); } catch (e) {} }, 300));
+    onReady(() => setTimeout(() => groupVariants(Array.from(document.querySelectorAll('.image-list span.thumb'))).catch(() => {}), 300));
 
     // A newly loaded page: set up only its thumbnails, not every one again
     function enhanceThumbs(thumbs) {
@@ -9806,10 +9940,13 @@
     }
 
     function markBlocklisted() {
-        const blocked = new Set(readBlocklist().map(t => t.toLowerCase()));
+        // (Beta 3.11.1) the same set as everywhere else - with muted tags, rating:e
+        // as rating:explicit and names like freddy's. Before, posts hidden for
+        // one of those came back on screen after ⊘ on any other tag.
+        const blocked = blockedTagSet();
         const ctx = tagBarContext();
         document.querySelectorAll('.image-list span.thumb').forEach(thumb => {
-            const hits = (thumb._s34Tags || thumbTagList(thumb)).filter(t => blocked.has(t));
+            const hits = blockedTagsOf(thumb._s34Tags || thumbTagList(thumb), blocked);
             let label = thumb.querySelector('.s34-bl-label');
 
             // (Beta 3.10) only soft-blocked tags: blurred with Show, also when it was hidden before
@@ -10167,7 +10304,7 @@
                 </div>
                 <div class="s34-set-body"></div>
                 <div class="s34-set-foot">
-                    <button type="button" class="s34-set-btn s34-set-tourbtn" data-act="welcome" title="Watch the welcome tour again">✨ Welcome tour</button>
+                    <button type="button" class="s34-set-btn s34-set-tourbtn" data-act="welcome" title="Everything Steamy34 can do, with all keys and gestures">✨ Welcome guide</button>
                     <span class="s34-set-dirty" hidden>Unsaved changes</span>
                     <button type="button" class="s34-set-btn" data-act="cancel">Cancel</button>
                     <button type="button" class="s34-set-btn s34-set-primary" data-act="save">Save &amp; reload</button>
@@ -10350,7 +10487,7 @@
                     <div class="s34-set-cardhead">Getting around</div>
                     <p>The handiest keys and clicks – middle click closes a post, ${browseKeyText()} browse, ${keyLabel(CONFIG.downloadKey)} downloads – are all in the quick tips.</p>
                     <div class="s34-set-actions">
-                        <button type="button" class="s34-set-btn" data-act="welcome">✨ Welcome tour</button>
+                        <button type="button" class="s34-set-btn" data-act="welcome">✨ Welcome guide</button>
                         <button type="button" class="s34-set-btn" data-act="tips"><span class="s34-qmark">?</span> Shortcuts &amp; tips</button>
                         <button type="button" class="s34-set-btn" data-act="changelog">What's new</button>
                         <button type="button" class="s34-set-btn" data-act="mobile">${PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"')} On your phone</button>
@@ -10400,7 +10537,7 @@
             ['privacy', 'What is stored', 'See and delete everything Steamy34 keeps – privacy, data, storage'],
             ['privacy', 'Export / import backup', 'Move everything to another browser or your phone – backup, restore, save'],
             ['privacy', 'Reset all settings', 'Back to how it was at the start – default'],
-            ['help', 'Welcome tour', 'The best features, slide by slide – intro, introduction, first start'],
+            ['help', 'Welcome guide', 'Every feature in chapters, keys and touch controls – intro, introduction, tour, first start, shortcuts, gestures'],
             ['help', 'Shortcuts & quick tips', 'All keys and gestures – keyboard, hotkeys, help'],
             ['help', 'What\'s new', 'The changelog – updates, version'],
             ['help', 'On your phone', 'Android guide – mobile, install'],
@@ -11712,7 +11849,7 @@
         }, { passive: true });
         document.addEventListener('touchend', () => clearTimeout(timer), { passive: true });
         // the tap that ends a long press doesn't open the post; no browser menu either
-        document.addEventListener('click', e => {
+        window.addEventListener('click', e => {
             if (Date.now() - longPressDone < 700 && e.target.closest && e.target.closest('.image-list span.thumb')) { e.preventDefault(); e.stopImmediatePropagation(); }
         }, true);
         document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.image-list span.thumb')) e.preventDefault(); });
@@ -12844,13 +12981,22 @@
             }
         });
         const keepLoop = () => { const v = getVideo(); if (v && ab.a != null && ab.b != null && v.currentTime >= ab.b) v.currentTime = ab.a; };
-        setInterval(() => { if (box.isConnected) keepLoop(); }, 100);
-        document.addEventListener('keydown', e => {
+        const onFrameKey = e => {
             if (!box.isConnected || !getVideo() || e.ctrlKey || e.metaKey || e.altKey) return;
             if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
             if (e.key === ',') { e.preventDefault(); step(-1); }
             else if (e.key === '.') { e.preventDefault(); step(1); }
-        }, true);
+        };
+        document.addEventListener('keydown', onFrameKey, true);
+        // (Beta 3.11.1) the popup builds new video tools each time it opens - once
+        // these are gone, their timer and key listener go too (before, they ran on)
+        let wasShown = false;
+        const loopTimer = setInterval(() => {
+            if (box.isConnected) { wasShown = true; keepLoop(); return; }
+            if (!wasShown) return; // (not on the page yet)
+            clearInterval(loopTimer);
+            document.removeEventListener('keydown', onFrameKey, true);
+        }, 100);
         showAb();
         box.appendChild(tools);
         showLoop();
@@ -12885,6 +13031,7 @@
             theater: GM_getValue(THEATER_KEY, false) === true,
             blacklist: readBlocklist(),
             blacklistDates: getBlTimes(),
+            blurTags: Array.from(getSoftTags()), // (Beta 3.11.1: "blur instead of hide")
             tagTypes: Object.fromEntries(tagTypes),
             following: getFollowing(),
             savedSearches: getSavedSearches(),
@@ -12962,7 +13109,8 @@
             const obj = x => (x && typeof x === 'object' && !Array.isArray(x)) ? x : {};
             const arr = x => Array.isArray(x) ? x : [];
 
-            if (d.settings && choice === 'settings') GM_setValue(SETTINGS_KEY, obj(d.settings));
+            const takeSettings = choice === 'settings';
+            if (d.settings && takeSettings) GM_setValue(SETTINGS_KEY, obj(d.settings));
             try {
                 const pics = getDlThumbs();
                 Object.entries(obj(d.downloadPictures)).forEach(([id, src]) => { if (!pics[id] && typeof src === 'string') pics[id] = src; });
@@ -12983,12 +13131,16 @@
             if (d.pinnedFilters) setPins(obj(d.pinnedFilters));
 
             // Collections: add the ones you don't have; same name -> posts merged
+            // (their note, cover and order come along - this device's win if it has one)
             const colls = getCollections();
+            const extras = c => { const x = {}; if (typeof c.note === 'string' && c.note) x.note = c.note.slice(0, 500); if (c.cover) x.cover = c.cover; if (typeof c.sort === 'string') x.sort = c.sort; return x; };
             arr(d.collections).forEach(c => {
                 if (!c || !c.name || !Array.isArray(c.posts)) return;
                 const same = colls.find(x => x.name === c.name);
-                if (same) c.posts.forEach(p => { if (p && p.id && !same.posts.some(q => q.id === p.id)) same.posts.push(p); });
-                else colls.push({ id: c.id || 'c' + Date.now().toString(36) + colls.length, name: c.name, created: c.created || Date.now(), posts: c.posts.filter(p => p && p.id) });
+                if (same) {
+                    c.posts.forEach(p => { if (p && p.id && !same.posts.some(q => q.id === p.id)) same.posts.push(p); });
+                    Object.entries(extras(c)).forEach(([k, v]) => { if (same[k] == null || same[k] === '') same[k] = v; });
+                } else colls.push(Object.assign({ id: c.id || 'c' + Date.now().toString(36) + colls.length, name: c.name, created: c.created || Date.now(), posts: c.posts.filter(p => p && p.id) }, extras(c)));
             });
             GM_setValue(COLL_KEY, colls);
 
@@ -13002,9 +13154,13 @@
             GM_setValue(VIEWED_KEY, Object.assign({}, obj(d.viewed), loadViewed()));
             GM_setValue(FAVS_KEY, Object.assign({}, obj(d.favs), getFavs()));
             GM_setValue(VOTES_KEY, Object.assign({}, obj(d.votes), GM_getValue(VOTES_KEY, {}) || {}));
-            if (d.video) GM_setValue(VIDEO_KEY, obj(d.video));
-            if (d.autoNext) GM_setValue(AUTO_KEY, obj(d.autoNext));
-            if (typeof d.theater === 'boolean') GM_setValue(THEATER_KEY, d.theater);
+            // (Beta 3.11.1) video options, the Auto next timer and theater mode are
+            // settings too: only taken over when you ticked that box
+            if (takeSettings) {
+                if (d.video) GM_setValue(VIDEO_KEY, obj(d.video));
+                if (d.autoNext) GM_setValue(AUTO_KEY, obj(d.autoNext));
+                if (typeof d.theater === 'boolean') GM_setValue(THEATER_KEY, d.theater);
+            }
             try {
                 GM_setValue(TAGTYPE_KEY, Object.assign({}, obj(d.tagTypes), GM_getValue(TAGTYPE_KEY, {}) || {}));
             } catch (e) {}
@@ -13017,6 +13173,7 @@
             writeBlocklist(bl);
             // Restore the real "blacklisted on" dates (writeBlocklist just stamped them "now")
             GM_setValue(BL_TIMES_KEY, Object.assign(getBlTimes(), obj(d.blacklistDates)));
+            arr(d.blurTags).forEach(t => { if (typeof t === 'string' && t) setSoftTag(t, true); });
 
             // Following: add the artists you don't follow yet. Searches from older
             // backups (followed searches, "saved" searches) go into Recent - since
@@ -13067,6 +13224,7 @@
         ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
         ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
+        ['steamy34_collfav_failed', 'Collections → favourites pause', 'When adding collection posts to your favourites last failed (it waits a few hours before trying again)', 0],
         ['steamy34_bl_soft', 'Blurred blacklist tags', 'Blacklisted tags whose posts are blurred with a Show button instead of hidden', []],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],
         ['steamy34_auto', 'Auto next timer', 'Seconds per post for "Auto next"', {}],
@@ -13308,13 +13466,6 @@
         return out.textContent.trim() ? out : null;
     }
 
-    function shortUrl(u) {
-        try {
-            const x = new URL(u);
-            const rest = (x.pathname + x.search).replace(/\/$/, '');
-            return x.hostname.replace(/^www\./, '') + (rest.length > 24 ? rest.slice(0, 22) + '…' : rest);
-        } catch (e) { return u; }
-    }
 
     const VOTES_KEY = 'steamy34_votes';
     function hasVoted(id) {
@@ -13783,6 +13934,7 @@
     // only those can be taken out when they go missing from the list.
     const COLLSYNC_ASKED_KEY = 'steamy34_collsync_asked';
     const COLLSYNC_LAST_KEY = 'steamy34_collsync_last';
+    const COLLFAV_FAILED_KEY = 'steamy34_collfav_failed'; // (when adding collection posts to favourites last failed)
     const USER_ID_KEY = 'steamy34_user_id';
     const COLLSYNC_EVERY_MS = 4 * 3600000;
     const COLLSYNC_MAX_PAGES = 80;
@@ -13901,16 +14053,7 @@
     function toggleWatchLater() {
         const st = popupState;
         if (!st) return;
-        const id = postIdFrom(st.postUrl);
-        const all = getCollections();
-        const c = laterCollection(all);
-        const i = c.posts.findIndex(p => String(p.id) === String(id));
-        if (i >= 0) { c.posts.splice(i, 1); showToast('Taken off Watch later.'); }
-        else {
-            c.posts.unshift({ id, thumb: popupThumbSrc(st), time: Date.now(), tags: [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag))).join(' ') });
-            showToast('On your Watch later list – it\'s in Collections.');
-        }
-        saveCollections(all);
+        toggleLaterFor(postIdFrom(st.postUrl), popupThumbSrc(st), popupTagList(st).join(' '));
         stylePopupExtras();
     }
     // (Beta 3.9.3) A "More" row: Find source (SauceNAO), Similar (iqdb), Upscale
@@ -13971,7 +14114,7 @@
         const st = popupState;
         if (!st) return;
         const stage = st.overlay.querySelector('.s34-pv-stage');
-        let strip = st.overlay.querySelector('.s34-pv-strip');
+        let strip = st.overlay.querySelector('.s34-pv-simstrip');
         if (strip && !refresh) { strip.remove(); return; } // (a second click closes it)
         if (!strip && refresh) return;
         const pick = type => ((st.tags || {})[type] || []).map(x => x.tag)[0];
@@ -13984,7 +14127,7 @@
         const q = words.join(' ');
         if (!strip) {
             strip = document.createElement('div');
-            strip.className = 's34-pv-strip';
+            strip.className = 's34-pv-simstrip';
             strip.innerHTML = '<div class="s34-pv-strip-head"><b></b><span class="s34-pv-strip-keys"></span><button type="button" title="Close">✕</button></div><div class="s34-pv-strip-row"></div>';
             strip.querySelector('.s34-pv-strip-keys').textContent = 'Shift + ' + browseKeyText() + ' through the strip · ' + browseKeyText() + ' the page';
             strip.addEventListener('click', e => e.stopPropagation());
@@ -14039,6 +14182,7 @@
                 try { b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (e) {}
                 openPopup(t);
                 if (popupState) popupState.fromStrip = true; // (the strip stays as it is)
+                if (isPhoneLayout() && popupState) { try { popupState.overlay.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {} }
             });
             rowEl.appendChild(b);
         });
@@ -14046,7 +14190,7 @@
 
     // Shift + ← / → (or Shift + A / D): the next / previous post in the strip
     function similarStripStep(e) {
-        const strip = popupState && popupState.overlay.querySelector('.s34-pv-strip');
+        const strip = popupState && popupState.overlay.querySelector('.s34-pv-simstrip');
         if (!strip || !e.shiftKey || e.code === CONFIG.downloadKey) return false;
         const mode = CONFIG.browseKeys;
         let dir = 0;
@@ -14151,16 +14295,22 @@
         if (known.length) markCollectionFavs(known, true);
         const todo = ids.filter(id => !favs[id]);
         if (!todo.length) return;
+        // (Beta 3.11.1) It didn't work a moment ago (not logged in, a Cloudflare
+        // check)? Then not again on every page - in a few hours
+        let failedAt = 0;
+        try { failedAt = GM_getValue(COLLFAV_FAILED_KEY, 0) || 0; } catch (e) {}
+        if (Date.now() - failedAt < 6 * 3600000) return;
         collFavRunning = true;
         showToast(`Adding ${todo.length} collection post${todo.length === 1 ? '' : 's'} to your favourites in the background…`);
         let done = 0;
         for (const id of todo) {
             if (!CONFIG.collectionsSync) break;
             const ok = await addFavourite(id, { quiet: true, kind: 'batch' });
-            if (!ok) break;
+            if (!ok) { try { GM_setValue(COLLFAV_FAILED_KEY, Date.now()); } catch (e) {} break; }
             markCollectionFavs([id], true);
             done++;
         }
+        if (done === todo.length) { try { GM_deleteValue(COLLFAV_FAILED_KEY); } catch (e) {} }
         collFavRunning = false;
         if (done) showToast(`${done} collection post${done === 1 ? ' is' : 's are'} in your favourites now – on all your devices.`);
     }
@@ -15122,7 +15272,7 @@
             bar.innerHTML = `
                 <button type="button" data-a="back">← All collections</button>
                 <select class="s34-coll-sort" title="Order of the posts">
-                    <option value="mine">My order (drag to arrange)</option>
+                    <option value="mine">${thumbButtonsHidden() ? 'My order (hold a post, then drag)' : 'My order (drag to arrange)'}</option>
                     <option value="new">Newest added first</option>
                     <option value="old">Oldest added first</option>
                     <option value="idhi">Post number, high → low</option>
@@ -15262,6 +15412,71 @@
             const blCount = c.posts.filter(p => hitOf(p).length).length;
             blacklistToggle(bar, blCount, showBlocked, v => { showBlocked = v; renderOne(id); });
             let dragFrom = null;
+            // move a post (in "My order") to a place in front of index "to"
+            const movePost = (from, to) => {
+                if (from < to) to--;
+                if (to === from) { renderOne(id); return; }
+                const all = getCollections();
+                const col = all.find(x => x.id === id);
+                const [moved] = col.posts.splice(from, 1);
+                col.posts.splice(to, 0, moved);
+                saveCollections(all);
+                renderOne(id);
+            };
+            // (Beta 3.10.1) phones: hold a post for a moment, then drag it with the finger
+            if (sort === 'mine' && shown.length > 1) {
+                let hold = null, drag = null, start = null;
+                const tileList = () => Array.from(tiles.querySelectorAll('.s34-tile'));
+                const clearMarks = () => tiles.querySelectorAll('.s34-drop-before, .s34-drop-after').forEach(x => x.classList.remove('s34-drop-before', 's34-drop-after'));
+                tiles.addEventListener('touchstart', e => {
+                    const tile = e.target.closest('.s34-tile');
+                    if (!tile || e.touches.length !== 1 || e.target.closest('.s34-tile-acts, .s34-tile-blcover')) return;
+                    start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    clearTimeout(hold);
+                    hold = setTimeout(() => {
+                        hold = null;
+                        drag = { from: tileList().indexOf(tile), tile, over: null, after: false };
+                        tile.classList.add('s34-dragging');
+                        try { navigator.vibrate && navigator.vibrate(12); } catch (err) {}
+                    }, 380);
+                }, { passive: true });
+                tiles.addEventListener('touchmove', e => {
+                    const t = e.touches[0];
+                    if (!drag) {
+                        if (hold && start && Math.abs(t.clientX - start.x) + Math.abs(t.clientY - start.y) > 10) { clearTimeout(hold); hold = null; }
+                        return;
+                    }
+                    e.preventDefault(); // (the finger moves the post, not the page)
+                    const el = document.elementFromPoint(t.clientX, t.clientY);
+                    const over = el && el.closest && el.closest('.s34-tile');
+                    clearMarks();
+                    drag.over = over && over !== drag.tile && tiles.contains(over) ? over : null;
+                    if (drag.over) {
+                        const r = drag.over.getBoundingClientRect();
+                        drag.after = t.clientX > r.left + r.width / 2;
+                        drag.over.classList.add(drag.after ? 's34-drop-after' : 's34-drop-before');
+                    }
+                    // near the top / bottom edge: the list scrolls along
+                    const sc = w.body;
+                    const br = sc.getBoundingClientRect();
+                    if (t.clientY < br.top + 60) sc.scrollTop -= 14;
+                    else if (t.clientY > br.bottom - 60) sc.scrollTop += 14;
+                }, { passive: false });
+                const end = e => {
+                    clearTimeout(hold); hold = null;
+                    if (!drag) return;
+                    const d = drag; drag = null;
+                    d.tile.classList.remove('s34-dragging');
+                    clearMarks();
+                    if (e.cancelable) e.preventDefault(); // (no tap on the post afterwards)
+                    tiles._s34NoClick = Date.now();
+                    if (e.type === 'touchend' && d.over) movePost(d.from, tileList().indexOf(d.over) + (d.after ? 1 : 0));
+                };
+                tiles.addEventListener('touchend', end);
+                tiles.addEventListener('touchcancel', end);
+                tiles.addEventListener('click', e => { if (Date.now() - (tiles._s34NoClick || 0) < 600) { e.preventDefault(); e.stopPropagation(); } }, true);
+                tiles.addEventListener('contextmenu', e => { if (e.target.closest('.s34-tile')) e.preventDefault(); });
+            }
             shown.forEach((p, n) => {
                 const tile = document.createElement('div');
                 tile.className = 's34-tile' + (String(c.cover) === String(p.id) ? ' s34-tile-iscover' : '');
@@ -15283,17 +15498,9 @@
                         if (dragFrom === null) return;
                         e.preventDefault();
                         const after = tile.classList.contains('s34-drop-after');
-                        let to = n + (after ? 1 : 0);
                         const from = dragFrom;
                         dragFrom = null;
-                        if (from < to) to--;
-                        if (to === from) { renderOne(id); return; }
-                        const all = getCollections();
-                        const col = all.find(x => x.id === id);
-                        const [moved] = col.posts.splice(from, 1);
-                        col.posts.splice(to, 0, moved);
-                        saveCollections(all);
-                        renderOne(id);
+                        movePost(from, n + (after ? 1 : 0));
                     });
                 }
                 const link = document.createElement('a');
@@ -15751,6 +15958,24 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.11.1', date: '2026-11-24', items: [
+            'Blacklist: muted tags, rating:e and tags with an apostrophe no longer come back on screen when you blacklist another tag with ⊘.',
+            'Long sessions stay light: the popup no longer leaves a timer running for every post you open, and only the most recent post pages are kept in memory.',
+            'Backups now carry your "blur instead of hide" tags and each collection\'s note, cover and order. Combining a backup no longer changes this device\'s video options, Auto next timer or theater mode (only with "Also use the backup\'s settings").',
+            'Downloads window: a post downloaded from the popup keeps its own picture, even if you moved on before the file arrived.',
+            'Collections on all devices: when adding favourites fails (not logged in, a Cloudflare check), it waits a few hours instead of trying – and telling you – on every page.'
+        ] },
+        { v: 'Beta 3.11', date: '2026-11-24', notify: true, items: [
+            'A new, much bigger welcome guide: every feature in chapters (popup, search, thumbnails, following, downloads, collections, blacklist …), switchable between Computer and Phone.',
+            'Controls chapter: a keyboard with your keys lit up – press any key to see what it does – and drawings of every tap, hold and swipe on phones.',
+            'Open it any time: Settings → Help → ✨ Welcome guide.'
+        ] },
+        { v: 'Beta 3.10.1', date: '2026-11-24', items: [
+            'Phones: the Similar strip now shows right under the picture (it was out of sight), and a tap on one of its posts goes back up to the picture.',
+            'Phones: arrange a collection with your finger – hold a post for a moment, then drag it.',
+            'Similar no longer gets mixed up with long comic strips (the picture could vanish when both were open).',
+            'Phones: the ★ and × on a collection\'s cover post are always there (they waited for a mouse hover).'
+        ] },
         { v: 'Beta 3.10', date: '2026-11-23', notify: true, items: [
             'Blacklist: blur instead of hide, per tag. Click a tag in the Blacklist window → "Blur them, with Show". Its posts show blurred with the tag named and a Show button; a post with any other blacklisted tag still stays hidden.',
             'Collections: choose a cover (★ on a post), sort the posts (your own order, date added or post number), drag them to arrange, and add a note to each collection.'
@@ -16090,7 +16315,7 @@
         });
         const foot = document.createElement('div');
         foot.className = 's34-cl-foot';
-        foot.innerHTML = '<button type="button" class="s34-cl-tips"><span class="s34-qmark">?</span> Quick tips</button><button type="button" class="s34-cl-tips s34-cl-tour">✨ Welcome tour</button><button type="button" class="s34-cl-ok">Got it</button>';
+        foot.innerHTML = '<button type="button" class="s34-cl-tips"><span class="s34-qmark">?</span> Quick tips</button><button type="button" class="s34-cl-tips s34-cl-tour">✨ Welcome guide</button><button type="button" class="s34-cl-ok">Got it</button>';
         foot.querySelector('.s34-cl-ok').addEventListener('click', () => w.close());
         foot.querySelector('.s34-cl-tips').addEventListener('click', () => { w.close(); openQuickTips(); });
         foot.querySelector('.s34-cl-tour').addEventListener('click', () => { w.close(); openWelcome(0); });
@@ -16188,7 +16413,7 @@
         w.body.scrollTop = 0;
     }
 
-    // ---- Welcome tour: the best bits, slide by slide ----
+    // ---- Welcome guide: everything Steamy34 can do, chapter by chapter ----
     // Opens by itself on the very first start (instead of the quick tips);
     // later from Settings → Help → Welcome tour or the "What's new" window.
     // Picking a colour mode reloads the page - the tour then comes back on
@@ -16212,95 +16437,263 @@
         return `<svg viewBox="0 0 64 44" width="64" height="44" aria-hidden="true"><rect x="2" y="2" width="28" height="40" rx="${r}" fill="#7b8fb8"/><rect x="34" y="2" width="28" height="18" rx="${r}" fill="#5a6d96"/><rect x="34" y="24" width="28" height="18" rx="${r}" fill="#9aa9c9"/></svg>`;
     }
 
-    function welcomeSlides() {
-        const phone = isPhoneLayout();
+    // (Beta 3.11) The welcome guide: one big window with chapters on the left,
+    // Computer / Phone at the top (each chapter says what to press or tap
+    // there) and a Controls chapter: a keyboard with your keys lit up, or the
+    // finger gestures on a phone.
+    const KEYS_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>';
+    const HAND_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-1.5a1.5 1.5 0 0 1 3 0V11m0-1a1.5 1.5 0 0 1 3 0v4.5a6.5 6.5 0 0 1-6.5 6.5h-.6a6 6 0 0 1-4.7-2.3L4.3 15.3a1.6 1.6 0 0 1 2.4-2.1L9 15"/></svg>';
+    const WEL_HELP_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.8M12 17.2h.01"/></svg>';
+    const GRID_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/></svg>';
+
+    // A drawn finger gesture for the phone controls (fixed colours)
+    function gestureArt(kind) {
+        const dot = (x, y, o = 1) => `<circle cx="${x}" cy="${y}" r="9" fill="#ff5f8f" opacity="${o}"/><circle cx="${x}" cy="${y}" r="9" fill="none" stroke="#fff" stroke-width="2" opacity="${o}"/>`;
+        const screen = '<rect x="14" y="4" width="44" height="64" rx="8" fill="#1d1c24" stroke="#4a4858" stroke-width="2"/>';
+        const arrow = (d, head) => `<path d="${d}" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 5" opacity=".75"/><path d="${head}" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+        let g = screen;
+        if (kind === 'tap') g += `<circle cx="36" cy="36" r="17" fill="none" stroke="#ff5f8f" stroke-width="2" opacity=".45"/>` + dot(36, 36);
+        else if (kind === 'hold') g += `<circle cx="36" cy="36" r="16" fill="none" stroke="#4a4858" stroke-width="3"/><path d="M36 20a16 16 0 1 1-15.2 21" fill="none" stroke="#ff5f8f" stroke-width="3" stroke-linecap="round"/>` + dot(36, 36);
+        else if (kind === 'left') g += arrow('M50 36H26', 'M31 30l-6 6 6 6') + dot(52, 36);
+        else if (kind === 'right') g += arrow('M22 36h24', 'M41 30l6 6-6 6') + dot(20, 36);
+        else if (kind === 'down') g += arrow('M36 18v28', 'M30 41l6 6 6-6') + dot(36, 16);
+        else if (kind === 'sideways') g += `<rect x="18" y="44" width="36" height="14" rx="3" fill="#2c2a36"/><rect x="20" y="46" width="10" height="10" rx="2" fill="#7b8fb8"/><rect x="32" y="46" width="10" height="10" rx="2" fill="#5a6d96"/><rect x="44" y="46" width="10" height="10" rx="2" fill="#9aa9c9"/>` + arrow('M48 30H26', 'M31 24l-6 6 6 6') + dot(50, 30);
+        else if (kind === 'drag') g += `<rect x="20" y="12" width="14" height="14" rx="3" fill="#7b8fb8"/><rect x="38" y="12" width="14" height="14" rx="3" fill="#5a6d96" opacity=".5"/><rect x="38" y="44" width="14" height="14" rx="3" fill="#9aa9c9" stroke="#ff5f8f" stroke-width="2"/>` + arrow('M28 22c0 18 6 26 14 28', 'M36 51l6-1-2-6') + dot(27, 22);
+        else if (kind === 'back') g += `<rect x="20" y="52" width="32" height="10" rx="5" fill="#2c2a36"/><path d="M31 57l5-3.5v7z" fill="#fff"/>` + dot(33, 57, .9);
+        else if (kind === 'menu') g += `<path d="M40 13h12M40 17h12M40 21h12" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>` + dot(46, 17, .9);
+        return `<svg viewBox="0 0 72 72" width="72" height="72" aria-hidden="true">${g}</svg>`;
+    }
+
+    // Every key Steamy34 uses (with your own keys from the settings), in groups
+    function controlGroups(dev) {
+        const k = t => `<kbd>${t}</kbd>`;
+        const wasd = CONFIG.browseKeys !== 'arrows', arrows = CONFIG.browseKeys !== 'wasd';
+        const L = code => keyLabel(code);
+        const ownKeys = [CONFIG.downloadKey, CONFIG.favKey, CONFIG.collectKey, CONFIG.theaterKey, CONFIG.followKey, CONFIG.followingKey];
+        if (dev === 'phone') {
+            return [
+                ['Posts', '#ff5f8f', [
+                    ['tap', 'Tap a thumbnail', 'Opens the post in the popup – picture on top, everything else below.'],
+                    ['hold', 'Hold a thumbnail', 'Its buttons slide up: ♥ favourite, ⬇ download, 👁 viewed, 📁 collection, 🕒 Watch later.'],
+                    ['menu', '☰ Menu, top right', 'Steamy34\'s switches, Settings, Blacklist, Following, tips – and all of rule34\'s pages.']
+                ]],
+                ['In the popup', '#a77bff', [
+                    ['left', 'Swipe left', 'The next post (at the end of the list, more load by themselves).'],
+                    ['right', 'Swipe right', 'The previous post.'],
+                    ['down', 'Swipe down', 'Closes the post – when you\'re at the top of it.'],
+                    ['tap', 'Tap the picture', 'Full size – move around with your finger, tap again to fit.'],
+                    ['sideways', 'Similar strip', 'More → Similar: swipe the strip under the picture sideways, tap a post to see it.'],
+                    ['back', 'Back button', 'Your phone\'s Back closes the post, sheets and windows.']
+                ]],
+                ['Everywhere else', '#4fa3ff', [
+                    ['drag', 'Hold, then drag', 'Collections → "My order": hold a post for a moment, then drag it to its new place.'],
+                    ['tap', 'Tap a tag bubble', 'In the search: excludes the tag, tap again to bring it back.'],
+                    ['hold', 'Hold a picture in a list', 'Never your browser\'s menu on thumbnails – Steamy34\'s buttons instead.']
+                ]]
+            ];
+        }
+        const prevNext = arrows && wasd ? `${k('←')} ${k('→')} or ${k('A')} ${k('D')}` : wasd ? `${k('A')} ${k('D')}` : `${k('←')} ${k('→')}`;
+        const prevCodes = (arrows ? ['ArrowLeft', 'ArrowRight'] : []).concat(wasd ? ['KeyA', 'KeyD'] : []);
+        return [
+            ['In the popup', '#ff5f8f', [
+                [prevNext, 'Previous / next post', prevCodes, '◀ ▶'],
+                [`${k('Esc')} · ${k(MOUSE_MIDDLE + ' Middle click')}`, 'Close the post', ['Escape'], 'Close'],
+                [k(L(CONFIG.downloadKey)), 'Download the original, full resolution', [CONFIG.downloadKey], 'Save'],
+                [k(L(CONFIG.favKey)), 'Favourite – again to remove it', [CONFIG.favKey], 'Fav'],
+                [k(L(CONFIG.collectKey)), 'Put it into a collection (again: close the list)', [CONFIG.collectKey], 'Coll.'],
+                [k(L(CONFIG.theaterKey)), 'Theater mode – only the picture', [CONFIG.theaterKey], 'Theater'],
+                [k(L(CONFIG.followKey)), 'Follow / unfollow the artist', [CONFIG.followKey], 'Follow'],
+                ...(wasd ? [[`${k('W')} ${k('S')}`, 'Scroll to the comments and back', ['KeyW', 'KeyS'], 'Scroll']] : []),
+                [`${k('Shift')} + ${arrows ? `${k('←')} ${k('→')}` : `${k('A')} ${k('D')}`}`, 'Go through the Similar strip (More → Similar)', ['ShiftLeft'], 'Similar'],
+                [`${k(',')} ${k('.')}`, 'Video paused: one frame back / forward', ['Comma', 'Period'], 'Frame']
+            ]],
+            ['Anywhere', '#a77bff', [
+                [k(L(CONFIG.followingKey)), 'The Following window – your artists\' newest posts', [CONFIG.followingKey], 'Follow­ing'],
+                ...(ownKeys.includes('KeyX') ? [] : [[k('X'), 'Censored mode – blurs every picture and video (safe screenshots)', ['KeyX'], 'Censor']]),
+                [k('Esc'), 'Close any Steamy34 window', ['Escape'], 'Close'],
+                [`${k('Ctrl')} + click`, 'A thumbnail: the post page in a new tab instead of the popup', ['ControlLeft'], 'New tab']
+            ]],
+            ['Search box', '#4fa3ff', [
+                [`${k('Space')} or ${k('Enter')}`, 'Turn the word you typed into a tag bubble', ['Space', 'Enter'], 'Bubble'],
+                [`${k('Enter')} on an empty box`, 'Search', ['Enter'], ''],
+                [`click a bubble`, 'Exclude the tag – click again to bring it back', [], '']
+            ]],
+            ['Mouse', '#f5b301', [
+                ['Hover a thumbnail', 'Videos play, pictures load sharp, score and size show up', [], ''],
+                ['Click the picture', 'Full size – drag to look around, click again to fit', [], ''],
+                ['Wheel over the Similar strip', 'Scrolls it sideways', [], '']
+            ]]
+        ];
+    }
+
+    // The keyboard drawing: your keys lit up in their group's colour
+    function keyboardArt(groups) {
+        const lit = {};
+        groups.forEach(([, color, rows]) => rows.forEach(([, what, codes, short]) => (codes || []).forEach(c => {
+            if (!lit[c]) lit[c] = { color, short: short || '', what: [] };
+            lit[c].what.push(what);
+        })));
+        const key = (code, label, cls = '') => {
+            const l = lit[code];
+            const t = l ? ` title="${l.what.join(' · ').replace(/"/g, '&quot;')}"` : '';
+            return `<span class="s34-kb-key ${cls}${l ? ' s34-kb-lit' : ''}" data-code="${code}"${l ? ` style="--kc:${l.color}"` : ''}${t}><b>${label}</b>${l && l.short ? `<i>${l.short}</i>` : ''}</span>`;
+        };
+        const row = (codes, extra = '') => `<div class="s34-kb-row">${extra}${codes.map(c => key('Key' + c, c)).join('')}</div>`;
+        return `<div class="s34-kb" aria-hidden="true">
+            <div class="s34-kb-main">
+                <div class="s34-kb-row">${key('Escape', 'Esc', 's34-kb-wide')}</div>
+                ${row('QWERTYUIOP'.split(''))}
+                ${row('ASDFGHJKL'.split(''), '<span class="s34-kb-pad"></span>').replace('</div>', key('Enter', 'Enter', 's34-kb-wide') + '</div>')}
+                <div class="s34-kb-row">${key('ShiftLeft', 'Shift', 's34-kb-wider')}${'ZXCVBNM'.split('').map(c => key('Key' + c, c)).join('')}${key('Comma', ',')}${key('Period', '.')}</div>
+                <div class="s34-kb-row">${key('ControlLeft', 'Ctrl', 's34-kb-wide')}${key('Space', 'Space', 's34-kb-space')}</div>
+            </div>
+            <div class="s34-kb-arrows">
+                <div class="s34-kb-row">${key('ArrowUp', '↑')}</div>
+                <div class="s34-kb-row">${key('ArrowLeft', '←')}${key('ArrowDown', '↓')}${key('ArrowRight', '→')}</div>
+            </div>
+        </div>`;
+    }
+
+    function welcomeChapters(dev) {
+        const phone = dev === 'phone';
         const k = t => `<kbd>${t}</kbd>`;
         const dl = keyLabel(CONFIG.downloadKey);
         const prevNext = CONFIG.browseKeys === 'wasd' ? `${k('A')} ${k('D')}` : CONFIG.browseKeys === 'both' ? `${k('←')} ${k('→')} or ${k('A')} ${k('D')}` : `${k('←')} ${k('→')}`;
         const ic = id => (SETTINGS_UI.find(s => s.id === id) || {}).icon || '';
-        return [
+        const tap = phone ? 'Tap' : 'Click', tapl = phone ? 'tap' : 'click';
+        const chapters = [
             {
-                art: `<img src="${logoData()}" alt="">`, step: 'Welcome',
+                id: 'welcome', nav: 'Welcome', art: `<img src="${logoData()}" alt="">`, step: 'Welcome',
                 title: 'Hi! This is Steamy34',
-                text: 'rule34.xxx, upgraded – a cleaner look, a popup viewer, a much easier search and tidy downloads. Here are the best bits in under a minute.',
+                text: 'rule34.xxx, upgraded. A cleaner look, a popup viewer, a much easier search, artists you follow, tidy downloads, collections and a blacklist that really keeps things away – ' + (phone ? 'made for your phone too.' : 'on your computer and your phone.') + ' This guide shows everything, chapter by chapter – jump around as you like.',
                 promise: ['🎁 Free, always', '🚫 No ads, no tracking', '🔒 Everything stays on your device', '💜 A fan-made hobby project'],
+                overview: true,
                 note: 'Steamy34 isn\'t made by or connected to rule34.xxx.'
             },
             {
-                art: ic('viewing'), step: '1 · Popup viewer',
+                id: 'controls', nav: phone ? 'Touch controls' : 'Keys & mouse', art: phone ? HAND_SVG : KEYS_SVG, step: phone ? 'Controls · Phone' : 'Controls · Computer',
+                title: phone ? 'Everything is a tap, a hold or a swipe' : 'Your keyboard, explained',
+                text: phone ? 'No keys needed – these are all the gestures Steamy34 knows.'
+                    : 'The lit keys do something in Steamy34 (yours, as set in Settings → Viewing posts). Hover one, or press it now to see what it does.',
+                controls: true
+            },
+            {
+                id: 'popup', nav: 'Popup viewer', art: ic('viewing'), step: 'Viewing posts',
                 title: 'Posts open right here',
-                text: (phone ? 'Tap' : 'Click') + ' a post and it opens in a big viewer on top of the list – no new tabs, and you never lose your place.',
+                text: tap + ' a post and it opens in a big viewer on top of the list – no new tabs, and you never lose your place.',
                 cards: [
-                    ['↔', 'Browse', phone ? 'Swipe left / right on the picture.' : `${prevNext} for the previous / next post.`],
+                    ['↔', 'Browse', (phone ? 'Swipe left / right on the picture.' : `${prevNext} for the previous / next post.`) + ' At the end of the list the next page loads by itself.'],
                     ['✕', 'Close', phone ? 'Swipe down or press Back.' : `${k('Esc')} or a middle click anywhere.`],
+                    ['🔍', 'Full size', phone ? 'Tap the picture, move around with your finger.' : 'Click the picture, drag to look around.'],
+                    ['◫', 'Similar', 'More → Similar: a strip of posts with the same artist and character' + (phone ? ' under the picture – swipe it.' : ` – ${k('Shift')} + ${k('←')} ${k('→')} go through it.`)],
                     ['▶', 'Auto next', 'A slideshow with your own timer – videos play to the end first.'],
-                    [THEATER_SVG, 'Theater mode', 'Only the picture, using the whole screen' + (phone ? '.' : ` – ${k(keyLabel(CONFIG.theaterKey))}.`)],
-                    ['💬', 'Everything inside', 'Tags, votes, favourites, pools and comments – right in the popup.'],
-                    ['🔍', 'Full size', phone ? 'Tap the picture to see it in full size.' : 'Click the picture for full size, drag to look around.']
+                    ...(phone ? [] : [[THEATER_SVG, 'Theater mode', `Only the picture, using the whole screen – ${k(keyLabel(CONFIG.theaterKey))}.`]]),
+                    ['💬', 'Everything inside', 'Tags, info chips, votes, favourites, pools and comments.'],
+                    [CLOCK_SVG, 'Watch later', 'Keep a post for later – it waits in Collections.'],
+                    [SPLASH_SVG, 'iCame', 'rule34\'s own iCame counter, one ' + tapl + '.'],
+                    ['⋯', 'More', 'Find source, Upscale and Report – they open in a new tab.'],
+                    ['🎬', 'Video tools', 'Speed, loop a part (A–B)' + (phone ? '.' : ` and frame by frame with ${k(',')} ${k('.')}.`)]
                 ]
             },
             {
-                art: ic('search'), step: '2 · Search',
+                id: 'search', nav: 'Search', art: ic('search'), step: 'Search',
                 title: 'Search without typing tags_like_this',
-                text: 'Tags become bubbles you can add, remove or exclude with one ' + (phone ? 'tap' : 'click') + '.',
+                text: 'Tags become bubbles you can add, remove or exclude with one ' + tapl + '.',
                 cards: [
                     ['🏷️', 'Tag bubbles', phone ? 'Type a tag and pick a suggestion.' : `${k('Space')} or ${k('Enter')} turns a word into a bubble – with suggestions while you type.`],
-                    ['⊘', 'Exclude', (phone ? 'Tap' : 'Click') + ' a bubble to exclude it, again to bring it back.'],
+                    ['⊘', 'Exclude', tap + ' a bubble to exclude it, again to bring it back.'],
                     ['🎚️', 'Filters', 'Score, size, sort, type and rating – pin one to keep it for every search.'],
-                    ['★', 'Favourite tags', 'Your go-to tags, one ' + (phone ? 'tap' : 'click') + ' away.'],
-                    ['🕘', 'Recent searches', (phone ? 'Tap' : 'Click') + ' Recent for a small list of your earlier searches – one ' + (phone ? 'tap' : 'click') + ' runs one again.']
+                    ['★', 'Favourite tags', 'Your go-to tags, one ' + tapl + ' away.'],
+                    ['🕘', 'Recent searches', tap + ' Recent – one ' + tapl + ' runs an earlier search again.'],
+                    [DISK_SVG, 'Saved searches', 'Save a search with its filters – it shows its new posts.'],
+                    ['🔀', 'Random', 'Sort: Random – "Shuffle again" for a new mix, no repeats while scrolling.']
                 ]
             },
             {
-                art: ic('following'), step: '3 · Following',
+                id: 'browse', nav: 'Thumbnails', art: ic('posts'), step: 'Browsing',
+                title: 'More from every thumbnail',
+                text: 'The posts page keeps loading as you scroll, and every thumbnail tells you what you need to know.',
+                cards: [
+                    phone ? ['✋', 'Hold a thumbnail', 'Its buttons slide up: ♥, ⬇, 👁 viewed, 📁 collection, 🕒 Watch later.']
+                          : ['🖱️', 'Hover', 'Videos play, pictures load sharp, score and size show – ♥ ⬇ 👁 📁 buttons in the corner.'],
+                    ['👁', 'Viewed & downloaded', 'Small marks on the thumbnails – or hide those posts completely.'],
+                    ['+', 'Tags on the picture', '+ adds a tag to the search, ⊘ blacklists it' + (phone ? ' – always shown on phones.' : ' – Shift + + excludes it.')],
+                    ['⧉', 'Versions grouped', 'Versions of one picture show as one thumbnail with "+N versions" (needs your API key).'],
+                    ...(phone ? [] : [['🙈', 'Censored mode', `${k('X')} blurs every picture and video – safe for screenshots.`]]),
+                    ['↕', 'Size', 'The Size slider makes the thumbnails bigger or smaller.']
+                ]
+            },
+            {
+                id: 'following', nav: 'Following', art: ic('following'), step: 'Following',
                 title: 'Your artists, newest first',
-                text: (phone ? 'Tap' : 'Click') + ' the bell next to an artist in a post to follow them. Their newest posts wait for you in the Following window.',
+                text: tap + ' the bell next to an artist in a post to follow them. Their newest posts wait for you in the Following window.',
                 cards: [
                     ['◎', 'A circle each', 'Everyone you follow sits in a row at the top – a coloured ring means new posts.'],
-                    ['NEW', 'Since your last visit', 'Their newest posts in a grid, each in its own shape – NEW on the ones you haven\'t seen.'],
-                    ['↔', 'Browse right there', (phone ? 'Tap' : 'Click') + ' a post and it opens in the popup – ' + (phone ? 'swipe' : prevNext) + ' through that artist, more load at the end.'],
-                    [BELL_SVG, 'Open it', phone ? 'Following in the ☰ Menu – Back closes it.' : `${k(keyLabel(CONFIG.followingKey))} or a name in the sidebar's Following box – "Bigger" makes it nearly full screen.`]
+                    ['NEW', 'Since your last visit', 'Their newest posts in a grid – NEW on the ones you haven\'t seen.'],
+                    ['↔', 'Browse right there', tap + ' a post and it opens in the popup – ' + (phone ? 'swipe' : prevNext) + ' through that artist.'],
+                    [BELL_SVG, 'Open it', phone ? 'Following in the ☰ Menu – Back closes it.' : `${k(keyLabel(CONFIG.followingKey))} or a name in the sidebar's Following box.`]
                 ]
             },
             {
-                art: ic('downloads'), step: '4 · Downloads',
-                title: 'One key, a perfectly named file',
+                id: 'downloads', nav: 'Downloads', art: ic('downloads'), step: 'Downloads',
+                title: 'One ' + (phone ? 'tap' : 'key') + ', a perfectly named file',
                 text: phone ? 'Tap Download for the original file in full resolution.' : `Press ${k(dl)} on any post for the original file in full resolution.`,
                 cards: [
                     ['📄', 'Named for you', '[character] [series] [artist] – no more 8f3a9c…c2.jpg.'],
                     ['⬇', 'Batch download', 'Tick posts or take a whole collection – with progress, Pause and Cancel.'],
-                    ...(phone ? [] : [['📁', 'Your own folder', 'Settings → Downloads → Choose folder… – straight into any folder, e.g. Eagle\'s watch folder.']]),
+                    ...(phone ? [] : [['📁', 'Your own folder', 'Settings → Downloads → Choose folder… – even a subfolder per artist.']]),
+                    ['🗂️', 'Downloads window', 'Everything you saved – filter by artist, character or post number.'],
                     ['✓', 'Never twice', 'Downloaded posts get a mark, and Steamy34 asks before saving one again.']
                 ]
             },
             {
-                // (Beta 3.9) The one thing everyone needs to know - in the short tour
-                art: CF_SHIELD_SVG, step: 'Good to know',
+                id: 'collections', nav: 'Collections', art: FOLDER_SVG, step: 'Organise',
+                title: 'Your own folders of posts',
+                text: 'Collect posts in folders of your own' + (phone ? ' – 📁 in the popup or by holding a thumbnail.' : ` – ${k(keyLabel(CONFIG.collectKey))} in the popup or 📁 on a thumbnail.`),
+                cards: [
+                    ['★', 'Cover', 'Pick the post that shows on the collection\'s card.'],
+                    ['⇅', 'Your order', phone ? 'Sort by date or post number – or hold a post and drag it.' : 'Sort by date or post number – or drag posts into your own order.'],
+                    ['✎', 'A note', 'Write down what a collection is for.'],
+                    [CLOCK_SVG, 'Watch later', 'A ready-made list for posts you want to see again.'],
+                    ['🔄', 'On all devices', 'Optional: collections live in your rule34 favourites, so your phone has them too.'],
+                    ['📊', 'Stats', 'Your top artists, characters and series.']
+                ]
+            },
+            {
+                id: 'blacklist', nav: 'Blacklist', art: BLOCK_SVG, step: 'Blacklist',
+                title: 'Blocked stays blocked',
+                text: 'Steamy34 checks every post against your whole blacklist itself – on every list, while scrolling, in the popup, in Collections and Downloads.',
+                cards: [
+                    ['∞', 'As long as you like', 'rule34 only keeps about 4,000 characters – Steamy34 keeps the whole list.'],
+                    ['⊘', 'One ' + tapl, '⊘ next to any tag blacklists it – posts already on screen go grey, with Undo.'],
+                    ['◐', 'Blur instead of hide', 'Per tag: its posts show blurred with a Show button. Any other blacklisted tag still hides them.'],
+                    ['⏱', 'Mute for a while', 'Hide a tag for 24 hours or 7 days – it comes back by itself.'],
+                    ['🛡', 'Opened anyway?', 'A blacklisted post you open by a link is covered – "Show anyway" if you really want to.'],
+                    ['☁', 'On your account', 'Save to account keeps a copy on rule34 for your other devices.']
+                ]
+            },
+            {
+                id: 'goodtoknow', nav: 'Good to know', art: CF_SHIELD_SVG, step: 'Good to know',
                 title: 'Now and then: a quick check',
-                text: 'rule34 is protected by Cloudflare, which now and then asks you to confirm you\'re a person. When it does, a pulsing notice appears at the bottom of the screen – ' + (phone ? 'tap' : 'click') + ' Solve, tick the box, and everything carries on.',
+                text: 'rule34 is protected by Cloudflare, which now and then asks you to confirm you\'re a person. A pulsing notice appears at the bottom – ' + tapl + ' Solve, tick the box, and everything carries on.',
                 cards: [
-                    ['⏸', 'Until then, nothing new loads', 'No new pages, previews or post info – rule34 turns every request down. Steamy34 pauses meanwhile, so it doesn\'t make things worse.'],
-                    ['✓', 'Solve it right there', 'Solve opens the check where you are – no new tab, and Steamy34 continues where it stopped.'],
-                    ['🔑', 'Fewer checks', 'Optional: your rule34 API key makes them come up less often (Settings → API key).']
+                    ['⏸', 'Until then, nothing new loads', 'No new pages, previews or post info. Steamy34 pauses meanwhile, so it doesn\'t make things worse.'],
+                    ['✓', 'Solve it right there', 'The check opens where you are – Steamy34 continues where it stopped.'],
+                    ['🔑', 'Fewer checks', 'Optional: your rule34 API key makes them come up less often (Settings → API key).'],
+                    ['💻', 'One device works best', 'Everything is kept in this browser. Using two? A backup combines them (Settings → Privacy & data).']
                 ]
             },
             {
-                art: FOLDER_SVG, step: '5 · Organise',
-                title: 'Keep track of everything',
-                text: 'Your own little archive on top of rule34 – kept in this browser, so Steamy34 works best on one device. Using two? A backup combines them (Settings → Privacy & data).',
-                cards: [
-                    ['👁', 'Viewed & downloaded', 'Small marks on the thumbnails – or hide those posts completely.'],
-                    [FOLDER_SVG, 'Collections', 'Your own folders of posts' + (phone ? '.' : ` – ${k(keyLabel(CONFIG.collectKey))} in the popup.`)],
-                    ['📊', 'Stats', 'Your top artists, characters and series.'],
-                    [BLOCK_SVG, 'Blacklist', 'See, sort and edit everything you blacklisted.']
-                ]
-            },
-            {
-                art: ic('look'), step: '6 · Thumbnails',
-                title: 'Thumbnails your way',
-                text: 'Tags, VID / GIF labels, ♥ and the viewed / downloaded marks can sit on the picture, ' + (phone ? 'stay out of the way' : 'show up only while you hover') + ' – or move to a strip below, so nothing covers the picture.',
+                id: 'look', nav: 'Your look', art: ic('look'), step: 'Make it yours',
+                title: 'Pick your look',
+                text: 'Choose a colour mode and how thumbnails show their extras – you can change all of it any time in Settings → Look.',
                 picks: [
-                    { key: 'thumbExtras', options: [
+                    { key: 'theme', label: 'Colour mode', options: [
+                        ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
+                        ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
+                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED']
+                    ] },
+                    { key: 'thumbExtras', label: 'Tags, labels and buttons on thumbnails', options: [
                         ['on', thumbStyleArt('on'), 'On the picture'],
                         ['hover', thumbStyleArt('hover'), phone ? 'Clean' : 'Only on hover'],
                         ['below', thumbStyleArt('below'), 'Below']
@@ -16309,61 +16702,96 @@
                         [true, cornerArt(true), 'Rounded'],
                         [false, cornerArt(false), 'Square']
                     ] }
-                ],
-                note: 'Change both any time in Settings → Look.'
+                ]
             },
             {
-                art: SPARKLE_SVG, step: '7 · Make it yours',
-                title: 'Pick your look',
-                text: 'Choose a colour mode – you can switch any time' + (phone ? ' in the ☰ Menu.' : ' in the sidebar.'),
-                picks: [
-                    { key: 'theme', options: [
-                        ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
-                        ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
-                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED']
-                    ] }
-                ],
+                id: 'help', nav: 'Help & more', art: WEL_HELP_SVG, step: 'Help & more',
+                title: 'Whenever you need it',
+                text: 'Every option, this guide and what changed in each version are always one ' + tapl + ' away.',
                 cards: [
-                    ['⚙', 'Settings', 'Every option in one place, with a search field. This tour is there too – the ✨ Welcome tour button.'],
+                    ['⚙', 'Settings', 'Every option in one place, with a search field' + (phone ? ' – in the ☰ Menu.' : ' – the ⚙ button in the sidebar.')],
+                    ['?', 'Shortcuts & tips', 'A compact list of every key and gesture – ? in the popup or under Settings.'],
+                    ['✨', 'What\'s new', 'Each update, in plain words – and this guide again: Settings → Help → Welcome guide.'],
                     phone ? ['☰', 'The Menu', 'Steamy34\'s switches, Settings and tips are in the ☰ Menu at the top right.']
                           : [PHONE_SVG, 'On your phone too', 'Works on Android with Firefox – Settings → Help → On your phone.'],
-                    ['?', 'All shortcuts', 'The quick tips list every key and gesture – the ? in the popup.'],
-                    ['💌', 'Say hi', `Ideas or bugs? Come to the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Steamy34 Discord channels</a> – every report helps.`]
+                    ['💌', 'Say hi', `Ideas or bugs? Come to the <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Steamy34 Discord channels</a> – every report helps.`],
+                    ['💜', 'A hobby project', 'Made for fun by steamycorner – free, and never monetized.']
                 ]
             }
         ];
+        return chapters;
     }
 
     function openWelcome(startAt) {
         if (document.querySelector('.s34-wel-overlay')) return;
-        const slides = welcomeSlides();
-        const w = openWindow({ cls: 's34-wel-overlay', icon: SPARKLE_SVG, title: 'Welcome to Steamy34', width: 680 });
-        w.setSub(CURRENT_VERSION);
-        let idx = Math.min(Math.max(parseInt(startAt, 10) || 0, 0), slides.length - 1);
-        // Short tour first (welcome, popup, search, following, downloads); the rest
-        // (organise, thumbnails, colours) only after "Show me more"
-        const SHORT = 6; // (welcome, popup, search, following, downloads, the Cloudflare check)
-        let full = idx >= SHORT;
-        const shown = () => (full ? slides.length : SHORT);
+        let dev = isPhoneLayout() || onTouchDevice() ? 'phone' : 'computer';
+        let chapters = welcomeChapters(dev);
+        const w = openWindow({ cls: 's34-wel-overlay s34-wel-big', icon: SPARKLE_SVG, title: 'Welcome to Steamy34', width: 1120 });
+        w.setSub(CURRENT_VERSION + ' · everything it can do');
+        let idx = Math.min(Math.max(parseInt(startAt, 10) || 0, 0), chapters.length - 1);
 
-        const stageWrap = document.createElement('div');
+        const MOUSE_I = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6"/></svg>';
+        const PHONE_I = PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"');
+        const shell = document.createElement('div');
+        shell.className = 's34-wel-shell';
+        shell.innerHTML = `
+            <nav class="s34-wel-nav"></nav>
+            <div class="s34-wel-main">
+                <div class="s34-wel-topbar">
+                    <div class="s34-wel-devices" role="tablist">
+                        <button type="button" data-dev="computer" role="tab">${MOUSE_I} Computer</button>
+                        <button type="button" data-dev="phone" role="tab">${PHONE_I} Phone</button>
+                    </div>
+                    <span class="s34-wel-count"></span>
+                </div>
+                <div class="s34-wel-scroll"></div>
+            </div>`;
+        const nav = shell.querySelector('.s34-wel-nav');
+        const scroller = shell.querySelector('.s34-wel-scroll');
         const foot = document.createElement('div');
         foot.className = 's34-wel-foot';
         foot.innerHTML = `
-            <div class="s34-wel-dots"></div>
             <button type="button" class="s34-wel-skip">Skip</button>
+            <span class="s34-wel-progress"><i></i></span>
             <button type="button" class="s34-wel-btn s34-wel-prev">Back</button>
-            <button type="button" class="s34-wel-btn s34-wel-tips"><span class="s34-qmark">?</span> All shortcuts</button>
-            <button type="button" class="s34-wel-btn s34-wel-more">Show me more</button>
             <button type="button" class="s34-wel-next">Next</button>`;
-        w.body.append(stageWrap, foot);
+        w.body.append(shell, foot);
 
         const ico = i => (/^\s*</.test(i) ? i : `<span>${i}</span>`);
+        function renderNav() {
+            nav.innerHTML = chapters.map((c, i) => `<button type="button" data-i="${i}"${i === idx ? ' class="s34-on" aria-current="step"' : ''}><span class="s34-wel-navico">${ico(c.art.startsWith('<img') ? GRID_SVG : c.art)}</span><span>${c.nav}</span></button>`).join('');
+            shell.querySelectorAll('.s34-wel-devices button').forEach(b => {
+                const on = b.dataset.dev === dev;
+                b.classList.toggle('s34-on', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            const on = nav.querySelector('.s34-on');
+            if (on) try { on.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+        }
+        function controlsHtml() {
+            const groups = controlGroups(dev);
+            if (dev === 'phone') {
+                return `<div class="s34-wel-gestures">${groups.map(([title, color, rows]) => `
+                    <section class="s34-wel-cgroup" style="--gc:${color}">
+                        <div class="s34-wel-cgtitle">${title}</div>
+                        <div class="s34-wel-gcards">${rows.map(([kind, name, what]) => `
+                            <div class="s34-wel-gcard">${gestureArt(kind)}<div><b>${name}</b><span>${what}</span></div></div>`).join('')}</div>
+                    </section>`).join('')}</div>`;
+            }
+            return `${keyboardArt(groups)}
+                <div class="s34-kb-try"><span>Press a key…</span></div>
+                <div class="s34-wel-legend">${groups.map(([title, color, rows]) => `
+                    <section class="s34-wel-cgroup" style="--gc:${color}">
+                        <div class="s34-wel-cgtitle">${title}</div>
+                        ${rows.map(([keys, what, codes]) => `<div class="s34-wel-crow" data-codes="${(codes || []).join(' ')}"><div class="s34-wel-ckeys">${keys}</div><div class="s34-wel-cwhat">${what}</div></div>`).join('')}
+                    </section>`).join('')}</div>`;
+        }
         function render(dir) {
-            const s = slides[idx];
-            const last = idx === shown() - 1;
+            const s = chapters[idx];
+            const last = idx === chapters.length - 1;
             const stage = document.createElement('div');
             stage.className = 's34-wel-stage' + (dir < 0 ? ' s34-wel-back' : '');
+            stage.dataset.chapter = s.id;
             stage.innerHTML = `
                 <div class="s34-wel-hero">
                     <div class="s34-wel-art">${s.art}</div>
@@ -16374,14 +16802,17 @@
                     </div>
                 </div>
                 ${s.promise ? `<div class="s34-wel-promise">${s.promise.map(p => `<span>${p}</span>`).join('')}</div>` : ''}
+                ${s.overview ? `<div class="s34-wel-overview">${chapters.slice(1).map((c, i) => `
+                    <button type="button" class="s34-wel-otile" data-go="${i + 1}"><span class="s34-wel-ico">${ico(c.art)}</span><b>${c.nav}</b><span>${c.title}</span></button>`).join('')}</div>` : ''}
+                ${s.controls ? controlsHtml() : ''}
                 ${(s.picks || []).map((p, pi) => `${p.label ? `<div class="s34-wel-picklabel">${p.label}</div>` : ''}<div class="s34-wel-themes" data-pick="${pi}">${p.options.map(([, art, label], oi) => `<button type="button" data-o="${oi}">${art}${label}</button>`).join('')}</div>`).join('')}
                 ${s.cards ? `<div class="s34-wel-cards">${s.cards.map(([i, b, t]) => `
                     <div class="s34-wel-card"><div class="s34-wel-ico">${ico(i)}</div><div><b>${b}</b><span>${t}</span></div></div>`).join('')}</div>` : ''}
-                ${s.note ? `<p class="s34-wel-note" style="margin:0;font-size:12px;opacity:.6">${s.note}</p>` : ''}`;
+                ${s.note ? `<p class="s34-wel-note">${s.note}</p>` : ''}`;
             stage.querySelector('h3').textContent = s.title;
-            // Pickers (colour mode, thumbnail style, corners): saved at once,
-            // then the page reloads (the look is set up while it loads) and
-            // the tour comes back on this slide
+            stage.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
+            // Pickers: saved at once, then the page reloads (the look is set up
+            // while it loads) and the guide comes back on this chapter
             stage.querySelectorAll('.s34-wel-themes[data-pick]').forEach(row => {
                 const p = s.picks[+row.dataset.pick];
                 row.querySelectorAll('button').forEach(b => {
@@ -16395,58 +16826,87 @@
                     });
                 });
             });
-            stageWrap.replaceChildren(stage);
-            foot.querySelector('.s34-wel-dots').innerHTML = slides.slice(0, shown())
-                .map((x, i) => `<button type="button" data-i="${i}" aria-label="Slide ${i + 1}"${i === idx ? ' class="s34-on"' : ''}></button>`).join('');
+            // Keyboard: a row of the list lights its keys up, and the other way round
+            stage.querySelectorAll('.s34-wel-crow[data-codes]').forEach(r => {
+                const codes = r.dataset.codes.split(' ').filter(Boolean);
+                r.addEventListener('mouseenter', () => codes.forEach(c => stage.querySelectorAll(`.s34-kb-key[data-code="${c}"]`).forEach(x => x.classList.add('s34-kb-hot'))));
+                r.addEventListener('mouseleave', () => stage.querySelectorAll('.s34-kb-hot').forEach(x => x.classList.remove('s34-kb-hot')));
+            });
+            scroller.replaceChildren(stage);
+            scroller.scrollTop = 0;
+            renderNav();
+            shell.querySelector('.s34-wel-count').textContent = `${idx + 1} / ${chapters.length}`;
+            foot.querySelector('.s34-wel-progress i').style.width = Math.round((idx + 1) / chapters.length * 100) + '%';
             foot.querySelector('.s34-wel-prev').hidden = idx === 0;
             foot.querySelector('.s34-wel-skip').hidden = last;
-            foot.querySelector('.s34-wel-tips').hidden = !last || !full;
-            foot.querySelector('.s34-wel-more').hidden = !last || full;
-            const next = foot.querySelector('.s34-wel-next');
-            next.textContent = idx === 0 ? 'Show me' : last ? 'Let\'s go!' : 'Next';
-            w.body.scrollTop = 0;
+            foot.querySelector('.s34-wel-next').textContent = idx === 0 ? 'Show me' : last ? 'Let\'s go!' : 'Next: ' + chapters[idx + 1].nav;
         }
         function go(to) {
             if (to < 0) return;
-            if (to >= shown()) { w.close(); return; }
+            if (to >= chapters.length) { w.close(); return; }
             const dir = to < idx ? -1 : 1;
             idx = to;
             render(dir);
         }
+        nav.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) go(+b.dataset.i); });
+        shell.querySelector('.s34-wel-devices').addEventListener('click', e => {
+            const b = e.target.closest('[data-dev]');
+            if (!b || b.dataset.dev === dev) return;
+            dev = b.dataset.dev;
+            chapters = welcomeChapters(dev);
+            render(0);
+        });
         foot.addEventListener('click', e => {
             const b = e.target.closest('button');
             if (!b) return;
-            if (b.dataset.i != null) go(+b.dataset.i);
-            else if (b.classList.contains('s34-wel-next')) go(idx + 1);
+            if (b.classList.contains('s34-wel-next')) go(idx + 1);
             else if (b.classList.contains('s34-wel-prev')) go(idx - 1);
-            else if (b.classList.contains('s34-wel-more')) { full = true; go(SHORT); }
             else if (b.classList.contains('s34-wel-skip')) w.close();
-            else if (b.classList.contains('s34-wel-tips')) { w.close(); openQuickTips(); }
         });
-        // ← / → (and A / D) step through the slides
+        // ← / → step through the chapters. On the keyboard chapter, any other
+        // key lights up and says what it does.
+        let tryTimer = null;
         function onKey(e) {
             if (e.ctrlKey || e.metaKey || e.altKey || !w.overlay.isConnected) return;
             if (document.querySelector('.s34-tips-overlay')) return;
             const t = e.target;
             if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
-            if (e.key === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); e.stopPropagation(); go(idx + 1); }
-            else if (e.key === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); e.stopPropagation(); go(idx - 1); }
+            if (e.key === 'Escape') return; // (the window closes itself)
+            const stage = scroller.querySelector('.s34-wel-stage[data-chapter="controls"]');
+            if (stage && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                const keyEl = stage.querySelector(`.s34-kb-key[data-code="${e.code}"]`);
+                const out = stage.querySelector('.s34-kb-try');
+                if (!keyEl || !out) return;
+                e.preventDefault(); e.stopImmediatePropagation();
+                stage.querySelectorAll('.s34-kb-press').forEach(x => x.classList.remove('s34-kb-press'));
+                keyEl.classList.add('s34-kb-press');
+                const label = keyEl.querySelector('b').textContent;
+                out.innerHTML = keyEl.classList.contains('s34-kb-lit')
+                    ? `<kbd></kbd><span></span>` : `<kbd></kbd><span class="s34-kb-none">does nothing in Steamy34 – rule34 and your browser keep it</span>`;
+                out.querySelector('kbd').textContent = label;
+                if (keyEl.classList.contains('s34-kb-lit')) out.querySelector('span').textContent = keyEl.title;
+                clearTimeout(tryTimer);
+                tryTimer = setTimeout(() => keyEl.classList.remove('s34-kb-press'), 900);
+                return;
+            }
+            if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); go(idx + 1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); go(idx - 1); }
         }
-        document.addEventListener('keydown', onKey, true);
-        // Phones: swipe through the slides
-        let touchX = null;
-        stageWrap.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
-        stageWrap.addEventListener('touchend', e => {
+        window.addEventListener('keydown', onKey, true);
+        // Phones: swipe through the chapters
+        let touchX = null, touchY = null;
+        scroller.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; touchY = e.touches[0].clientY; }, { passive: true });
+        scroller.addEventListener('touchend', e => {
             if (touchX == null) return;
-            const dx = e.changedTouches[0].clientX - touchX;
+            const dx = e.changedTouches[0].clientX - touchX, dy = e.changedTouches[0].clientY - touchY;
             touchX = null;
-            if (Math.abs(dx) > 50) go(idx + (dx < 0 ? 1 : -1));
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && !e.target.closest('.s34-wel-themes')) go(idx + (dx < 0 ? 1 : -1));
         });
         w.onClose = () => {
-            document.removeEventListener('keydown', onKey, true);
+            window.removeEventListener('keydown', onKey, true);
             try {
                 GM_setValue(WELCOME_KEY, 1);
-                // The tour covers these – no extra windows right after it
+                // The guide covers these – no extra windows right after it
                 if (GM_getValue(TIPS_KEY, 0) < TIPS_VERSION) GM_setValue(TIPS_KEY, TIPS_VERSION);
                 GM_setValue(CHANGELOG_SEEN_KEY, CURRENT_VERSION);
                 GM_setValue(MOBILE_ANNOUNCE_KEY, MOBILE_ANNOUNCE_VERSION);
@@ -18586,6 +19046,11 @@
         return groups;
     }
 
+    // Every tag of the post in the popup, as a plain list
+    function popupTagList(st) {
+        return [].concat(...Object.values((st && st.tags) || {}).map(l => (l || []).map(x => x.tag)));
+    }
+
     // Instant first guess from the thumbnail (types we already know)
     function tagsFromThumb(thumb) {
         const groups = {};
@@ -18674,7 +19139,7 @@
             else if (act === 'collect') {
                 const s = popupState;
                 if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
-                    tags: [].concat(...Object.values(s.tags || {}).map(l => (l || []).map(x => x.tag))).join(' ') }]);
+                    tags: popupTagList(s).join(' ') }]);
             }
         });
         setTheater(GM_getValue(THEATER_KEY, false) === true, overlay);
@@ -18729,7 +19194,7 @@
     function coverIfBlocked(blockedSet) {
         const st = popupState;
         if (!st) return;
-        const all = [].concat(...Object.values(st.tags || {}).map(l => (l || []).map(x => x.tag)));
+        const all = popupTagList(st);
         let hit = st.blockShown ? [] : blockedTagsOf(all);
         // (Beta 3.10) a soft-blocked thumbnail you already uncovered: only other tags cover it
         if (hit.length && st.thumb && st.thumb.classList.contains('s34-bl-unblur')) { const soft = getSoftTags(); hit = hit.filter(t => !soft.has(t)); }
@@ -19024,7 +19489,7 @@
         const list = visibleThumbs();
         let i = list.indexOf(popupState.thumb);
         // a post from the Similar strip: go on from the page post you left
-        if (i < 0) { const strip = popupState.overlay.querySelector('.s34-pv-strip'); if (strip && strip._from) i = list.indexOf(strip._from); }
+        if (i < 0) { const strip = popupState.overlay.querySelector('.s34-pv-simstrip'); if (strip && strip._from) i = list.indexOf(strip._from); }
         if (i < 0) return;
         const target = list[i + dir];
         if (target) {
@@ -19086,6 +19551,7 @@
     async function popupDownload() {
         if (!popupState) return;
         const state = popupState;
+        const thumbSrc = popupThumbSrc(state);
         let url = state.mediaUrl;
         if (!url) {
             // Media not shown yet: ask the post page for the original
@@ -19105,7 +19571,7 @@
             copyright: names('copyright'),
             character: names('character'),
             artist: names('artist')
-        }, postIdFrom(state.postUrl), false, size);
+        }, postIdFrom(state.postUrl), false, size, thumbSrc);
     }
 
     // Posts always open in the popup (Ctrl / middle click still opens the

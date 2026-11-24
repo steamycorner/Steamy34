@@ -373,10 +373,13 @@
     }
 
     function markBlocklisted() {
-        const blocked = new Set(readBlocklist().map(t => t.toLowerCase()));
+        // (Beta 3.11.1) the same set as everywhere else - with muted tags, rating:e
+        // as rating:explicit and names like freddy's. Before, posts hidden for
+        // one of those came back on screen after ⊘ on any other tag.
+        const blocked = blockedTagSet();
         const ctx = tagBarContext();
         document.querySelectorAll('.image-list span.thumb').forEach(thumb => {
-            const hits = (thumb._s34Tags || thumbTagList(thumb)).filter(t => blocked.has(t));
+            const hits = blockedTagsOf(thumb._s34Tags || thumbTagList(thumb), blocked);
             let label = thumb.querySelector('.s34-bl-label');
 
             // (Beta 3.10) only soft-blocked tags: blurred with Show, also when it was hidden before

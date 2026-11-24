@@ -101,7 +101,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - With an ad blocker on, no empty ad spaces next to or above the posts – without one, every ad stays exactly as rule34 shows it
 - Gentle on the site: background page loads wait in one line and are spaced out, so Cloudflare checks come much less often. When one does come, a clear, pulsing notice at the bottom of the screen asks you to solve it (the *?* explains why: without it rule34 loads nothing new). The check window also points to the optional API key, which makes checks rarer
 - Steamy34 Settings in rule34's top menu, on every page
-- A short welcome tour and a quick tips window with all shortcuts
+- A welcome guide with every feature in chapters (Computer and Phone), a keyboard map of all keys and drawings of every touch gesture – plus a quick tips window
 - Censored mode (X): blurs every picture, video and comment – safe for screenshots or in public
 - Settings with a search box
 - Backup and restore of all settings and data
@@ -113,7 +113,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 
 1. Install a userscript manager: **Tampermonkey** or **Violentmonkey** (Chrome, Firefox, Edge, Brave and others).
 2. Open the [Steamy34 page on Sleazy Fork](https://sleazyfork.org/en/scripts/606445-steamy34) and click **Install this script**.
-3. Open rule34.xxx. A short welcome tour shows the best features.
+3. Open rule34.xxx. The welcome guide shows everything, including all keys and touch gestures.
 
 **Updates:** automatic. Tampermonkey checks Sleazy Fork for new versions and installs them for you – your settings, history and followed artists always stay. (`Steamy34.user.js` in this repository is the file Sleazy Fork takes its updates from; you don't need to download it.)
 
@@ -165,7 +165,7 @@ It works best on **one device**. Each browser keeps its own Steamy34 data – vi
 A free userscript that upgrades rule34.xxx: dark mode, popup viewer, easier tag search, tag-named downloads, artist following and a phone layout. It runs in your browser through Tampermonkey or Violentmonkey.
 
 ### Is there a dark mode for rule34.xxx?
-Yes. Steamy34 has three colour modes: White, Dark and OLED (true black). Pick one in the sidebar, in the welcome tour or in Settings → Look & feel.
+Yes. Steamy34 has three colour modes: White, Dark and OLED (true black). Pick one in the sidebar, in the welcome guide or in Settings → Look & feel.
 
 ### Can I blacklist more tags than rule34 allows?
 Yes. rule34 keeps your blacklist in a single browser cookie, which holds about 4,000 characters – tags beyond that are silently lost in the browser. Steamy34 keeps the whole list and hides the rest itself. Open My Account → Options once and it takes over every tag on your account.

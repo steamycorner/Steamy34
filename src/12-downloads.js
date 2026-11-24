@@ -707,7 +707,9 @@
     }
 
     // size: the post's resolution ("1920x1080") when called from the popup
-    async function downloadOriginal(givenUrl, tagsByType, postId, confirmed, size) {
+    // thumbSrc: its thumbnail for the Downloads window (taken when the key was
+    // pressed - the popup may be on another post by the time the file arrives)
+    async function downloadOriginal(givenUrl, tagsByType, postId, confirmed, size, thumbSrc) {
         if (typeof givenUrl !== 'string') givenUrl = null; // called as a click handler
         const url = givenUrl || getOriginalUrl();
         if (!url) {
@@ -727,7 +729,7 @@
             tags: givenUrl ? (tagsByType || {}) : {
                 artist: getTags('artist'), character: getTags('character'), copyright: getTags('copyright')
             },
-            thumb: givenUrl ? popupThumbSrc(popupState) : ((document.querySelector('#image') || {}).src || '')
+            thumb: thumbSrc != null ? thumbSrc : givenUrl ? popupThumbSrc(popupState) : ((document.querySelector('#image') || {}).src || '')
         };
         showToast('Downloading ' + filename.slice(0, 80) + (filename.length > 80 ? '…' : ''));
         console.log('[Steamy34] Downloading:', url, '→', filename);
@@ -739,7 +741,7 @@
             console.log('[Steamy34] Download complete:', filename);
         } else {
             showToast('Download failed – the server didn\'t answer in time or refused it. Try again in a moment.',
-                      'Retry', () => downloadOriginal(url, historyInfo.tags, id, true, size), 12000);
+                      'Retry', () => downloadOriginal(url, historyInfo.tags, id, true, size, historyInfo.thumb), 12000);
         }
     }
 

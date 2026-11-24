@@ -125,7 +125,7 @@
         siteHiddenWatched = true;
         document.addEventListener('click', e => {
             if (!e.target.closest || !e.target.closest('#blacklisted-sidebar a, a[onclick*="showHideBlacklistedPosts"]')) return;
-            const reveal = !document.documentElement.classList.toggle('s34-bl-reveal') ? false : true;
+            const reveal = document.documentElement.classList.toggle('s34-bl-reveal');
             document.querySelectorAll(reveal ? '.image-list span.thumb.s34-bl-hidden' : '.image-list span.thumb.s34-bl-revealed').forEach(t => {
                 t.classList.toggle('s34-bl-hidden', !reveal);
                 t.classList.toggle('s34-bl-revealed', reveal);
@@ -161,7 +161,7 @@
             note.innerHTML = '<span></span><button type="button">Show them</button>';
             note.querySelector('span').textContent = hidden.length + (hidden.length === 1 ? ' post with a blacklisted tag is hidden here.' : ' posts with blacklisted tags are hidden here.');
             note.querySelector('button').addEventListener('click', () => {
-                const show = !root.classList.toggle('s34-bl-posts-shown') ? false : true;
+                const show = root.classList.toggle('s34-bl-posts-shown');
                 note.querySelector('button').textContent = show ? 'Hide them again' : 'Show them';
             });
             const list = document.querySelector('#comment-list') || hidden[0].parentElement;
@@ -256,14 +256,14 @@
             b.title = 'Other versions of this picture – click to show them';
             b.addEventListener('click', e => {
                 e.preventDefault(); e.stopPropagation();
-                const open = !first.classList.toggle('s34-var-open') ? false : true;
+                const open = first.classList.toggle('s34-var-open');
                 rest.forEach(t => t.classList.toggle('s34-var-open', open));
                 b.textContent = open ? 'Hide versions' : '+' + rest.length + (rest.length === 1 ? ' version' : ' versions');
             });
             first.appendChild(b);
         });
     }
-    onReady(() => setTimeout(() => { try { groupVariants(Array.from(document.querySelectorAll('.image-list span.thumb'))); } catch (e) {} }, 300));
+    onReady(() => setTimeout(() => groupVariants(Array.from(document.querySelectorAll('.image-list span.thumb'))).catch(() => {}), 300));
 
     // A newly loaded page: set up only its thumbnails, not every one again
     function enhanceThumbs(thumbs) {

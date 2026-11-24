@@ -6,6 +6,14 @@
 
     const mediaCache = new Map(); // post URL -> Promise<{ video, image } | null>
     const postDocCache = new Map(); // post URL -> Promise<Document | null>
+    // (Beta 3.11.1) Only the most recent ones stay in memory - before, every
+    // post page opened or preloaded stayed parsed for the whole visit
+    const POST_DOC_KEEP = 60, MEDIA_KEEP = 1500;
+    function cacheSet(map, key, value, keep) {
+        map.delete(key);
+        map.set(key, value);
+        while (map.size > keep) map.delete(map.keys().next().value); // (the oldest first)
+    }
 
     // Load and parse a post page once; everything that needs it shares the result.
     // Every loaded post page also teaches us the types of its tags.
@@ -392,7 +400,7 @@
                 postDocCache.delete(postUrl); // allow a retry later
                 return null;
             });
-        postDocCache.set(postUrl, p);
+        cacheSet(postDocCache, postUrl, p, POST_DOC_KEEP);
         return p;
     }
 
@@ -437,7 +445,7 @@
                     mediaCache.delete(postUrl); // allow a retry later
                     return null;
                 })); // (the API's answer, or else the page's)
-            mediaCache.set(postUrl, p);
+            cacheSet(mediaCache, postUrl, p, MEDIA_KEEP);
         }
         return mediaCache.get(postUrl);
     }

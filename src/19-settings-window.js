@@ -42,7 +42,7 @@
                 </div>
                 <div class="s34-set-body"></div>
                 <div class="s34-set-foot">
-                    <button type="button" class="s34-set-btn s34-set-tourbtn" data-act="welcome" title="Watch the welcome tour again">✨ Welcome tour</button>
+                    <button type="button" class="s34-set-btn s34-set-tourbtn" data-act="welcome" title="Everything Steamy34 can do, with all keys and gestures">✨ Welcome guide</button>
                     <span class="s34-set-dirty" hidden>Unsaved changes</span>
                     <button type="button" class="s34-set-btn" data-act="cancel">Cancel</button>
                     <button type="button" class="s34-set-btn s34-set-primary" data-act="save">Save &amp; reload</button>
@@ -225,7 +225,7 @@
                     <div class="s34-set-cardhead">Getting around</div>
                     <p>The handiest keys and clicks – middle click closes a post, ${browseKeyText()} browse, ${keyLabel(CONFIG.downloadKey)} downloads – are all in the quick tips.</p>
                     <div class="s34-set-actions">
-                        <button type="button" class="s34-set-btn" data-act="welcome">✨ Welcome tour</button>
+                        <button type="button" class="s34-set-btn" data-act="welcome">✨ Welcome guide</button>
                         <button type="button" class="s34-set-btn" data-act="tips"><span class="s34-qmark">?</span> Shortcuts &amp; tips</button>
                         <button type="button" class="s34-set-btn" data-act="changelog">What's new</button>
                         <button type="button" class="s34-set-btn" data-act="mobile">${PHONE_SVG.replace('width="22" height="22"', 'width="15" height="15"')} On your phone</button>
@@ -275,7 +275,7 @@
             ['privacy', 'What is stored', 'See and delete everything Steamy34 keeps – privacy, data, storage'],
             ['privacy', 'Export / import backup', 'Move everything to another browser or your phone – backup, restore, save'],
             ['privacy', 'Reset all settings', 'Back to how it was at the start – default'],
-            ['help', 'Welcome tour', 'The best features, slide by slide – intro, introduction, first start'],
+            ['help', 'Welcome guide', 'Every feature in chapters, keys and touch controls – intro, introduction, tour, first start, shortcuts, gestures'],
             ['help', 'Shortcuts & quick tips', 'All keys and gestures – keyboard, hotkeys, help'],
             ['help', 'What\'s new', 'The changelog – updates, version'],
             ['help', 'On your phone', 'Android guide – mobile, install'],

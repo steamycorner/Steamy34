@@ -87,13 +87,6 @@
         return out.textContent.trim() ? out : null;
     }
 
-    function shortUrl(u) {
-        try {
-            const x = new URL(u);
-            const rest = (x.pathname + x.search).replace(/\/$/, '');
-            return x.hostname.replace(/^www\./, '') + (rest.length > 24 ? rest.slice(0, 22) + '…' : rest);
-        } catch (e) { return u; }
-    }
 
     const VOTES_KEY = 'steamy34_votes';
     function hasVoted(id) {

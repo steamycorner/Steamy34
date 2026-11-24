@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.10-beta
+// @version      3.11.1-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -61,8 +61,8 @@
  *    click closes, click to zoom. F favourite, C collection, T theater
  *    (all changeable); with WASD, W / S scroll.
  *  - Settings have a search field.
- *  - First start: a welcome tour of the best features (again any time:
- *    Settings → Help → Welcome tour).
+ *  - First start: a welcome guide to every feature, keys and gestures (again
+ *    any time: Settings → Help → Welcome guide).
  *  - Auto next (slideshow), theater mode, video loop & speed,
  *    the next / previous post loaded in advance.
  *

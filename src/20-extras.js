@@ -230,7 +230,7 @@
         }, { passive: true });
         document.addEventListener('touchend', () => clearTimeout(timer), { passive: true });
         // the tap that ends a long press doesn't open the post; no browser menu either
-        document.addEventListener('click', e => {
+        window.addEventListener('click', e => {
             if (Date.now() - longPressDone < 700 && e.target.closest && e.target.closest('.image-list span.thumb')) { e.preventDefault(); e.stopImmediatePropagation(); }
         }, true);
         document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.image-list span.thumb')) e.preventDefault(); });
