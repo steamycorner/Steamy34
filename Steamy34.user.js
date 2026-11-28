@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.17-beta
+// @version      3.17.1-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
 // @supportURL   https://sleazyfork.org/en/scripts/606445-steamy34/feedback
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjVmOGYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjNkZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNSIgZmlsbD0idXJsKCNnKSIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIzLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iLjk1Ij48cGF0aCBkPSJNMjIgMjZjLTMuMi0zIDMuMi01LjYgMC04LjZzMy4yLTUuNiAwLTguNCIvPjxwYXRoIGQ9Ik0zMSAyNmMtMy4yLTMgMy4yLTUuNiAwLTguNnMzLjItNS42IDAtOC40Ii8+PHBhdGggZD0iTTQwIDI2Yy0zLjItMyAzLjItNS42IDAtOC42czMuMi01LjYgMC04LjQiLz48L2c+PHBhdGggZD0iTTE0IDMxaDM0djdhMTMgMTMgMCAwIDEtMTMgMTNoLThhMTMgMTMgMCAwIDEtMTMtMTN6IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTQ3LjUgMzQuNWgyLjVhNS41IDUuNSAwIDAgMSAwIDExaC00IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIxMSIgeT0iNTMiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzLjQiIHJ4PSIxLjciIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii45Ii8+PC9zdmc+
-// @description  All-in-one rule34.xxx upgrade: dark / OLED mode, popup viewer, easy tag search with filters, follow artists and save searches with new-post counts, downloads named after the tags (press B), batch downloads, collections on all your devices, download and viewed buttons on thumbnails, blacklists of any length, infinite scroll and a phone layout. Designed by steamycorner, written with AI. A free fan-made hobby project, never monetized.
+// @description  All-in-one rule34.xxx upgrade: colour modes, popup viewer, easy tag search with filters, follow artists and save searches with new-post counts, downloads named after the tags (press B), batch downloads, collections on all your devices, download and viewed buttons on thumbnails, blacklists of any length, infinite scroll and a phone layout. Designed by steamycorner, written with AI. A free fan-made hobby project, never monetized.
 // @match        https://rule34.xxx/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -96,7 +96,7 @@
  *    series, last 14 days), backup & restore.
  *
  *  Look
- *  - Steamy, Dark, OLED, White and Classic Dark colour modes.
+ *  - Steamy, Dark, White and Classic Dark colour modes.
  *
  *  Phones (Firefox for Android + Tampermonkey)
  *  - Picture on top in the popup, swipe to browse, swipe down / Back to
@@ -181,7 +181,7 @@
 
 
         // Look
-        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classicdark' (rule34's dark look with mint, 3.17 - it replaced the light Classic)
+        theme: 'steamy',         // colour mode: 'white', 'dark' (graphite since 3.17.1), 'steamy' (the default since 3.16) or 'classicdark' (rule34's dark look with mint, 3.17 - it replaced the light Classic)
         darkMode: true,          // (old setting - "off" becomes the White theme)
         thumbGrid: true,
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
@@ -254,14 +254,15 @@
 
     const CONFIG = Object.assign({}, DEFAULTS, loadSaved());
 
-    // Colour mode. All three are built from the dark design (White and OLED
-    // are converted from it - see recolorCss). "darkMode" is only read to
+    // Colour mode. All of them are built from the dark design (each is
+    // converted from it - see recolorCss). "darkMode" is only read to
     // move people over from the old on/off switch.
     {
         const saved = loadSaved();
         if (saved.darkMode === false && !saved.theme) CONFIG.theme = 'white'; // old "dark mode off"
         if (CONFIG.theme === 'classic') CONFIG.theme = 'white';   // (Classic, 3.16, was taken out in 3.17 - its nearest: White)
-        if (!['white', 'dark', 'oled', 'steamy', 'classicdark'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
+        if (CONFIG.theme === 'oled') CONFIG.theme = 'steamy';     // (OLED was taken out in 3.17.1 - Steamy is black too)
+        if (!['white', 'dark', 'steamy', 'classicdark'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
         document.documentElement.classList.add('s34-theme-' + CONFIG.theme);
         // Thumbnail extras ("below" needs the modern layout - without it, they stay on the picture)
         if (!['on', 'hover', 'below'].includes(CONFIG.thumbExtras)) CONFIG.thumbExtras = 'hover';
@@ -288,7 +289,7 @@
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
-            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classicdark: 'Classic Dark (rule34\'s dark look, mint)' } }],
+            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark (graphite)', white: 'White', classicdark: 'Classic Dark (rule34\'s dark look, mint)' } }],
             ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
             ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],
@@ -5962,11 +5963,11 @@
 
     // =====================================================================
     //  COLOUR MODES
-    //  Everything is designed dark. White and OLED are made from it by
+    //  Everything is designed dark. Every colour mode is made from it by
     //  converting every colour in the style sheet:
     //   - White: dark greys -> light greys/white, light text -> dark text,
     //            pale accent colours (tag colours, links) a bit deeper.
-    //   - OLED:  dark greys -> true black (borders stay visible).
+    //   - Dark:  the greys a step lighter (graphite, 3.17.1); OLED was taken out.
     //  Things that sit on top of pictures (labels, ♥, marks, tag bars on
     //  thumbnails, the theater buttons…) and floating dark bars keep their
     //  dark look in every mode.
@@ -6041,11 +6042,18 @@
             if (h > 0.53 && h < 0.93 && s > 0.35 && l < 0.68) return mint;               // UI blue, purple (tag colours stay: they're lighter)
             return null;
         }
-        if (theme === 'oled') {
-            if (!neutral || l >= 0.4) return null;
-            if (role === 'line') return null;                          // lines: as in Dark
-            l2 = l < 0.09 ? 0 : Math.max(0, l - 0.05);                 // page black, panels above it
-        } else {
+        if (theme === 'dark') {
+            // (Beta 3.17.1) Dark is graphite: the greys a step lighter, so it sits clearly
+            // between Steamy (black) and White; the accent is the family's magenta, as in Steamy.
+            if (neutral) {
+                if (l >= 0.5 || l < 0.02 || (hasAlpha && l < 0.06)) return null;   // text, pure black (video stage), shadows and dimming stay
+                return hslToRgb(0.667, Math.min(s, 0.08), l + 0.045 * (1 - l / 0.5));
+            }
+            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return hslToRgb(0.845, 1, 0.62);                         // brand pink -> magenta
+            if (h > 0.53 && h < 0.7 && s > 0.35 && l < 0.68) return hslToRgb(0.81, Math.min(1, s + 0.15), Math.min(0.6, l + 0.03)); // UI blue -> the accent
+            return null;
+        }
+        {
             if (r === 255 && g === 255 && b === 255 && !hasAlpha) return null; // white text on coloured buttons
             if (neutral) {
                 if (l >= 0.5) l2 = (1 - l) * 0.9;                       // light (text, icons) -> dark
@@ -6194,12 +6202,13 @@
             html.s34-theme-classicdark .s34-dl-btn .s34-dl-main { color: #fff !important; opacity: 1 !important; }
             html.s34-theme-classicdark .s34-dl-btn .s34-dl-sub { color: #fff !important; opacity: .95 !important; }
         `,
-        oled: `
-            html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
-            html.s34-theme-oled .s34-pv-overlay { background-color: rgba(0,0,0,0.98) !important; }
-            html.s34-theme-oled ::-webkit-scrollbar-thumb { background: #222 !important; }
-        `,
-        dark: ''
+        // (Beta 3.17.1) Dark, graphite with the family's magenta
+        dark: `
+            html.s34-theme-dark ::selection { background: rgba(255,61,242,.35); color: #fff; }
+            html.s34-theme-dark :is(button, a, input, textarea, select):focus-visible { outline: 2px solid #ff3df2 !important; outline-offset: 2px; }
+            html.s34-theme-dark .s34-sb-box:focus-within, html.s34-theme-dark textarea.s34-search:focus { border-color: #ff3df2 !important; }
+            html.s34-theme-dark ::-webkit-scrollbar-thumb { background: #4a4a55 !important; }
+        `
     };
 
 
@@ -6219,8 +6228,8 @@
         // (Beta 3.17) Classic Dark: the brand gradient becomes mint (deep enough for white text)
         if (CONFIG.theme === 'classicdark') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#27a56f$1, #1d7c53').replace(/#8b3dff/gi, '#1d7c53');
         // (Beta 3.12) Steamy: the brand gradient's pink → purple becomes the logo's magenta → violet; labels quiet grey
-        if (CONFIG.theme === 'steamy') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#ff3df2$1, #9b3bff').replace(/#8b3dff/gi, '#9b3bff').replace(/#ff8fa3/gi, '#8f8b99');
-        if (CONFIG.theme !== 'dark') css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];
+        if (CONFIG.theme === 'steamy' || CONFIG.theme === 'dark') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#ff3df2$1, #9b3bff').replace(/#8b3dff/gi, '#9b3bff').replace(/#ff8fa3/gi, '#8f8b99');   // (Dark too since 3.17.1)
+        css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];   // (every mode is converted - Dark too since 3.17.1)
         style.textContent = css;
         (document.head || document.documentElement).appendChild(style);
     }
@@ -16471,7 +16480,7 @@
             [`${k(DISK_SVG.replace('width="16" height="16"', 'width="13" height="13"'))} next to Search`, 'Save the search with its filters – it shows up under Saved searches, with its new posts']
         ]];
         const sidebarGroup = ['Sidebar', SLIDERS, [
-            [`${k('White')} ${k('Dark')} ${k('OLED')}`, 'Colour mode – in Settings → Look (OLED is true black)'],
+            [`${k('Steamy')} ${k('Dark')} ${k('White')}`, 'Colour mode – in Settings → Look (also Classic Dark)'],
             [`${k('Hide viewed')} / ${k('Hide downloaded')}`, 'Only show posts you haven\'t seen / saved yet'],
             [`${k('Size')} slider`, 'Make the thumbnails bigger or smaller'],
             [`${k('⬇ Batch download')}`, 'Tick posts (or "Select all new"), then download them – a panel shows progress with Pause / Cancel – or add them to a collection'],
@@ -16642,6 +16651,10 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.17.1', date: '2026-11-28', notify: true, items: [
+            'Dark is graphite now – a step lighter, clearly between Steamy (black) and White – with the same magenta accent as Steamy.',
+            'The OLED colour mode is gone: Steamy is black too. If you used OLED, you\'re on Steamy now.'
+        ] },
         { v: 'Beta 3.17', date: '2026-11-29', notify: true, items: [
             'New colour mode: Classic Dark – rule34\'s older dark look with mint green (an idea from the Discord). Settings → Look & feel. It replaces the light Classic mode (if you used it, you\'re on White now).',
             'My Account → Options: the Save bar at the bottom is calm now – no dark fade over the settings.',
@@ -17432,8 +17445,7 @@
                     { key: 'theme', label: 'Colour mode', options: [
                         ['steamy', '<i style="background:linear-gradient(135deg,#050407 62%,#ff3df2 62%,#9b3bff 100%) !important;border-color:#2a2730 !important"></i>', 'Steamy'],
                         ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
-                        ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
-                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED'],
+                        ['dark', '<i style="background:linear-gradient(135deg,#303038 50%,#1c1c21 50%) !important;border-color:#4a4a55 !important"></i>', 'Dark'],
                         ['classicdark', '<i style="background:linear-gradient(135deg,#1b1b1f 62%,#45d396 62%) !important;border-color:#3a3a44 !important"></i>', 'Classic Dark']
                     ] },
                     { key: 'thumbExtras', label: 'Tags, labels and buttons on thumbnails', options: [

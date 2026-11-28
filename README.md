@@ -1,6 +1,6 @@
 # Steamy34 – a free userscript for rule34.xxx
 
-**Steamy34 is a free, all-in-one userscript for rule34.xxx.** It adds colour modes (Steamy, Dark, OLED, White and Classic Dark), a popup viewer, a much easier tag search, downloads named after the post's tags, artist following and saved searches with new-post counts, and blacklists of any length. It also has a touch-friendly phone layout for Android. It runs in Tampermonkey or Violentmonkey.
+**Steamy34 is a free, all-in-one userscript for rule34.xxx.** It adds colour modes (Steamy, Dark, White and Classic Dark), a popup viewer, a much easier tag search, downloads named after the post's tags, artist following and saved searches with new-post counts, and blacklists of any length. It also has a touch-friendly phone layout for Android. It runs in Tampermonkey or Violentmonkey.
 
 By **steamycorner** · written with AI · License: CC BY-NC-SA 4.0 · Beta
 
@@ -40,7 +40,7 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 ## Features
 
 **Look**
-- Five colour modes for rule34.xxx: **Steamy** (clean black with the logo's magenta – the default), Dark, OLED (true black), White and **Classic Dark** (rule34's older dark look, with mint) – rule34's own theme follows along, so pages don't flash white while they load
+- Four colour modes for rule34.xxx: **Steamy** (clean black with the logo's magenta – the default), **Dark** (graphite), White and **Classic Dark** (rule34's older dark look, with mint) – rule34's own theme follows along, so pages don't flash white while they load
 - Modern thumbnail layout (original ratios or square tiles) with a size slider
 - VID / GIF labels and artist / character tags on the thumbnails – or clean thumbnails, with tags only on hover or in a strip below
 - Square or rounded corners
@@ -178,7 +178,7 @@ It works best on **one device**. Each browser keeps its own Steamy34 data – vi
 A free userscript that upgrades rule34.xxx: dark mode, popup viewer, easier tag search, tag-named downloads, artist following and a phone layout. It runs in your browser through Tampermonkey or Violentmonkey.
 
 ### Is there a dark mode for rule34.xxx?
-Yes. Steamy34 has five colour modes: Steamy (clean black with the magenta of the Steamycorner logo – the default), Dark, OLED (true black), White and Classic Dark (rule34's older dark look, with mint). Pick one in the welcome guide or in Settings → Look & feel.
+Yes. Steamy34 has four colour modes: Steamy (clean black with the magenta of the Steamycorner logo – the default), Dark (graphite), White and Classic Dark (rule34's older dark look, with mint). Pick one in the welcome guide or in Settings → Look & feel.
 
 ### Can I blacklist more tags than rule34 allows?
 Yes. rule34 keeps your blacklist in a single browser cookie, which holds about 4,000 characters – tags beyond that are silently lost in the browser. Steamy34 keeps the whole list and hides the rest itself. Open My Account → Options once and it takes over every tag on your account.

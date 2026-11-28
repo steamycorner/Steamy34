@@ -64,7 +64,7 @@
 
 
         // Look
-        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classicdark' (rule34's dark look with mint, 3.17 - it replaced the light Classic)
+        theme: 'steamy',         // colour mode: 'white', 'dark' (graphite since 3.17.1), 'steamy' (the default since 3.16) or 'classicdark' (rule34's dark look with mint, 3.17 - it replaced the light Classic)
         darkMode: true,          // (old setting - "off" becomes the White theme)
         thumbGrid: true,
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
@@ -137,14 +137,15 @@
 
     const CONFIG = Object.assign({}, DEFAULTS, loadSaved());
 
-    // Colour mode. All three are built from the dark design (White and OLED
-    // are converted from it - see recolorCss). "darkMode" is only read to
+    // Colour mode. All of them are built from the dark design (each is
+    // converted from it - see recolorCss). "darkMode" is only read to
     // move people over from the old on/off switch.
     {
         const saved = loadSaved();
         if (saved.darkMode === false && !saved.theme) CONFIG.theme = 'white'; // old "dark mode off"
         if (CONFIG.theme === 'classic') CONFIG.theme = 'white';   // (Classic, 3.16, was taken out in 3.17 - its nearest: White)
-        if (!['white', 'dark', 'oled', 'steamy', 'classicdark'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
+        if (CONFIG.theme === 'oled') CONFIG.theme = 'steamy';     // (OLED was taken out in 3.17.1 - Steamy is black too)
+        if (!['white', 'dark', 'steamy', 'classicdark'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
         document.documentElement.classList.add('s34-theme-' + CONFIG.theme);
         // Thumbnail extras ("below" needs the modern layout - without it, they stay on the picture)
         if (!['on', 'hover', 'below'].includes(CONFIG.thumbExtras)) CONFIG.thumbExtras = 'hover';
@@ -171,7 +172,7 @@
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
-            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classicdark: 'Classic Dark (rule34\'s dark look, mint)' } }],
+            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark (graphite)', white: 'White', classicdark: 'Classic Dark (rule34\'s dark look, mint)' } }],
             ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
             ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],

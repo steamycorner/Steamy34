@@ -32,7 +32,7 @@
             [`${k(DISK_SVG.replace('width="16" height="16"', 'width="13" height="13"'))} next to Search`, 'Save the search with its filters – it shows up under Saved searches, with its new posts']
         ]];
         const sidebarGroup = ['Sidebar', SLIDERS, [
-            [`${k('White')} ${k('Dark')} ${k('OLED')}`, 'Colour mode – in Settings → Look (OLED is true black)'],
+            [`${k('Steamy')} ${k('Dark')} ${k('White')}`, 'Colour mode – in Settings → Look (also Classic Dark)'],
             [`${k('Hide viewed')} / ${k('Hide downloaded')}`, 'Only show posts you haven\'t seen / saved yet'],
             [`${k('Size')} slider`, 'Make the thumbnails bigger or smaller'],
             [`${k('⬇ Batch download')}`, 'Tick posts (or "Select all new"), then download them – a panel shows progress with Pause / Cancel – or add them to a collection'],
@@ -203,6 +203,10 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.17.1', date: '2026-11-28', notify: true, items: [
+            'Dark is graphite now – a step lighter, clearly between Steamy (black) and White – with the same magenta accent as Steamy.',
+            'The OLED colour mode is gone: Steamy is black too. If you used OLED, you\'re on Steamy now.'
+        ] },
         { v: 'Beta 3.17', date: '2026-11-29', notify: true, items: [
             'New colour mode: Classic Dark – rule34\'s older dark look with mint green (an idea from the Discord). Settings → Look & feel. It replaces the light Classic mode (if you used it, you\'re on White now).',
             'My Account → Options: the Save bar at the bottom is calm now – no dark fade over the settings.',
@@ -993,8 +997,7 @@
                     { key: 'theme', label: 'Colour mode', options: [
                         ['steamy', '<i style="background:linear-gradient(135deg,#050407 62%,#ff3df2 62%,#9b3bff 100%) !important;border-color:#2a2730 !important"></i>', 'Steamy'],
                         ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
-                        ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
-                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED'],
+                        ['dark', '<i style="background:linear-gradient(135deg,#303038 50%,#1c1c21 50%) !important;border-color:#4a4a55 !important"></i>', 'Dark'],
                         ['classicdark', '<i style="background:linear-gradient(135deg,#1b1b1f 62%,#45d396 62%) !important;border-color:#3a3a44 !important"></i>', 'Classic Dark']
                     ] },
                     { key: 'thumbExtras', label: 'Tags, labels and buttons on thumbnails', options: [

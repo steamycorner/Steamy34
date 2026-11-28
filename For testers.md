@@ -19,7 +19,7 @@ Steamy34 is a free userscript that upgrades rule34.xxx: dark mode, a popup viewe
 - Open posts (popup), browse with ← / →, download with **B**
 - The search box: tags as bubbles, filters, pinning a filter
 - The bell next to an artist in a post → "Following" in the sidebar, G opens the Following window
-- White / Dark / OLED, thumbnail styles (Settings → Look & feel)
+- Colour modes (Steamy, Dark, White, Classic Dark), thumbnail styles (Settings → Look & feel)
 - The Blacklist button in the sidebar, and My Account → Options – the same panel in both places; a long blacklist should hide every tag on it
 - My Account (now tiles) and rule34's start page (now a small home)
 - **X** = Censored mode (blurs every picture and comment – handy for sending me screenshots)

@@ -13,7 +13,7 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 ## Features
 
 **Look**
-- Five colour modes: **Steamy** (clean black with the logo's magenta – the default), Dark, OLED (true black), White and **Classic Dark** (rule34's older dark look, with mint) – rule34's own theme follows along, so pages don't flash white while they load
+- Four colour modes: **Steamy** (clean black with the logo's magenta – the default), **Dark** (graphite), White and **Classic Dark** (rule34's older dark look, with mint) – rule34's own theme follows along, so pages don't flash white while they load
 - A calm sidebar: search, what you follow, view switches and your tools – in four tidy groups; recent searches and favourite tags open as small menus next to it (on phones: a sheet from the bottom)
 - Modern thumbnail layout (original ratios or square tiles), with a size slider
 - VID / GIF labels, plus artist and character tags right on the thumbnails – or keep the pictures clean: tags and buttons in a strip below, or only on hover

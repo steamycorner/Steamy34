@@ -1,10 +1,10 @@
     // =====================================================================
     //  COLOUR MODES
-    //  Everything is designed dark. White and OLED are made from it by
+    //  Everything is designed dark. Every colour mode is made from it by
     //  converting every colour in the style sheet:
     //   - White: dark greys -> light greys/white, light text -> dark text,
     //            pale accent colours (tag colours, links) a bit deeper.
-    //   - OLED:  dark greys -> true black (borders stay visible).
+    //   - Dark:  the greys a step lighter (graphite, 3.17.1); OLED was taken out.
     //  Things that sit on top of pictures (labels, ♥, marks, tag bars on
     //  thumbnails, the theater buttons…) and floating dark bars keep their
     //  dark look in every mode.
@@ -79,11 +79,18 @@
             if (h > 0.53 && h < 0.93 && s > 0.35 && l < 0.68) return mint;               // UI blue, purple (tag colours stay: they're lighter)
             return null;
         }
-        if (theme === 'oled') {
-            if (!neutral || l >= 0.4) return null;
-            if (role === 'line') return null;                          // lines: as in Dark
-            l2 = l < 0.09 ? 0 : Math.max(0, l - 0.05);                 // page black, panels above it
-        } else {
+        if (theme === 'dark') {
+            // (Beta 3.17.1) Dark is graphite: the greys a step lighter, so it sits clearly
+            // between Steamy (black) and White; the accent is the family's magenta, as in Steamy.
+            if (neutral) {
+                if (l >= 0.5 || l < 0.02 || (hasAlpha && l < 0.06)) return null;   // text, pure black (video stage), shadows and dimming stay
+                return hslToRgb(0.667, Math.min(s, 0.08), l + 0.045 * (1 - l / 0.5));
+            }
+            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return hslToRgb(0.845, 1, 0.62);                         // brand pink -> magenta
+            if (h > 0.53 && h < 0.7 && s > 0.35 && l < 0.68) return hslToRgb(0.81, Math.min(1, s + 0.15), Math.min(0.6, l + 0.03)); // UI blue -> the accent
+            return null;
+        }
+        {
             if (r === 255 && g === 255 && b === 255 && !hasAlpha) return null; // white text on coloured buttons
             if (neutral) {
                 if (l >= 0.5) l2 = (1 - l) * 0.9;                       // light (text, icons) -> dark
@@ -232,12 +239,13 @@
             html.s34-theme-classicdark .s34-dl-btn .s34-dl-main { color: #fff !important; opacity: 1 !important; }
             html.s34-theme-classicdark .s34-dl-btn .s34-dl-sub { color: #fff !important; opacity: .95 !important; }
         `,
-        oled: `
-            html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
-            html.s34-theme-oled .s34-pv-overlay { background-color: rgba(0,0,0,0.98) !important; }
-            html.s34-theme-oled ::-webkit-scrollbar-thumb { background: #222 !important; }
-        `,
-        dark: ''
+        // (Beta 3.17.1) Dark, graphite with the family's magenta
+        dark: `
+            html.s34-theme-dark ::selection { background: rgba(255,61,242,.35); color: #fff; }
+            html.s34-theme-dark :is(button, a, input, textarea, select):focus-visible { outline: 2px solid #ff3df2 !important; outline-offset: 2px; }
+            html.s34-theme-dark .s34-sb-box:focus-within, html.s34-theme-dark textarea.s34-search:focus { border-color: #ff3df2 !important; }
+            html.s34-theme-dark ::-webkit-scrollbar-thumb { background: #4a4a55 !important; }
+        `
     };
 
 
@@ -257,8 +265,8 @@
         // (Beta 3.17) Classic Dark: the brand gradient becomes mint (deep enough for white text)
         if (CONFIG.theme === 'classicdark') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#27a56f$1, #1d7c53').replace(/#8b3dff/gi, '#1d7c53');
         // (Beta 3.12) Steamy: the brand gradient's pink → purple becomes the logo's magenta → violet; labels quiet grey
-        if (CONFIG.theme === 'steamy') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#ff3df2$1, #9b3bff').replace(/#8b3dff/gi, '#9b3bff').replace(/#ff8fa3/gi, '#8f8b99');
-        if (CONFIG.theme !== 'dark') css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];
+        if (CONFIG.theme === 'steamy' || CONFIG.theme === 'dark') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#ff3df2$1, #9b3bff').replace(/#8b3dff/gi, '#9b3bff').replace(/#ff8fa3/gi, '#8f8b99');   // (Dark too since 3.17.1)
+        css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];   // (every mode is converted - Dark too since 3.17.1)
         style.textContent = css;
         (document.head || document.documentElement).appendChild(style);
     }
