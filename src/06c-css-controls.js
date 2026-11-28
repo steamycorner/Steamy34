@@ -299,9 +299,12 @@
         /* Cloudflare check (Beta 3.6.3): big and centred at the bottom, with a
            pulse that keeps going - without the check nothing loads, so it must
            not be missed. (Beta 3.5 had a small pill in the corner.) */
+        /* (Beta 3.17.2, #8) louder while it waits: --s34-cfx climbs from 0 to 1 (3 s after
+           it shows, over ~15 s) - the glow grows, the pulse speeds up, the panel takes on the
+           mode's accent colour */
         @keyframes s34-cf-glow {
-            0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 14px rgba(255,95,143,0.35), 0 0 30px rgba(139,61,255,0.22); }
-            50%      { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 26px rgba(255,95,143,0.75), 0 0 56px rgba(139,61,255,0.55); }
+            0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 calc(14px + var(--s34-cfx, 0) * 16px) rgba(255,95,143,0.35), 0 0 calc(30px + var(--s34-cfx, 0) * 30px) rgba(139,61,255,0.22); }
+            50%      { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 calc(26px + var(--s34-cfx, 0) * 34px) rgba(255,95,143,0.75), 0 0 calc(56px + var(--s34-cfx, 0) * 60px) rgba(139,61,255,0.55); }
         }
         @keyframes s34-cf-ring {
             0%   { transform: scale(1, 1); opacity: .85; }
@@ -320,7 +323,8 @@
             padding: 10px 10px 10px 12px;
             border-radius: 999px;
             border: 2px solid transparent !important;
-            background: linear-gradient(rgba(24,22,30,0.98), rgba(24,22,30,0.98)) padding-box,
+            --s34-cfx: 0;
+            background: linear-gradient(color-mix(in srgb, #ff5f8f calc(var(--s34-cfx) * 30%), rgba(24,22,30,0.98)), color-mix(in srgb, #8b3dff calc(var(--s34-cfx) * 30%), rgba(24,22,30,0.98))) padding-box,
                         linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
             color: #e8e8ee !important;
             font: 14px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
@@ -329,7 +333,7 @@
             opacity: 0;
             transform: translate(-50%, 16px);
             transition: opacity .25s ease, transform .25s ease;
-            animation: s34-cf-glow 1.8s ease-in-out infinite;
+            animation: s34-cf-glow calc(1.8s - var(--s34-cfx) * 0.9s) ease-in-out infinite;
         }
         /* a ring that keeps rippling outwards */
         .s34-cf-pill::after {
@@ -337,9 +341,9 @@
             position: absolute;
             inset: -2px;
             border-radius: inherit;
-            border: 2px solid #ff5f8f;
+            border: calc(2px + var(--s34-cfx, 0) * 2px) solid #ff5f8f;
             pointer-events: none;
-            animation: s34-cf-ring 1.8s ease-out infinite;
+            animation: s34-cf-ring calc(1.8s - var(--s34-cfx, 0) * 0.9s) ease-out infinite;
         }
         .s34-cf-pill.s34-show { opacity: 1; transform: translate(-50%, 0); }
         /* Messages and the download bar move up above it */
@@ -417,6 +421,8 @@
         .s34-cf-pill-text { display: flex; flex-direction: column; min-width: 0; }
         .s34-cf-pill-text { flex: 1; } .s34-cf-pill-text b { font-size: 16px; color: #f2f2f6 !important; white-space: nowrap; }
         .s34-cf-pill-text small { font-size: 13px; color: #a9a9b3 !important; white-space: nowrap; }
+        .s34-cf-pill-text small kbd { display: inline-block; min-width: 18px; padding: 0 5px; margin: 0 1px; border: 1px solid rgba(255,255,255,.25); border-bottom-width: 2px; font: 700 11px/16px system-ui, sans-serif; text-align: center; color: #f2f2f6 !important; }
+        @media (max-width: 760px) { .s34-cf-pill-text .s34-cf-key { display: none; } }
         .s34-cf-pill .s34-cf-pill-solve, .s34-cf-inline .s34-cf-pill-solve {
             flex: none;
             height: 28px;

@@ -979,7 +979,14 @@
         function highlight(i) {
             active = i;
             Array.from(list.children).forEach((li, n) => li.classList.toggle('s34-ac-active', n === i));
-            if (list.children[i]) list.children[i].scrollIntoView({ block: 'nearest' });
+            // (Beta 3.17.2, #14) only the list scrolls - scrollIntoView also slid the
+            // whole sidebar to the left (it moves every box around the list)
+            const li = list.children[i];
+            if (li) {
+                const r = li.getBoundingClientRect(), lr = list.getBoundingClientRect();
+                if (r.top < lr.top) list.scrollTop -= lr.top - r.top;
+                else if (r.bottom > lr.bottom) list.scrollTop += r.bottom - lr.bottom;
+            }
         }
 
         function pick(i) {

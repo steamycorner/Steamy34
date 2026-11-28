@@ -632,4 +632,15 @@
             .s34-home-tagline { order: 5; }
             .s34-home-grid { --s34-fw-row: 120px; }
         }
-    `;
+    
+        /* (Beta 3.17.2, #15) an artist's search: name + bell above the posts */
+        .s34-artist-bar { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 8px 12px; background-color: #1c1c20 !important; border: 1px solid #33333a !important; font: 600 13px system-ui, -apple-system, Segoe UI, sans-serif; }
+        .s34-artist-bar .s34-ab-name { color: #ff8a80 !important; font-weight: 700; }
+        .s34-artist-bar .s34-ab-follow { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 28px; padding: 0 !important; border: 1px solid #3a3a44 !important; background-color: #26262c !important; color: #c8c8d0 !important; cursor: pointer; }
+        .s34-artist-bar .s34-ab-follow:hover { border-color: rgba(255,255,255,.3) !important; color: #fff !important; }
+        .s34-artist-bar .s34-ab-follow.s34-following { color: #ffb347 !important; border-color: rgba(255,179,71,.5) !important; }
+        .s34-artist-bar .s34-ab-follow svg { width: 15px; height: 15px; }
+        .s34-artist-bar .s34-ab-hint { color: #9a9aa3 !important; font-weight: 500; font-size: 12.5px; cursor: pointer; }
+        .s34-artist-bar .s34-ab-hint::after { content: 'Follow – their new posts show up in the sidebar'; }
+        .s34-artist-bar:has(.s34-following) .s34-ab-hint::after { content: 'Following'; }
+`;

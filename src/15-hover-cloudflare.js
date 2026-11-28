@@ -30,15 +30,66 @@
     // NOTE: normal pages also contain Cloudflare's "challenge-platform" helper
     // script, so that alone must NOT count. A real check page has the
     // "Just a moment" title, or an error status plus Cloudflare check markers.
+    // (3.17.4) Cloudflare shows the check in the browser's language ("Einen
+    // Moment bitte…"), so the English title alone misses it. The check page's
+    // own script (_cf_chl_opt) and its form give it away in any language.
+    // (3.17.5) NOT the tick box (Turnstile) itself: rule34's normal pages use it
+    // too (the comment form) - and a page with rule34's own parts (tag list,
+    // post list, the post) is never a check.
+    const CF_CHECK_MARKS = /_cf_chl_opt|id="challenge-form"|id="challenge-stage"|cf-browser-verification/i;
+    const RULE34_PAGE_PARTS = /id="tag-sidebar"|class="image-list|id="image"|id="post-list"|id="paginator"/i;
     function isCloudflareCheck(status, html) {
         html = html || '';
-        if (/<title>\s*(Just a moment|Attention Required)/i.test(html)) return true;
+        if (RULE34_PAGE_PARTS.test(html)) return false;
+        if (/<title>\s*(Just a moment|Attention Required|Einen Moment|Nur einen Moment|Un instant|Un momento|Um momento|Even geduld)/i.test(html)) return true;
+        if (CF_CHECK_MARKS.test(html)) return true;
         const errorStatus = status === 403 || status === 429 || status === 503;
         return errorStatus && /cf-chl-|cf_chl_|challenge-form|cf-browser-verification/i.test(html);
     }
 
     function cloudflarePaused() {
         return Date.now() < cfPausedUntil;
+    }
+
+    // (Beta 3.17.3, #3) Some checks only hit Steamy34's background loading: the
+    // same page opened in a tab (or the check window) comes straight through,
+    // so there's nothing to solve. Then pages load the way the browser loads
+    // them - in a hidden frame without the page's scripts, removed as soon as
+    // its text is read - for a while (frame mode), and no notice shows.
+    const CF_FRAME_MS = 15 * 60 * 1000;
+    let cfFrameUntil = 0;
+    function frameMode() { return Date.now() < cfFrameUntil; }
+    function loadViaFrame(url, ms) {
+        return new Promise((resolve, reject) => {
+            if (!document.body) { reject(new Error('page not ready')); return; }
+            const f = document.createElement('iframe');
+            f.setAttribute('sandbox', 'allow-same-origin');   // (no scripts: no ads, no trackers - only the page's text)
+            f.setAttribute('aria-hidden', 'true');
+            f.tabIndex = -1;
+            f.style.cssText = 'position:fixed;left:-10000px;top:0;width:1024px;height:768px;border:0;visibility:hidden;pointer-events:none;';
+            let done = false, timer = 0, to = 0;
+            const finish = (ok, val) => {
+                if (done) return;
+                done = true;
+                clearInterval(timer); clearTimeout(to);
+                try { f.src = 'about:blank'; } catch (e) {}
+                f.remove();
+                if (ok) resolve(val); else reject(val);
+            };
+            const grab = () => {
+                try {
+                    const d = f.contentDocument;
+                    if (!d || d.URL === 'about:blank' || d.readyState === 'loading' || !d.body) return;
+                    const html = d.documentElement.outerHTML;
+                    if (html.length > 500 || d.readyState === 'complete') finish(true, html);   // (read at "interactive": the pictures don't need to load; a short page once it's complete)
+                } catch (e) { finish(false, e); }
+            };
+            timer = setInterval(grab, 60);
+            to = setTimeout(() => finish(false, new Error('frame load timed out')), ms || 15000);
+            f.addEventListener('load', grab);
+            f.src = url;
+            document.body.appendChild(f);
+        });
     }
 
     let cfCheckUrl = location.href; // a page that showed the check
@@ -162,13 +213,29 @@
         pageStartedAt = Date.now();
         logPage(job.kind);
         try {
-            const r = await fetchWithTimeout(job.url, job.ms);
-            const html = await r.text();
-            if (isCloudflareCheck(r.status, html)) {
-                pauseForCloudflare(job.url, job.kind);
-                job.reject(pageError('Cloudflare check (HTTP ' + r.status + ')', { cloudflare: true }));
+            let status = 0, ok = false, html = '', url = job.url;
+            if (frameMode()) {
+                html = await loadViaFrame(job.url, job.ms);
+                status = isCloudflareCheck(200, html) ? 503 : 200; ok = status === 200;
             } else {
-                job.resolve({ status: r.status, ok: r.ok, html, url: r.url || job.url });
+                const r = await fetchWithTimeout(job.url, job.ms, { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' });
+                html = await r.text();
+                status = r.status; ok = r.ok; url = r.url || job.url;
+                if (isCloudflareCheck(status, html)) {
+                    // the check on the background load - does the page come through the browser's way?
+                    const viaFrame = await loadViaFrame(job.url, job.ms).catch(() => null);
+                    if (viaFrame && !isCloudflareCheck(200, viaFrame)) {
+                        cfFrameUntil = Date.now() + CF_FRAME_MS;
+                        console.warn('[Steamy34] Cloudflare turned down a background load, but the page comes through in a frame - loading pages that way for 15 minutes.');
+                        html = viaFrame; status = 200; ok = true; url = job.url;
+                    }
+                }
+            }
+            if (isCloudflareCheck(status, html)) {
+                pauseForCloudflare(job.url, job.kind);
+                job.reject(pageError('Cloudflare check (HTTP ' + status + ')', { cloudflare: true }));
+            } else {
+                job.resolve({ status, ok, html, url });
             }
         } catch (e) {
             job.reject(e);
@@ -230,7 +297,7 @@
             pill.className = 's34-cf-pill';
             pill.setAttribute('role', 'status');
             pill.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span>
-                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Nothing new loads until it's solved</small></span>
+                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Nothing new loads until it's solved<span class="s34-cf-key"> · press <kbd>R</kbd></span></small></span>
                 <span class="s34-cf-why" tabindex="0" role="button" aria-label="Why is this needed?">?<span class="s34-cf-why-pop" role="tooltip"><b>Why is this needed?</b>rule34 is protected by Cloudflare, which now and then asks for a quick check that a real person is browsing. Until it's solved, rule34 turns down every request: no new pages, no post info in the popup, no hover previews, no Following updates. Steamy34 pauses its loading meanwhile, so it doesn't make things worse. <b>Solve</b> opens the check right here – afterwards everything carries on.</span></span>
                 <button type="button" class="s34-cf-pill-solve">Solve</button>
                 <button type="button" class="s34-cf-pill-x" title="Hide – loading stays paused until the check is solved" aria-label="Hide">✕</button>`;
@@ -260,7 +327,29 @@
             if (cfTitleBefore === null) { cfTitleBefore = document.title; document.title = 'Check needed · ' + cfTitleBefore; }
         }
         setTimeout(() => pill.classList.add('s34-show'), 20); // (not requestAnimationFrame: background tabs skip those)
+        // (Beta 3.17.2, #8) still waiting after 3 s? It gets louder, step by step, for ~15 s
+        if (!pill._s34Climb) {
+            const t0 = Date.now();
+            pill._s34Climb = setInterval(() => {
+                if (!pill.isConnected) { clearInterval(pill._s34Climb); return; }
+                const x = Math.max(0, Math.min(1, (Date.now() - t0 - 3000) / 15000));
+                pill.style.setProperty('--s34-cfx', x.toFixed(2));
+                if (x >= 1) clearInterval(pill._s34Climb);
+            }, 400);
+        }
     }
+
+    // (Beta 3.17.2, #10) R opens the check while the notice is up
+    document.addEventListener('keydown', e => {
+        if (e.code !== 'KeyR' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.repeat) return;
+        const t = e.target;
+        if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+        if (!document.querySelector('.s34-cf-pill.s34-show') || document.querySelector('.s34-cf-overlay')) return;
+        if (Object.keys(CONFIG).some(k => /Key$/.test(k) && CONFIG[k] === 'KeyR')) return; // your own key wins
+        e.preventDefault();
+        e.stopPropagation();
+        openCloudflarePanel();
+    }, true);
 
     function hideCloudflarePill() {
         const pill = document.querySelector('.s34-cf-pill');
@@ -337,25 +426,51 @@
             overlay.remove();
         }
 
-        // The frame is on the same site, so we can see when it shows a normal
-        // page again (= check passed)
-        function frameShowsNormalPage() {
+        // The frame is on the same site, so we can see what it shows:
+        // 'check', 'page' (a normal page = passed) or '' (not loaded / not readable yet)
+        function frameState() {
             try {
                 const doc = frame.contentDocument;
-                if (!doc || !doc.documentElement || doc.URL === 'about:blank') return false;
+                if (!doc || !doc.documentElement || doc.URL === 'about:blank') return '';
                 const html = doc.documentElement.outerHTML;
-                return html.length > 500 && !isCloudflareCheck(200, html);
+                if (html.length <= 500) return '';
+                return isCloudflareCheck(200, html) ? 'check' : 'page';
             } catch (e) {
-                return false; // not readable yet
+                return ''; // not readable yet
             }
         }
 
+        // (Beta 3.17.2, #3) The frame stays blank until a real check shows. Before, it
+        // sometimes got the blocked post itself (rule34 lets a page through on its
+        // own now and then), showed it in the old look, took that for "passed" and
+        // closed - and the real check came back seconds later. Now, without a check
+        // in sight, a quick test load decides whether loading really works again.
+        const note = panel.querySelector('.s34-cf-note');
+        const noteText = note.textContent;
+        frame.style.visibility = 'hidden';
+        note.textContent = 'Loading the check…';
+        // (3.17.3) On the real site the first round is often Cloudflare's invisible
+        // check: it solves itself in a blink, the frame shows a normal page, but
+        // the pass isn't in effect for Steamy34's loading yet - the tick box only
+        // comes on the next try. So: test again after a moment, then load the
+        // check again (still blank until a real check shows) - up to 3 rounds
+        // before the "open it in a new tab" note.
+        // (3.17.3) The page came straight through (no check in sight)? Then there's
+        // nothing to solve - only Steamy34's background loading was turned down.
+        // Pages load the browser's way for a while (frame mode) and everything goes on.
+        let sawCheck = false;
         const poll = setInterval(() => {
-            if (frameShowsNormalPage()) {
-                close();
-                cloudflarePassed();
-                showToast('Cloudflare check passed – continuing.');
+            const st = frameState();
+            if (st === 'check' && !sawCheck) {
+                sawCheck = true;
+                frame.style.visibility = '';
+                note.textContent = noteText;
             }
+            if (st !== 'page') return;
+            close();
+            if (!sawCheck) cfFrameUntil = Date.now() + CF_FRAME_MS;
+            cloudflarePassed();
+            showToast(sawCheck ? 'Cloudflare check passed – continuing.' : 'Nothing to solve – rule34 only turned down Steamy34\'s background loading. Continuing.');
         }, 1000);
 
         panel.addEventListener('click', e => {
@@ -374,10 +489,10 @@
     // fetch() that gives up after a while instead of hanging forever
     // (the timer also covers reading the page body; aborting a finished
     // request does nothing, so it is simply left to run out)
-    function fetchWithTimeout(url, ms = 12000) {
+    function fetchWithTimeout(url, ms = 12000, headers) {
         const ctrl = new AbortController();
         setTimeout(() => ctrl.abort(), ms);
-        return fetch(url, { credentials: 'include', signal: ctrl.signal });
+        return fetch(url, Object.assign({ credentials: 'include', signal: ctrl.signal }, headers ? { headers } : {}));
     }
 
     // kind: who needs it (PAGE_KINDS) - decides its place in the line.

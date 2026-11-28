@@ -12,7 +12,9 @@
 
     function resumeKey() {
         if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list') return null;
-        return normalizeQuery(tagsFromUrl(location.href) || '') || '(all posts)';
+        const q = normalizeQuery(tagsFromUrl(location.href) || '');
+        if (/(^|\s)sort:random(?!\w)/i.test(q)) return null;   // (Beta 3.17.2, #1) random order: page N is different every time - nothing to continue
+        return q || '(all posts)';
     }
     function readResume() {
         let v = {};

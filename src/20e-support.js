@@ -146,6 +146,36 @@
                   'Copy info', openDebugInfo, 15000);
     }
 
+    // ---- (Beta 3.17.2, #16) Feedback nudge: once ever, after ~3 days ----
+    // A small note in the bottom-right corner; it goes by itself after 10 s
+    // (a line shows the time left; hovering holds it).
+    const FEEDBACK_ASKED_KEY = 'steamy34_feedback_asked';
+    function maybeAskForFeedback() {
+        let first = 0, asked = false;
+        try {
+            first = GM_getValue('steamy34_first_seen', 0) || 0;
+            asked = GM_getValue(FEEDBACK_ASKED_KEY, false) === true;
+        } catch (e) { return; }
+        if (!first || asked || Date.now() - first < 3 * 24 * 3600 * 1000 || isPostView) return;
+        setTimeout(() => {
+            if (document.querySelector('.s34-overlay, .s34-fb-nudge') || !document.body) return; // another time
+            try { GM_setValue(FEEDBACK_ASKED_KEY, true); } catch (e) {}
+            const box = document.createElement('div');
+            box.className = 's34-fb-nudge';
+            box.setAttribute('role', 'status');
+            box.innerHTML = '<b>How is Steamy34 working for you?</b><span>Ideas, bugs or something you miss – a short note helps.</span>'
+                + '<div class="s34-fb-row"><a class="s34-fb-go" target="_blank" rel="noopener noreferrer">Give feedback</a><button type="button" class="s34-fb-x" aria-label="Close">✕</button></div>'
+                + '<i class="s34-fb-time"></i>';
+            box.querySelector('.s34-fb-go').href = SLEAZY_URL + '/feedback#post-discussion';
+            const close = () => { box.classList.remove('s34-show'); setTimeout(() => box.remove(), 250); };
+            box.querySelector('.s34-fb-go').addEventListener('click', close);
+            box.querySelector('.s34-fb-x').addEventListener('click', close);
+            box.querySelector('.s34-fb-time').addEventListener('animationend', close);   // (paused while hovered)
+            document.body.appendChild(box);
+            setTimeout(() => box.classList.add('s34-show'), 20);
+        }, 10000);
+    }
+
     // ---- Rating nudge: once ever, after a week of use ----
     const FIRST_SEEN_KEY = 'steamy34_first_seen';
     const RATE_ASKED_KEY = 'steamy34_rate_asked';

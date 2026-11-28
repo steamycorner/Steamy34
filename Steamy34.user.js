@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.17.1-beta
+// @version      3.17.5-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -1484,6 +1484,7 @@
         ${CONFIG.thumbMarks ? '' : 'span.thumb:not(:hover) .s34-tseen-wrap { display: none; }'}
         .s34-tseen-fly { position: absolute; right: 100%; top: 0; z-index: 6; display: none; gap: 4px; padding-right: 4px; white-space: nowrap; }
         .s34-tseen-wrap:hover .s34-tseen-fly { display: flex; }
+        .s34-tseen-fly.s34-fly-down { right: 0; top: 100%; flex-direction: column; align-items: flex-end; padding: 4px 0 0; }
         .s34-tseen-fly button {
             display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px !important;
             border-radius: 12px !important; border: none !important; background-color: rgba(20,20,24,0.9) !important;
@@ -2714,9 +2715,12 @@
         /* Cloudflare check (Beta 3.6.3): big and centred at the bottom, with a
            pulse that keeps going - without the check nothing loads, so it must
            not be missed. (Beta 3.5 had a small pill in the corner.) */
+        /* (Beta 3.17.2, #8) louder while it waits: --s34-cfx climbs from 0 to 1 (3 s after
+           it shows, over ~15 s) - the glow grows, the pulse speeds up, the panel takes on the
+           mode's accent colour */
         @keyframes s34-cf-glow {
-            0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 14px rgba(255,95,143,0.35), 0 0 30px rgba(139,61,255,0.22); }
-            50%      { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 26px rgba(255,95,143,0.75), 0 0 56px rgba(139,61,255,0.55); }
+            0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 calc(14px + var(--s34-cfx, 0) * 16px) rgba(255,95,143,0.35), 0 0 calc(30px + var(--s34-cfx, 0) * 30px) rgba(139,61,255,0.22); }
+            50%      { box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 calc(26px + var(--s34-cfx, 0) * 34px) rgba(255,95,143,0.75), 0 0 calc(56px + var(--s34-cfx, 0) * 60px) rgba(139,61,255,0.55); }
         }
         @keyframes s34-cf-ring {
             0%   { transform: scale(1, 1); opacity: .85; }
@@ -2735,7 +2739,8 @@
             padding: 10px 10px 10px 12px;
             border-radius: 999px;
             border: 2px solid transparent !important;
-            background: linear-gradient(rgba(24,22,30,0.98), rgba(24,22,30,0.98)) padding-box,
+            --s34-cfx: 0;
+            background: linear-gradient(color-mix(in srgb, #ff5f8f calc(var(--s34-cfx) * 30%), rgba(24,22,30,0.98)), color-mix(in srgb, #8b3dff calc(var(--s34-cfx) * 30%), rgba(24,22,30,0.98))) padding-box,
                         linear-gradient(135deg, #ff5f8f, #8b3dff) border-box !important;
             color: #e8e8ee !important;
             font: 14px/1.3 system-ui, -apple-system, Segoe UI, sans-serif;
@@ -2744,7 +2749,7 @@
             opacity: 0;
             transform: translate(-50%, 16px);
             transition: opacity .25s ease, transform .25s ease;
-            animation: s34-cf-glow 1.8s ease-in-out infinite;
+            animation: s34-cf-glow calc(1.8s - var(--s34-cfx) * 0.9s) ease-in-out infinite;
         }
         /* a ring that keeps rippling outwards */
         .s34-cf-pill::after {
@@ -2752,9 +2757,9 @@
             position: absolute;
             inset: -2px;
             border-radius: inherit;
-            border: 2px solid #ff5f8f;
+            border: calc(2px + var(--s34-cfx, 0) * 2px) solid #ff5f8f;
             pointer-events: none;
-            animation: s34-cf-ring 1.8s ease-out infinite;
+            animation: s34-cf-ring calc(1.8s - var(--s34-cfx, 0) * 0.9s) ease-out infinite;
         }
         .s34-cf-pill.s34-show { opacity: 1; transform: translate(-50%, 0); }
         /* Messages and the download bar move up above it */
@@ -2832,6 +2837,8 @@
         .s34-cf-pill-text { display: flex; flex-direction: column; min-width: 0; }
         .s34-cf-pill-text { flex: 1; } .s34-cf-pill-text b { font-size: 16px; color: #f2f2f6 !important; white-space: nowrap; }
         .s34-cf-pill-text small { font-size: 13px; color: #a9a9b3 !important; white-space: nowrap; }
+        .s34-cf-pill-text small kbd { display: inline-block; min-width: 18px; padding: 0 5px; margin: 0 1px; border: 1px solid rgba(255,255,255,.25); border-bottom-width: 2px; font: 700 11px/16px system-ui, sans-serif; text-align: center; color: #f2f2f6 !important; }
+        @media (max-width: 760px) { .s34-cf-pill-text .s34-cf-key { display: none; } }
         .s34-cf-pill .s34-cf-pill-solve, .s34-cf-inline .s34-cf-pill-solve {
             flex: none;
             height: 28px;
@@ -3656,6 +3663,23 @@
             filter: blur(5px) !important;
             user-select: none;
         }
+        /* (Beta 3.17.2, #16) the feedback note: bottom right, goes after 10 s (the line shows it) */
+        .s34-fb-nudge { position: fixed; right: 18px; bottom: 18px; z-index: 100002; width: 300px; max-width: calc(100vw - 36px); box-sizing: border-box;
+            display: grid; gap: 4px; padding: 12px 14px 14px; overflow: hidden;
+            background-color: #1c1c20 !important; border: 1px solid #33333a !important; box-shadow: 0 12px 32px rgba(0,0,0,.55);
+            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; color: #dcdce0 !important;
+            opacity: 0; transform: translateY(10px); transition: opacity .25s ease, transform .25s ease; }
+        .s34-fb-nudge.s34-show { opacity: 1; transform: none; }
+        .s34-fb-nudge b { color: #fff !important; font-size: 13.5px; }
+        .s34-fb-nudge span { color: #a9a9b3 !important; }
+        .s34-fb-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+        a.s34-fb-go:is(:link, :visited) { flex: 1; display: inline-flex; justify-content: center; align-items: center; height: 30px; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; font-weight: 700; text-decoration: none; }
+        .s34-fb-nudge .s34-fb-x { width: 30px; height: 30px; padding: 0 !important; border: 1px solid #3a3a44 !important; background: transparent !important; color: #a9a9b3 !important; cursor: pointer; }
+        .s34-fb-nudge .s34-fb-x:hover { color: #fff !important; }
+        .s34-fb-time { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: linear-gradient(90deg, #ff5f8f, #8b3dff); transform-origin: left; animation: s34-fb-time 10s linear forwards; }
+        .s34-fb-nudge:hover .s34-fb-time { animation-play-state: paused; }
+        @keyframes s34-fb-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+        @media (max-width: 760px) { .s34-fb-nudge { right: 12px; bottom: 76px; } }
         /* "Info for a bug report" window */
         .s34-debug-win .s34-win-body { display: flex; flex-direction: column; gap: 12px; }
         .s34-debug-text {
@@ -4936,7 +4960,18 @@
             .s34-home-tagline { order: 5; }
             .s34-home-grid { --s34-fw-row: 120px; }
         }
-    `;
+    
+        /* (Beta 3.17.2, #15) an artist's search: name + bell above the posts */
+        .s34-artist-bar { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 8px 12px; background-color: #1c1c20 !important; border: 1px solid #33333a !important; font: 600 13px system-ui, -apple-system, Segoe UI, sans-serif; }
+        .s34-artist-bar .s34-ab-name { color: #ff8a80 !important; font-weight: 700; }
+        .s34-artist-bar .s34-ab-follow { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 28px; padding: 0 !important; border: 1px solid #3a3a44 !important; background-color: #26262c !important; color: #c8c8d0 !important; cursor: pointer; }
+        .s34-artist-bar .s34-ab-follow:hover { border-color: rgba(255,255,255,.3) !important; color: #fff !important; }
+        .s34-artist-bar .s34-ab-follow.s34-following { color: #ffb347 !important; border-color: rgba(255,179,71,.5) !important; }
+        .s34-artist-bar .s34-ab-follow svg { width: 15px; height: 15px; }
+        .s34-artist-bar .s34-ab-hint { color: #9a9aa3 !important; font-weight: 500; font-size: 12.5px; cursor: pointer; }
+        .s34-artist-bar .s34-ab-hint::after { content: 'Follow – their new posts show up in the sidebar'; }
+        .s34-artist-bar:has(.s34-following) .s34-ab-hint::after { content: 'Following'; }
+`;
     // My Account (tiles) and Options (groups) - see 26d-account.js.
     // Written dark-first like everything else; White and OLED are converted.
     const ACCOUNT_CSS = `
@@ -5131,7 +5166,9 @@
         }
         .s34-sb-box:focus-within { border-color: #3a6fd4 !important; }
         .s34-sb-pills { display: contents; }
-        .s34-sb-box .s34-ac-wrap { flex: 1 1 70px; width: auto; min-width: 70px; }
+        .s34-sb-box .s34-ac-wrap { flex: 1 1 70px; width: auto; min-width: 70px; position: static; }
+        /* (Beta 3.17.2, #14) the suggestions hang under the whole box - never past the sidebar's edge */
+        .s34-sb-box ul.s34-ac-list { left: -1px; right: -1px; width: auto; }
         .s34-sb .s34-sb-input {
             width: 100%;
             min-width: 0;
@@ -5439,6 +5476,9 @@
         /* the add field right under the title (its suggestions then drop over the tags) */
         .s34-sb-pop .s34-ft-add { order: 1; }
         .s34-sb-pop .s34-ft-chips { order: 2; }
+        /* (Beta 3.17.2) its suggestions sit in the menu, under the field - floating, the menu's own
+           scrolling cut them off after the first line */
+        .s34-sb-pop ul.s34-ac-list { position: static !important; margin: 4px 0 0 !important; max-height: 240px; box-shadow: none; }
         /* Phones: a sheet from the bottom over the dimmed page - bigger to tap,
            swipe it down (or tap the page, or Back) to close */
         .s34-sb .s34-sb-pop.s34-sb-sheet {
@@ -7908,15 +7948,66 @@
     // NOTE: normal pages also contain Cloudflare's "challenge-platform" helper
     // script, so that alone must NOT count. A real check page has the
     // "Just a moment" title, or an error status plus Cloudflare check markers.
+    // (3.17.4) Cloudflare shows the check in the browser's language ("Einen
+    // Moment bitte…"), so the English title alone misses it. The check page's
+    // own script (_cf_chl_opt) and its form give it away in any language.
+    // (3.17.5) NOT the tick box (Turnstile) itself: rule34's normal pages use it
+    // too (the comment form) - and a page with rule34's own parts (tag list,
+    // post list, the post) is never a check.
+    const CF_CHECK_MARKS = /_cf_chl_opt|id="challenge-form"|id="challenge-stage"|cf-browser-verification/i;
+    const RULE34_PAGE_PARTS = /id="tag-sidebar"|class="image-list|id="image"|id="post-list"|id="paginator"/i;
     function isCloudflareCheck(status, html) {
         html = html || '';
-        if (/<title>\s*(Just a moment|Attention Required)/i.test(html)) return true;
+        if (RULE34_PAGE_PARTS.test(html)) return false;
+        if (/<title>\s*(Just a moment|Attention Required|Einen Moment|Nur einen Moment|Un instant|Un momento|Um momento|Even geduld)/i.test(html)) return true;
+        if (CF_CHECK_MARKS.test(html)) return true;
         const errorStatus = status === 403 || status === 429 || status === 503;
         return errorStatus && /cf-chl-|cf_chl_|challenge-form|cf-browser-verification/i.test(html);
     }
 
     function cloudflarePaused() {
         return Date.now() < cfPausedUntil;
+    }
+
+    // (Beta 3.17.3, #3) Some checks only hit Steamy34's background loading: the
+    // same page opened in a tab (or the check window) comes straight through,
+    // so there's nothing to solve. Then pages load the way the browser loads
+    // them - in a hidden frame without the page's scripts, removed as soon as
+    // its text is read - for a while (frame mode), and no notice shows.
+    const CF_FRAME_MS = 15 * 60 * 1000;
+    let cfFrameUntil = 0;
+    function frameMode() { return Date.now() < cfFrameUntil; }
+    function loadViaFrame(url, ms) {
+        return new Promise((resolve, reject) => {
+            if (!document.body) { reject(new Error('page not ready')); return; }
+            const f = document.createElement('iframe');
+            f.setAttribute('sandbox', 'allow-same-origin');   // (no scripts: no ads, no trackers - only the page's text)
+            f.setAttribute('aria-hidden', 'true');
+            f.tabIndex = -1;
+            f.style.cssText = 'position:fixed;left:-10000px;top:0;width:1024px;height:768px;border:0;visibility:hidden;pointer-events:none;';
+            let done = false, timer = 0, to = 0;
+            const finish = (ok, val) => {
+                if (done) return;
+                done = true;
+                clearInterval(timer); clearTimeout(to);
+                try { f.src = 'about:blank'; } catch (e) {}
+                f.remove();
+                if (ok) resolve(val); else reject(val);
+            };
+            const grab = () => {
+                try {
+                    const d = f.contentDocument;
+                    if (!d || d.URL === 'about:blank' || d.readyState === 'loading' || !d.body) return;
+                    const html = d.documentElement.outerHTML;
+                    if (html.length > 500 || d.readyState === 'complete') finish(true, html);   // (read at "interactive": the pictures don't need to load; a short page once it's complete)
+                } catch (e) { finish(false, e); }
+            };
+            timer = setInterval(grab, 60);
+            to = setTimeout(() => finish(false, new Error('frame load timed out')), ms || 15000);
+            f.addEventListener('load', grab);
+            f.src = url;
+            document.body.appendChild(f);
+        });
     }
 
     let cfCheckUrl = location.href; // a page that showed the check
@@ -8040,13 +8131,29 @@
         pageStartedAt = Date.now();
         logPage(job.kind);
         try {
-            const r = await fetchWithTimeout(job.url, job.ms);
-            const html = await r.text();
-            if (isCloudflareCheck(r.status, html)) {
-                pauseForCloudflare(job.url, job.kind);
-                job.reject(pageError('Cloudflare check (HTTP ' + r.status + ')', { cloudflare: true }));
+            let status = 0, ok = false, html = '', url = job.url;
+            if (frameMode()) {
+                html = await loadViaFrame(job.url, job.ms);
+                status = isCloudflareCheck(200, html) ? 503 : 200; ok = status === 200;
             } else {
-                job.resolve({ status: r.status, ok: r.ok, html, url: r.url || job.url });
+                const r = await fetchWithTimeout(job.url, job.ms, { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' });
+                html = await r.text();
+                status = r.status; ok = r.ok; url = r.url || job.url;
+                if (isCloudflareCheck(status, html)) {
+                    // the check on the background load - does the page come through the browser's way?
+                    const viaFrame = await loadViaFrame(job.url, job.ms).catch(() => null);
+                    if (viaFrame && !isCloudflareCheck(200, viaFrame)) {
+                        cfFrameUntil = Date.now() + CF_FRAME_MS;
+                        console.warn('[Steamy34] Cloudflare turned down a background load, but the page comes through in a frame - loading pages that way for 15 minutes.');
+                        html = viaFrame; status = 200; ok = true; url = job.url;
+                    }
+                }
+            }
+            if (isCloudflareCheck(status, html)) {
+                pauseForCloudflare(job.url, job.kind);
+                job.reject(pageError('Cloudflare check (HTTP ' + status + ')', { cloudflare: true }));
+            } else {
+                job.resolve({ status, ok, html, url });
             }
         } catch (e) {
             job.reject(e);
@@ -8108,7 +8215,7 @@
             pill.className = 's34-cf-pill';
             pill.setAttribute('role', 'status');
             pill.innerHTML = `<span class="s34-cf-pill-icon">${CF_SHIELD_SVG}</span>
-                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Nothing new loads until it's solved</small></span>
+                <span class="s34-cf-pill-text"><b>Quick check needed</b><small>Nothing new loads until it's solved<span class="s34-cf-key"> · press <kbd>R</kbd></span></small></span>
                 <span class="s34-cf-why" tabindex="0" role="button" aria-label="Why is this needed?">?<span class="s34-cf-why-pop" role="tooltip"><b>Why is this needed?</b>rule34 is protected by Cloudflare, which now and then asks for a quick check that a real person is browsing. Until it's solved, rule34 turns down every request: no new pages, no post info in the popup, no hover previews, no Following updates. Steamy34 pauses its loading meanwhile, so it doesn't make things worse. <b>Solve</b> opens the check right here – afterwards everything carries on.</span></span>
                 <button type="button" class="s34-cf-pill-solve">Solve</button>
                 <button type="button" class="s34-cf-pill-x" title="Hide – loading stays paused until the check is solved" aria-label="Hide">✕</button>`;
@@ -8138,7 +8245,29 @@
             if (cfTitleBefore === null) { cfTitleBefore = document.title; document.title = 'Check needed · ' + cfTitleBefore; }
         }
         setTimeout(() => pill.classList.add('s34-show'), 20); // (not requestAnimationFrame: background tabs skip those)
+        // (Beta 3.17.2, #8) still waiting after 3 s? It gets louder, step by step, for ~15 s
+        if (!pill._s34Climb) {
+            const t0 = Date.now();
+            pill._s34Climb = setInterval(() => {
+                if (!pill.isConnected) { clearInterval(pill._s34Climb); return; }
+                const x = Math.max(0, Math.min(1, (Date.now() - t0 - 3000) / 15000));
+                pill.style.setProperty('--s34-cfx', x.toFixed(2));
+                if (x >= 1) clearInterval(pill._s34Climb);
+            }, 400);
+        }
     }
+
+    // (Beta 3.17.2, #10) R opens the check while the notice is up
+    document.addEventListener('keydown', e => {
+        if (e.code !== 'KeyR' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.repeat) return;
+        const t = e.target;
+        if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+        if (!document.querySelector('.s34-cf-pill.s34-show') || document.querySelector('.s34-cf-overlay')) return;
+        if (Object.keys(CONFIG).some(k => /Key$/.test(k) && CONFIG[k] === 'KeyR')) return; // your own key wins
+        e.preventDefault();
+        e.stopPropagation();
+        openCloudflarePanel();
+    }, true);
 
     function hideCloudflarePill() {
         const pill = document.querySelector('.s34-cf-pill');
@@ -8215,25 +8344,51 @@
             overlay.remove();
         }
 
-        // The frame is on the same site, so we can see when it shows a normal
-        // page again (= check passed)
-        function frameShowsNormalPage() {
+        // The frame is on the same site, so we can see what it shows:
+        // 'check', 'page' (a normal page = passed) or '' (not loaded / not readable yet)
+        function frameState() {
             try {
                 const doc = frame.contentDocument;
-                if (!doc || !doc.documentElement || doc.URL === 'about:blank') return false;
+                if (!doc || !doc.documentElement || doc.URL === 'about:blank') return '';
                 const html = doc.documentElement.outerHTML;
-                return html.length > 500 && !isCloudflareCheck(200, html);
+                if (html.length <= 500) return '';
+                return isCloudflareCheck(200, html) ? 'check' : 'page';
             } catch (e) {
-                return false; // not readable yet
+                return ''; // not readable yet
             }
         }
 
+        // (Beta 3.17.2, #3) The frame stays blank until a real check shows. Before, it
+        // sometimes got the blocked post itself (rule34 lets a page through on its
+        // own now and then), showed it in the old look, took that for "passed" and
+        // closed - and the real check came back seconds later. Now, without a check
+        // in sight, a quick test load decides whether loading really works again.
+        const note = panel.querySelector('.s34-cf-note');
+        const noteText = note.textContent;
+        frame.style.visibility = 'hidden';
+        note.textContent = 'Loading the check…';
+        // (3.17.3) On the real site the first round is often Cloudflare's invisible
+        // check: it solves itself in a blink, the frame shows a normal page, but
+        // the pass isn't in effect for Steamy34's loading yet - the tick box only
+        // comes on the next try. So: test again after a moment, then load the
+        // check again (still blank until a real check shows) - up to 3 rounds
+        // before the "open it in a new tab" note.
+        // (3.17.3) The page came straight through (no check in sight)? Then there's
+        // nothing to solve - only Steamy34's background loading was turned down.
+        // Pages load the browser's way for a while (frame mode) and everything goes on.
+        let sawCheck = false;
         const poll = setInterval(() => {
-            if (frameShowsNormalPage()) {
-                close();
-                cloudflarePassed();
-                showToast('Cloudflare check passed – continuing.');
+            const st = frameState();
+            if (st === 'check' && !sawCheck) {
+                sawCheck = true;
+                frame.style.visibility = '';
+                note.textContent = noteText;
             }
+            if (st !== 'page') return;
+            close();
+            if (!sawCheck) cfFrameUntil = Date.now() + CF_FRAME_MS;
+            cloudflarePassed();
+            showToast(sawCheck ? 'Cloudflare check passed – continuing.' : 'Nothing to solve – rule34 only turned down Steamy34\'s background loading. Continuing.');
         }, 1000);
 
         panel.addEventListener('click', e => {
@@ -8252,10 +8407,10 @@
     // fetch() that gives up after a while instead of hanging forever
     // (the timer also covers reading the page body; aborting a finished
     // request does nothing, so it is simply left to run out)
-    function fetchWithTimeout(url, ms = 12000) {
+    function fetchWithTimeout(url, ms = 12000, headers) {
         const ctrl = new AbortController();
         setTimeout(() => ctrl.abort(), ms);
-        return fetch(url, { credentials: 'include', signal: ctrl.signal });
+        return fetch(url, Object.assign({ credentials: 'include', signal: ctrl.signal }, headers ? { headers } : {}));
     }
 
     // kind: who needs it (PAGE_KINDS) - decides its place in the line.
@@ -9475,7 +9630,14 @@
         function highlight(i) {
             active = i;
             Array.from(list.children).forEach((li, n) => li.classList.toggle('s34-ac-active', n === i));
-            if (list.children[i]) list.children[i].scrollIntoView({ block: 'nearest' });
+            // (Beta 3.17.2, #14) only the list scrolls - scrollIntoView also slid the
+            // whole sidebar to the left (it moves every box around the list)
+            const li = list.children[i];
+            if (li) {
+                const r = li.getBoundingClientRect(), lr = list.getBoundingClientRect();
+                if (r.top < lr.top) list.scrollTop -= lr.top - r.top;
+                else if (r.bottom > lr.bottom) list.scrollTop += r.bottom - lr.bottom;
+            }
         }
 
         function pick(i) {
@@ -11417,6 +11579,29 @@
         fwRefresh(); // the Following window, if open
     }
 
+    // (Beta 3.17.2, #15) An artist's search (just the artist, filters allowed): a
+    // small bar above the posts with the name and the bell - follow right there
+    function addArtistSearchFollow() {
+        if (isPostView || !CONFIG.followButtons || params.get('page') !== 'post' || params.get('s') !== 'list') return;
+        if (document.querySelector('.s34-artist-bar')) return;
+        const words = (tagsFromUrl(location.href) || '').split(/\s+/).filter(w => w && !w.includes(':') && !/^[-~]/.test(w));
+        if (words.length !== 1) return;
+        const tag = words[0].toLowerCase();
+        let isArtist = false;
+        try { isArtist = tagTypes.get(tag) === 'artist'; } catch (e) {}
+        if (!isArtist) isArtist = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-artist"]')).some(li => getTagFromRow(li).toLowerCase() === tag);
+        const list = document.querySelector('.image-list');
+        if (!isArtist || !list) return;
+        const bar = document.createElement('div');
+        bar.className = 's34-artist-bar';
+        bar.innerHTML = '<span class="s34-ab-name"></span><span class="s34-ab-hint" role="button" tabindex="-1"></span>';
+        bar.querySelector('.s34-ab-name').textContent = prettyTag(tag);
+        const btn = makeFollowButton(tag, 's34-ab-follow', getFollowing());
+        bar.insertBefore(btn, bar.querySelector('.s34-ab-hint'));
+        bar.querySelector('.s34-ab-hint').addEventListener('click', () => btn.click());
+        list.parentNode.insertBefore(bar, list);
+    }
+
     // Single post page: the bell in the artist rows
     function addFollowButtonsToRows() {
         if (!CONFIG.followButtons) return;
@@ -12041,6 +12226,36 @@
                   'Copy info', openDebugInfo, 15000);
     }
 
+    // ---- (Beta 3.17.2, #16) Feedback nudge: once ever, after ~3 days ----
+    // A small note in the bottom-right corner; it goes by itself after 10 s
+    // (a line shows the time left; hovering holds it).
+    const FEEDBACK_ASKED_KEY = 'steamy34_feedback_asked';
+    function maybeAskForFeedback() {
+        let first = 0, asked = false;
+        try {
+            first = GM_getValue('steamy34_first_seen', 0) || 0;
+            asked = GM_getValue(FEEDBACK_ASKED_KEY, false) === true;
+        } catch (e) { return; }
+        if (!first || asked || Date.now() - first < 3 * 24 * 3600 * 1000 || isPostView) return;
+        setTimeout(() => {
+            if (document.querySelector('.s34-overlay, .s34-fb-nudge') || !document.body) return; // another time
+            try { GM_setValue(FEEDBACK_ASKED_KEY, true); } catch (e) {}
+            const box = document.createElement('div');
+            box.className = 's34-fb-nudge';
+            box.setAttribute('role', 'status');
+            box.innerHTML = '<b>How is Steamy34 working for you?</b><span>Ideas, bugs or something you miss – a short note helps.</span>'
+                + '<div class="s34-fb-row"><a class="s34-fb-go" target="_blank" rel="noopener noreferrer">Give feedback</a><button type="button" class="s34-fb-x" aria-label="Close">✕</button></div>'
+                + '<i class="s34-fb-time"></i>';
+            box.querySelector('.s34-fb-go').href = SLEAZY_URL + '/feedback#post-discussion';
+            const close = () => { box.classList.remove('s34-show'); setTimeout(() => box.remove(), 250); };
+            box.querySelector('.s34-fb-go').addEventListener('click', close);
+            box.querySelector('.s34-fb-x').addEventListener('click', close);
+            box.querySelector('.s34-fb-time').addEventListener('animationend', close);   // (paused while hovered)
+            document.body.appendChild(box);
+            setTimeout(() => box.classList.add('s34-show'), 20);
+        }, 10000);
+    }
+
     // ---- Rating nudge: once ever, after a week of use ----
     const FIRST_SEEN_KEY = 'steamy34_first_seen';
     const RATE_ASKED_KEY = 'steamy34_rate_asked';
@@ -12389,6 +12604,12 @@
                 wrap.className = 's34-tseen-wrap';
                 const fly = document.createElement('span');
                 fly.className = 's34-tseen-fly';
+                // (Beta 3.17.2, #22) a narrow (tall) thumbnail has no room to the left of the
+                // eye: then the strip opens downwards instead of being cut off
+                wrap.addEventListener('mouseenter', () => {
+                    const room = wrap.getBoundingClientRect().left - thumb.getBoundingClientRect().left;
+                    fly.classList.toggle('s34-fly-down', room < (CONFIG.trackDownloads ? 200 : 95));
+                });
                 fly.innerHTML = `<button type="button" data-m="viewed">${TB_EYE_SVG}<span>Viewed</span></button>`
                     + (CONFIG.trackDownloads ? `<button type="button" data-m="dl" title="Only the mark – nothing is downloaded">${TB_DL_SVG}<span>Downloaded</span></button>` : '');
                 fly.addEventListener('click', e => {
@@ -12648,7 +12869,9 @@
 
     function resumeKey() {
         if (isPostView || params.get('page') !== 'post' || params.get('s') !== 'list') return null;
-        return normalizeQuery(tagsFromUrl(location.href) || '') || '(all posts)';
+        const q = normalizeQuery(tagsFromUrl(location.href) || '');
+        if (/(^|\s)sort:random(?!\w)/i.test(q)) return null;   // (Beta 3.17.2, #1) random order: page N is different every time - nothing to continue
+        return q || '(all posts)';
     }
     function readResume() {
         let v = {};
@@ -16651,6 +16874,24 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.17.5', date: '2026-11-28', items: [
+            'Fixed: 3.17.4 took normal rule34 pages for a Cloudflare check (they carry the same tick box for comments), so the check window showed the post instead of the check.'
+        ] },
+        { v: 'Beta 3.17.4', date: '2026-11-28', items: [
+            'Fixed: when rule34 showed its Cloudflare check in your browser\'s language (not English), Steamy34 didn\'t recognise it – it kept saying "Site is busy… retrying" instead of asking you to solve the check. Now the check is recognised in any language.'
+        ] },
+        { v: 'Beta 3.17.3', date: '2026-11-28', items: [
+            'Fixed: sometimes rule34 turned down only Steamy34\'s background loading, while the same page opened normally – there was nothing to solve, but the Cloudflare notice and window came up anyway. Now Steamy34 then loads pages the way the browser does for a while, and no notice shows. Only a real check brings it up.'
+        ] },
+        { v: 'Beta 3.17.2', date: '2026-11-28', items: [
+            'The Cloudflare notice gets louder the longer it waits, and R opens the check (the notice says so).',
+            'On an artist\'s search: a bar with the name and a bell above the posts – follow right there.',
+            'Fixed: the Cloudflare window no longer flashes a post and closes before the real check shows.',
+            'Fixed: suggestions in Favourite tags were cut off after the first line; in the sidebar search they no longer slide the whole sidebar to the left.',
+            'Fixed: the viewed / downloaded strip on narrow (tall) thumbnails opens downwards instead of being cut off.',
+            'No "Continue at page N" for searches sorted by Random – the pages are different every time.',
+            'After a few days of use: a small, one-time note asking for feedback.'
+        ] },
         { v: 'Beta 3.17.1', date: '2026-11-28', notify: true, items: [
             'Dark is graphite now – a step lighter, clearly between Steamy (black) and White – with the same magenta accent as Steamy.',
             'The OLED colour mode is gone: Steamy is black too. If you used OLED, you\'re on Steamy now.'
@@ -20656,6 +20897,7 @@
         // search for a followed artist / search counts as a visit (NEW marks)
         if (!openFollowFromAddress()) { setupFeedPage(); setupSavedSearchPage(); }
         if (isPostView) addFollowButtonsToRows(); // bell next to artists
+        else addArtistSearchFollow();             // an artist's search: name + bell above the posts (3.17.2)
         setupHome();           // rule34's start page as a small home (search, continue, recent, following)
         setupAccountHome();    // My Account as tiles (rule34 · Steamy34 · Security)
         setupOptionsPage();    // Options in groups, the blacklist as tag bubbles
@@ -20668,6 +20910,7 @@
         setupScreenshotMode(); // Censored mode: X blurs every picture (safe screenshots)
         checkSiteShape();      // rule34 changed its layout? a calm note instead of half-working features
         maybeAskForRating();   // once ever, after a week of use
+        maybeAskForFeedback(); // once ever, after ~3 days: a small note bottom right (3.17.2)
         setupResume();         // "Continue at page N" + remembers where you are
         updateTabBadge();      // "(12) rule34" while there are new posts
         if (isPostView) setupPostVideoOptions();

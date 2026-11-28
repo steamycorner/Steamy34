@@ -157,6 +157,7 @@
         // search for a followed artist / search counts as a visit (NEW marks)
         if (!openFollowFromAddress()) { setupFeedPage(); setupSavedSearchPage(); }
         if (isPostView) addFollowButtonsToRows(); // bell next to artists
+        else addArtistSearchFollow();             // an artist's search: name + bell above the posts (3.17.2)
         setupHome();           // rule34's start page as a small home (search, continue, recent, following)
         setupAccountHome();    // My Account as tiles (rule34 · Steamy34 · Security)
         setupOptionsPage();    // Options in groups, the blacklist as tag bubbles
@@ -169,6 +170,7 @@
         setupScreenshotMode(); // Censored mode: X blurs every picture (safe screenshots)
         checkSiteShape();      // rule34 changed its layout? a calm note instead of half-working features
         maybeAskForRating();   // once ever, after a week of use
+        maybeAskForFeedback(); // once ever, after ~3 days: a small note bottom right (3.17.2)
         setupResume();         // "Continue at page N" + remembers where you are
         updateTabBadge();      // "(12) rule34" while there are new posts
         if (isPostView) setupPostVideoOptions();

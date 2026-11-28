@@ -18,22 +18,14 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 
 ## Screenshots
 
-*All pictures are blurred with Steamy34's own Censored mode (press X).*
+*All pictures are blurred with Steamy34's own Censored mode (press X) – explicit tag words too. More screenshots [further down](#more-screenshots).*
 
 | | |
 |---|---|
-| ![Posts page with the Steamy34 sidebar: tag search with pinned filters, Following, saved searches, view switches](images/posts.png) | ![Start page with the search, Continue, recent searches and new posts from followed artists](images/start.png) |
-| **Posts page** – tag search with pinned filters, Following, saved searches, view switches | **Start page** – your search, Continue, recent searches, new posts from who you follow |
-| ![Following window: followed artists as circles and their newest posts](images/following.png) | ![Thumbnail with Viewed and Downloaded marks, tags and buttons](images/thumbnails.png) |
-| **Following window** (G) – your artists as circles, their newest posts | **Thumbnails** – Viewed / Downloaded, tags and buttons on hover |
-| ![Saving a post to a collection from its thumbnail](images/collect.png) | ![A collection: own order, note, Out once downloaded, Download all](images/collection.png) |
-| **Save to a collection** right from the thumbnail | **A collection** – your own order, a note, Download all |
-| ![Batch select with ticked posts and the bar at the bottom](images/batch.png) | ![Recent searches menu next to the sidebar](images/recent.png) |
-| **Batch select** (Q) – download or collect many posts at once | **Recent searches**, one click away |
-| ![Downloads window with every downloaded post](images/downloads.png) | ![Your stats: downloads, views, top artists, characters and series](images/stats.png) |
-| **Downloads** – everything you downloaded, newest first | **Your stats** – kept only on your computer |
-| ![Settings window with sections and a search box](images/settings.png) | ![Quick tips with every key and gesture](images/shortcuts.png) |
-| **Settings** – sections and a search box | **Quick tips** – every key and gesture |
+| ![Posts page with the Steamy34 sidebar: tag search with pinned filters, Following, saved searches, view switches](images/posts.png) | ![Popup viewer with download, collection, auto next, video controls, post info and tags](images/popup.png) |
+| **Posts page** – tag search with pinned filters, Following, saved searches, view switches | **Popup viewer** – download, collections, auto next, video controls, post info and tags |
+| ![Following window: followed artists and saved searches as circles, their newest posts](images/following.png) | ![Start page with the search, Continue, recent searches, favourite tags and new posts from who you follow](images/start.png) |
+| **Following window** (G) – your artists and saved searches, their newest posts | **Start page** – your search, Continue, recent searches, new posts from who you follow |
 
 ---
 
@@ -117,6 +109,21 @@ Questions, bugs or ideas: join the **Steamy34 channels (#feedback, #new-ideas) o
 - Settings with a search box
 - Backup and restore of all settings and data
 - **Optional: your rule34 API key** (Settings → API key). With it, new-post counts and hover previews use rule34's API – plain data instead of whole pages, so fewer Cloudflare checks. The key only goes to rule34's own API, stays in this browser and is never in a backup. Without it, everything works the same
+
+---
+
+## More screenshots
+
+| | |
+|---|---|
+| ![Comments in the popup viewer](images/comments.png) | ![Your favourites page with collections, Mark all as viewed / downloaded and Select](images/favourites.png) |
+| **Comments** – right in the popup, all of them | **Favourites & Collections** – mark all, select, open a collection |
+| ![Batch select: ticked posts and the bar at the bottom](images/batch.png) | ![A collection: own order, note, Out once downloaded, Download all](images/collection.png) |
+| **Batch select** (Q) – download or collect many posts at once | **A collection** – your own order, a note, Download all |
+| ![Recent searches menu next to the sidebar](images/recent.png) | ![Downloads window with every downloaded post](images/downloads.png) |
+| **Recent searches**, one click away | **Downloads** – everything you downloaded, newest first |
+| ![Your stats: downloads, views, top artists, characters and series](images/stats.png) | ![Settings window with sections, a search box and the colour modes](images/settings.png) |
+| **Your stats** – kept only on your computer | **Settings** – sections, a search box, four colour modes |
 
 ---
 

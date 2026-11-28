@@ -38,6 +38,23 @@
             filter: blur(5px) !important;
             user-select: none;
         }
+        /* (Beta 3.17.2, #16) the feedback note: bottom right, goes after 10 s (the line shows it) */
+        .s34-fb-nudge { position: fixed; right: 18px; bottom: 18px; z-index: 100002; width: 300px; max-width: calc(100vw - 36px); box-sizing: border-box;
+            display: grid; gap: 4px; padding: 12px 14px 14px; overflow: hidden;
+            background-color: #1c1c20 !important; border: 1px solid #33333a !important; box-shadow: 0 12px 32px rgba(0,0,0,.55);
+            font: 13px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; color: #dcdce0 !important;
+            opacity: 0; transform: translateY(10px); transition: opacity .25s ease, transform .25s ease; }
+        .s34-fb-nudge.s34-show { opacity: 1; transform: none; }
+        .s34-fb-nudge b { color: #fff !important; font-size: 13.5px; }
+        .s34-fb-nudge span { color: #a9a9b3 !important; }
+        .s34-fb-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+        a.s34-fb-go:is(:link, :visited) { flex: 1; display: inline-flex; justify-content: center; align-items: center; height: 30px; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; font-weight: 700; text-decoration: none; }
+        .s34-fb-nudge .s34-fb-x { width: 30px; height: 30px; padding: 0 !important; border: 1px solid #3a3a44 !important; background: transparent !important; color: #a9a9b3 !important; cursor: pointer; }
+        .s34-fb-nudge .s34-fb-x:hover { color: #fff !important; }
+        .s34-fb-time { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: linear-gradient(90deg, #ff5f8f, #8b3dff); transform-origin: left; animation: s34-fb-time 10s linear forwards; }
+        .s34-fb-nudge:hover .s34-fb-time { animation-play-state: paused; }
+        @keyframes s34-fb-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+        @media (max-width: 760px) { .s34-fb-nudge { right: 12px; bottom: 76px; } }
         /* "Info for a bug report" window */
         .s34-debug-win .s34-win-body { display: flex; flex-direction: column; gap: 12px; }
         .s34-debug-text {

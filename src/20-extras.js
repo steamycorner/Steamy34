@@ -328,6 +328,12 @@
                 wrap.className = 's34-tseen-wrap';
                 const fly = document.createElement('span');
                 fly.className = 's34-tseen-fly';
+                // (Beta 3.17.2, #22) a narrow (tall) thumbnail has no room to the left of the
+                // eye: then the strip opens downwards instead of being cut off
+                wrap.addEventListener('mouseenter', () => {
+                    const room = wrap.getBoundingClientRect().left - thumb.getBoundingClientRect().left;
+                    fly.classList.toggle('s34-fly-down', room < (CONFIG.trackDownloads ? 200 : 95));
+                });
                 fly.innerHTML = `<button type="button" data-m="viewed">${TB_EYE_SVG}<span>Viewed</span></button>`
                     + (CONFIG.trackDownloads ? `<button type="button" data-m="dl" title="Only the mark – nothing is downloaded">${TB_DL_SVG}<span>Downloaded</span></button>` : '');
                 fly.addEventListener('click', e => {

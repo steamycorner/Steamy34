@@ -203,6 +203,24 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.17.5', date: '2026-11-28', items: [
+            'Fixed: 3.17.4 took normal rule34 pages for a Cloudflare check (they carry the same tick box for comments), so the check window showed the post instead of the check.'
+        ] },
+        { v: 'Beta 3.17.4', date: '2026-11-28', items: [
+            'Fixed: when rule34 showed its Cloudflare check in your browser\'s language (not English), Steamy34 didn\'t recognise it – it kept saying "Site is busy… retrying" instead of asking you to solve the check. Now the check is recognised in any language.'
+        ] },
+        { v: 'Beta 3.17.3', date: '2026-11-28', items: [
+            'Fixed: sometimes rule34 turned down only Steamy34\'s background loading, while the same page opened normally – there was nothing to solve, but the Cloudflare notice and window came up anyway. Now Steamy34 then loads pages the way the browser does for a while, and no notice shows. Only a real check brings it up.'
+        ] },
+        { v: 'Beta 3.17.2', date: '2026-11-28', items: [
+            'The Cloudflare notice gets louder the longer it waits, and R opens the check (the notice says so).',
+            'On an artist\'s search: a bar with the name and a bell above the posts – follow right there.',
+            'Fixed: the Cloudflare window no longer flashes a post and closes before the real check shows.',
+            'Fixed: suggestions in Favourite tags were cut off after the first line; in the sidebar search they no longer slide the whole sidebar to the left.',
+            'Fixed: the viewed / downloaded strip on narrow (tall) thumbnails opens downwards instead of being cut off.',
+            'No "Continue at page N" for searches sorted by Random – the pages are different every time.',
+            'After a few days of use: a small, one-time note asking for feedback.'
+        ] },
         { v: 'Beta 3.17.1', date: '2026-11-28', notify: true, items: [
             'Dark is graphite now – a step lighter, clearly between Steamy (black) and White – with the same magenta accent as Steamy.',
             'The OLED colour mode is gone: Steamy is black too. If you used OLED, you\'re on Steamy now.'

@@ -49,6 +49,7 @@
         ${CONFIG.thumbMarks ? '' : 'span.thumb:not(:hover) .s34-tseen-wrap { display: none; }'}
         .s34-tseen-fly { position: absolute; right: 100%; top: 0; z-index: 6; display: none; gap: 4px; padding-right: 4px; white-space: nowrap; }
         .s34-tseen-wrap:hover .s34-tseen-fly { display: flex; }
+        .s34-tseen-fly.s34-fly-down { right: 0; top: 100%; flex-direction: column; align-items: flex-end; padding: 4px 0 0; }
         .s34-tseen-fly button {
             display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px !important;
             border-radius: 12px !important; border: none !important; background-color: rgba(20,20,24,0.9) !important;

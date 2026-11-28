@@ -16,7 +16,9 @@
         }
         .s34-sb-box:focus-within { border-color: #3a6fd4 !important; }
         .s34-sb-pills { display: contents; }
-        .s34-sb-box .s34-ac-wrap { flex: 1 1 70px; width: auto; min-width: 70px; }
+        .s34-sb-box .s34-ac-wrap { flex: 1 1 70px; width: auto; min-width: 70px; position: static; }
+        /* (Beta 3.17.2, #14) the suggestions hang under the whole box - never past the sidebar's edge */
+        .s34-sb-box ul.s34-ac-list { left: -1px; right: -1px; width: auto; }
         .s34-sb .s34-sb-input {
             width: 100%;
             min-width: 0;
@@ -324,6 +326,9 @@
         /* the add field right under the title (its suggestions then drop over the tags) */
         .s34-sb-pop .s34-ft-add { order: 1; }
         .s34-sb-pop .s34-ft-chips { order: 2; }
+        /* (Beta 3.17.2) its suggestions sit in the menu, under the field - floating, the menu's own
+           scrolling cut them off after the first line */
+        .s34-sb-pop ul.s34-ac-list { position: static !important; margin: 4px 0 0 !important; max-height: 240px; box-shadow: none; }
         /* Phones: a sheet from the bottom over the dimmed page - bigger to tap,
            swipe it down (or tap the page, or Back) to close */
         .s34-sb .s34-sb-pop.s34-sb-sheet {

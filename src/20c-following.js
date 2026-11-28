@@ -232,6 +232,29 @@
         fwRefresh(); // the Following window, if open
     }
 
+    // (Beta 3.17.2, #15) An artist's search (just the artist, filters allowed): a
+    // small bar above the posts with the name and the bell - follow right there
+    function addArtistSearchFollow() {
+        if (isPostView || !CONFIG.followButtons || params.get('page') !== 'post' || params.get('s') !== 'list') return;
+        if (document.querySelector('.s34-artist-bar')) return;
+        const words = (tagsFromUrl(location.href) || '').split(/\s+/).filter(w => w && !w.includes(':') && !/^[-~]/.test(w));
+        if (words.length !== 1) return;
+        const tag = words[0].toLowerCase();
+        let isArtist = false;
+        try { isArtist = tagTypes.get(tag) === 'artist'; } catch (e) {}
+        if (!isArtist) isArtist = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-artist"]')).some(li => getTagFromRow(li).toLowerCase() === tag);
+        const list = document.querySelector('.image-list');
+        if (!isArtist || !list) return;
+        const bar = document.createElement('div');
+        bar.className = 's34-artist-bar';
+        bar.innerHTML = '<span class="s34-ab-name"></span><span class="s34-ab-hint" role="button" tabindex="-1"></span>';
+        bar.querySelector('.s34-ab-name').textContent = prettyTag(tag);
+        const btn = makeFollowButton(tag, 's34-ab-follow', getFollowing());
+        bar.insertBefore(btn, bar.querySelector('.s34-ab-hint'));
+        bar.querySelector('.s34-ab-hint').addEventListener('click', () => btn.click());
+        list.parentNode.insertBefore(bar, list);
+    }
+
     // Single post page: the bell in the artist rows
     function addFollowButtonsToRows() {
         if (!CONFIG.followButtons) return;
