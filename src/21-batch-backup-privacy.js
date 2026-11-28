@@ -46,8 +46,23 @@
         if (!thumb) return;
         e.preventDefault();
         e.stopImmediatePropagation();
-        if (!batchRunning) toggleSelected(thumb);
+        if (batchRunning) return;
+        // (Beta 3.16.2) its collection button: save the selection - this post included - instead of unselecting it
+        const collBtn = e.target.closest('.s34-tcoll');
+        if (collBtn) { toggleSelected(thumb, true); collectSelected(collBtn, e.shiftKey); return; }
+        toggleSelected(thumb);
     }, true);
+    // the selected posts, in page order, ready for a collection
+    function selectedPosts() {
+        return allThumbs().filter(t => selected.has(t)).map(t => {
+            const img = t.querySelector('img');
+            return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' };
+        });
+    }
+    function collectSelected(anchor, forceMenu) {
+        const posts = selectedPosts();
+        if (posts.length) openCollectMenu(anchor, posts, { menu: !!forceMenu });
+    }
 
     function renderBatchBar() {
         let bar = document.querySelector('.s34-batch');
@@ -83,11 +98,7 @@
                     const list = allThumbs().filter(t => selected.has(t)); // page order
                     if (list.length) batchDownload(list);
                 } else if (a === 'collect') {
-                    const posts = allThumbs().filter(t => selected.has(t)).map(t => {
-                        const img = t.querySelector('img');
-                        return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' };
-                    });
-                    if (posts.length) openCollectMenu(act, posts);
+                    collectSelected(act, e.shiftKey);   // (3.16.2: follows the collection rules; Shift = always the list)
                 } else if (a === 'stop') {
                     batchStop = true;
                 } else if (a === 'done') {
@@ -189,6 +200,7 @@
     }
 
     async function batchDownload(list) {
+        primeDownloadFolder();   // (3.16.4: the folder question needs the click)
         batchRunning = true;
         batchStop = false;
         let ok = 0, failed = 0;

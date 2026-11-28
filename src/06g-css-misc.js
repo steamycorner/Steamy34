@@ -12,14 +12,25 @@
             line-height: 16px;
         }
 
-        /* Screenshot mode (X): every picture and video blurred - Steamy34's
+        /* Censored mode (X): every picture and video blurred - Steamy34's
            own little icons (data: pictures) stay sharp. clip-path keeps the
-           blur inside each picture's box. */
+           blur inside each picture's box. --s34-blur grows with the size on
+           screen (20d-screenshot-mode.js) - 24px until it's measured. */
         html.s34-sfw img:not([src^="data:"]),
         html.s34-sfw video,
         html.s34-sfw canvas {
-            filter: blur(24px) saturate(.6) !important;
+            filter: blur(var(--s34-blur, 24px)) saturate(.6) !important;
             clip-path: inset(0) !important;
+        }
+        /* (Beta 3.16.3) ...tag words: only artist / character / series / meta stay
+           readable - general tags and ones of unknown type are blurred (20d) */
+        html.s34-sfw .s34-chip:not(.s34-chip-artist):not(.s34-chip-character):not(.s34-chip-copyright):not(.s34-chip-metadata) .s34-chip-name,
+        html.s34-sfw #tag-sidebar li:not(.tag-type-artist):not(.tag-type-character):not(.tag-type-copyright):not(.tag-type-metadata) > a,
+        html.s34-sfw .s34-blm-chip:not(.s34-blm-artist):not(.s34-blm-character):not(.s34-blm-copyright):not(.s34-blm-metadata) .s34-blm-name,
+        html.s34-sfw :is(.s34-pill, .s34-ft-chip):not(.s34-pill-artist):not(.s34-pill-character):not(.s34-pill-copyright):not(.s34-pill-metadata) :is(.s34-pill-text, .s34-ft-name),
+        html.s34-sfw .s34-sfw-word {
+            filter: blur(5px) !important;
+            user-select: none;
         }
         /* ...and comments: text and names (setting censorComments) - in the
            popup and on the site's own post pages */

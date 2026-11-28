@@ -132,6 +132,22 @@
                 row.append(text, ctl);
                 return row;
             }
+            if (extra.instant && key === 'censoredMode') {
+                // (Beta 3.16.1) Censored mode: on / off right away - it isn't saved with the settings
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.id = id;
+                cb.className = 's34-sfw-set';
+                cb.checked = sfwOn();
+                cb.addEventListener('change', () => setScreenshotMode(cb.checked));
+                const sw = document.createElement('label');
+                sw.className = 's34-sw';
+                sw.htmlFor = id;
+                sw.append(cb, Object.assign(document.createElement('span'), { className: 's34-sw-track' }));
+                ctl.appendChild(sw);
+                row.append(text, ctl);
+                return row;
+            }
             const el = makeControl(key, extra, CONFIG[key], id);
             if (el.type === 'checkbox') {
                 // A switch instead of a plain tick box

@@ -203,6 +203,30 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.17', date: '2026-11-29', notify: true, items: [
+            'New colour mode: Classic Dark – rule34\'s older dark look with mint green (an idea from the Discord). Settings → Look & feel. It replaces the light Classic mode (if you used it, you\'re on White now).',
+            'My Account → Options: the Save bar at the bottom is calm now – no dark fade over the settings.',
+            'Censored mode blurs explicit tag words too, and big pictures harder – plus the switch is in Settings → Developer tools now.',
+            'Batch select: a clean view – only the picture, VID / GIF and the score on the thumbnails; the collection button and "Add to collection" follow your collection setting.',
+            'Fixed: your own download folder works from the popup again, and thumbnails no longer break when you put a post into a collection.'
+        ] },
+        { v: 'Beta 3.16.4', date: '2026-11-29', items: [
+            'Fixed: with your own download folder, files from the popup often landed in Downloads anyway – the browser\'s "allow?" question came too late after the key press. It\'s asked right away now, and the "Allow folder" note comes back if it\'s still needed.',
+            'Batch select: the thumbnails show only the picture, VID / GIF and the score – the tick box moved to the right corner.',
+            'Censored mode measures big pictures more reliably, so their blur is always the stronger one.'
+        ] },
+        { v: 'Beta 3.16.3', date: '2026-11-29', items: [
+            'Censored mode now also blurs tag words that could be explicit: general tags (and tags whose type isn\'t known yet) in the popup, on post pages, in the blacklist, in your searches, recent and saved searches and on the start page. Artist, character, series and meta tags stay readable.'
+        ] },
+        { v: 'Beta 3.16.2', date: '2026-11-29', items: [
+            'Fixed: putting a post into a collection from its thumbnail (Watch later too) no longer turns the thumbnail\'s buttons into coloured boxes.',
+            'Batch select: a thumbnail\'s collection button now saves all selected posts (that one too) – it used to just unselect the post.',
+            'Batch select: "Add to collection" follows your collection setting – with one collection, or "the one used last", the posts go straight in. Shift + click shows the list.'
+        ] },
+        { v: 'Beta 3.16.1', date: '2026-11-29', notify: true, items: [
+            'Censored mode hides big pictures better: the blur grows with the size on screen, so the popup and post pages are blurred as well as the thumbnails.',
+            'The Censored mode switch moved from the sidebar to Settings → Developer tools (X still turns it on and off).'
+        ] },
         { v: 'Beta 3.16', date: '2026-11-29', notify: true, items: [
             'Steamy is the colour mode for everyone now (you can still pick another one in Settings → Look).',
             'New colour mode: Classic – rule34\'s own green, navy links and tag colours, done tidily.',
@@ -897,7 +921,7 @@
                     ['👁', 'Viewed & downloaded', 'Small marks on the thumbnails – or hide those posts completely.'],
                     ['+', 'Tags on the picture', '+ adds a tag to the search, ⊘ blacklists it' + (phone ? ' – always shown on phones.' : ' – Shift + + excludes it.')],
                     ['⧉', 'Versions grouped', 'Versions of one picture show as one thumbnail with "+N versions" (needs your API key).'],
-                    ...(phone ? [] : [['🙈', 'Censored mode', `${k('X')} blurs every picture and video – safe for screenshots.`]]),
+                    ...(phone ? [] : [['🙈', 'Censored mode', `${k('X')} (or Settings → Developer tools) blurs every picture and video – safe for screenshots.`]]),
                     ['↕', 'Size', 'The Size slider makes the thumbnails bigger or smaller.']
                 ]
             },
@@ -971,7 +995,7 @@
                         ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
                         ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
                         ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED'],
-                        ['classic', '<i style="background:linear-gradient(135deg,#a8dca0 50%,#ffffff 50%) !important;border-color:#8fbf88 !important"></i>', 'Classic']
+                        ['classicdark', '<i style="background:linear-gradient(135deg,#1b1b1f 62%,#45d396 62%) !important;border-color:#3a3a44 !important"></i>', 'Classic Dark']
                     ] },
                     { key: 'thumbExtras', label: 'Tags, labels and buttons on thumbnails', options: [
                         ['on', thumbStyleArt('on'), 'On the picture'],

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.16-beta
+// @version      3.17-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -96,7 +96,7 @@
  *    series, last 14 days), backup & restore.
  *
  *  Look
- *  - White, Dark, OLED and Steamy (neon) colour modes.
+ *  - Steamy, Dark, OLED, White and Classic Dark colour modes.
  *
  *  Phones (Firefox for Android + Tampermonkey)
  *  - Picture on top in the popup, swipe to browse, swipe down / Back to

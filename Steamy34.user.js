@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.16-beta
+// @version      3.17-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -96,7 +96,7 @@
  *    series, last 14 days), backup & restore.
  *
  *  Look
- *  - White, Dark, OLED and Steamy (neon) colour modes.
+ *  - Steamy, Dark, OLED, White and Classic Dark colour modes.
  *
  *  Phones (Firefox for Android + Tampermonkey)
  *  - Picture on top in the popup, swipe to browse, swipe down / Back to
@@ -181,7 +181,7 @@
 
 
         // Look
-        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classic' (rule34's own colours, 3.16)
+        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classicdark' (rule34's dark look with mint, 3.17 - it replaced the light Classic)
         darkMode: true,          // (old setting - "off" becomes the White theme)
         thumbGrid: true,
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
@@ -260,9 +260,9 @@
     {
         const saved = loadSaved();
         if (saved.darkMode === false && !saved.theme) CONFIG.theme = 'white'; // old "dark mode off"
-        if (!['white', 'dark', 'oled', 'steamy', 'classic'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
+        if (CONFIG.theme === 'classic') CONFIG.theme = 'white';   // (Classic, 3.16, was taken out in 3.17 - its nearest: White)
+        if (!['white', 'dark', 'oled', 'steamy', 'classicdark'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
         document.documentElement.classList.add('s34-theme-' + CONFIG.theme);
-        if (CONFIG.theme === 'classic') document.documentElement.classList.add('s34-theme-white'); // (Classic is a light mode: White's fixes apply, its own colours on top)
         // Thumbnail extras ("below" needs the modern layout - without it, they stay on the picture)
         if (!['on', 'hover', 'below'].includes(CONFIG.thumbExtras)) CONFIG.thumbExtras = 'hover';
         if (CONFIG.thumbExtras === 'below' && !CONFIG.thumbGrid) CONFIG.thumbExtras = 'on';
@@ -288,8 +288,7 @@
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
-            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classic: 'Classic (rule34\'s own colours)' } }],
-            ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classicdark: 'Classic Dark (rule34\'s dark look, mint)' } }],
             ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
             ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],
@@ -389,6 +388,11 @@
             ['addToSearchButtons', '+ / − next to tags', { hint: 'Add a tag to your search or take it out' }],
             ['postTagChips', 'Tags as bubbles on single posts'],
             ['reloadAfterBlock', 'Reload the page after blocking', { adv: true }]
+        ] },
+        // (Beta 3.16.1, #21) tools for screenshots - Censored mode moved here from the sidebar
+        { id: 'dev', title: 'Developer tools', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 5l-3 14"/></svg>', rows: [
+            ['censoredMode', 'Censored mode', { instant: true, hint: 'Blurs every picture and video – the bigger it is on screen, the stronger – so screenshots are safe to share. Works right away, no saving needed. Key: X' }],
+            ['censorComments', 'Censored mode also blurs comments', { hint: 'Comment texts and names too' }]
         ] }
     ];
 
@@ -1582,7 +1586,7 @@
         span.thumb:has(.s34-new-badge) .s34-badge { left: 46px; }
 
         /* Hide viewed / downloaded (not the ones you opened just now) */
-        html.s34-hide-coll .image-list span.thumb.s34-in-coll:not(.s34-touched-now):not(.s34-coll-new),
+        html.s34-hide-coll .image-list span.thumb.s34-in-coll:not(.s34-touched-now):not(.s34-coll-justin),
         html.s34-hide-viewed .image-list span.thumb.s34-was-viewed:not(.s34-touched-now),
         html.s34-hide-downloaded .image-list span.thumb.s34-was-downloaded:not(.s34-touched-now) {
             display: none !important;
@@ -1687,11 +1691,14 @@
 
         /* Select mode */
         html.s34-selecting .image-list span.thumb { cursor: pointer; }
+        /* (Beta 3.16.4) nothing on the thumbnails but VID / GIF and the score - the tick box
+           moves to the right corner, so it doesn't cover the VID label */
+        html.s34-selecting .image-list span.thumb :is(.s34-tbtns, .s34-fav-btn, .s34-tagbar, .s34-dl-mark, .s34-seen-mark, .s34-new-badge, .s34-var-badge) { display: none !important; }
         html.s34-selecting .image-list span.thumb::after {
             content: '';
             position: absolute;
             top: 8px;
-            left: 8px;
+            right: 8px;
             z-index: 6;
             width: 18px;
             height: 18px;
@@ -3622,14 +3629,25 @@
             line-height: 16px;
         }
 
-        /* Screenshot mode (X): every picture and video blurred - Steamy34's
+        /* Censored mode (X): every picture and video blurred - Steamy34's
            own little icons (data: pictures) stay sharp. clip-path keeps the
-           blur inside each picture's box. */
+           blur inside each picture's box. --s34-blur grows with the size on
+           screen (20d-screenshot-mode.js) - 24px until it's measured. */
         html.s34-sfw img:not([src^="data:"]),
         html.s34-sfw video,
         html.s34-sfw canvas {
-            filter: blur(24px) saturate(.6) !important;
+            filter: blur(var(--s34-blur, 24px)) saturate(.6) !important;
             clip-path: inset(0) !important;
+        }
+        /* (Beta 3.16.3) ...tag words: only artist / character / series / meta stay
+           readable - general tags and ones of unknown type are blurred (20d) */
+        html.s34-sfw .s34-chip:not(.s34-chip-artist):not(.s34-chip-character):not(.s34-chip-copyright):not(.s34-chip-metadata) .s34-chip-name,
+        html.s34-sfw #tag-sidebar li:not(.tag-type-artist):not(.tag-type-character):not(.tag-type-copyright):not(.tag-type-metadata) > a,
+        html.s34-sfw .s34-blm-chip:not(.s34-blm-artist):not(.s34-blm-character):not(.s34-blm-copyright):not(.s34-blm-metadata) .s34-blm-name,
+        html.s34-sfw :is(.s34-pill, .s34-ft-chip):not(.s34-pill-artist):not(.s34-pill-character):not(.s34-pill-copyright):not(.s34-pill-metadata) :is(.s34-pill-text, .s34-ft-name),
+        html.s34-sfw .s34-sfw-word {
+            filter: blur(5px) !important;
+            user-select: none;
         }
         /* ...and comments: text and names (setting censorComments) - in the
            popup and on the site's own post pages */
@@ -5064,10 +5082,12 @@
         .s34-opt-save {
             position: sticky; bottom: 0; z-index: 5;
             display: flex; align-items: center; justify-content: flex-end; gap: 10px;
-            padding: 12px 64px 12px 0; /* (room for the Steamy34 button in the corner) */
-            background: linear-gradient(to bottom, transparent, #000 40%) !important;
+            padding: 12px 64px 12px 14px; /* (room for the Steamy34 button in the corner) */
+            /* (Beta 3.17) solid, in the page colour, with a thin line - the fade into black laid a heavy band over the settings */
+            background: var(--s34-bg) !important;
+            border-top: 1px solid rgba(255,255,255,0.08) !important;
+            box-shadow: 0 -6px 14px -10px rgba(0,0,0,0.6);
         }
-        html.s34-theme-dark .s34-opt-save { background: linear-gradient(to bottom, transparent, #0e0e11 40%) !important; }
         .s34-opt-dirty { margin-right: auto; color: #ffb347 !important; font-weight: 700; font-size: 12.5px; }
         .s34-opt input.s34-opt-submit {
             height: 36px; padding: 0 26px !important; border-radius: 9px !important; border: none !important; cursor: pointer;
@@ -5995,6 +6015,7 @@
     // nearly black with a breath of violet, text stays neutral; the logo's
     // magenta is the accent (the brand pink and the UI blue become it)
     const STEAMY_HUE = 0.765;
+    const MINT_HUE = 0.428;   // (Beta 3.17) Classic Dark's mint
     function themeColor(r, g, b, hasAlpha, theme, role) {
         const [h, s, l] = rgbToHsl(r, g, b);
         const neutral = s < 0.2;
@@ -6009,16 +6030,16 @@
             if (h > 0.53 && h < 0.7 && s > 0.35 && l < 0.68) return hslToRgb(0.81, Math.min(1, s + 0.15), Math.min(0.6, l + 0.03)); // UI blue (buttons, switches) -> the accent
             return null;
         }
-        if (theme === 'classic') {
-            // (Beta 3.16) rule34's own look, tidied: White's light layers, tinted
-            // rule34's green; the brand pink becomes rule34's link blue
-            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return hslToRgb(0.6, 1, 0.42);
-            if (h > 0.68 && h < 0.93 && s > 0.4) return hslToRgb(0.63, 0.75, Math.min(0.45, Math.max(0.3, l * 0.7))); // purple / magenta -> rule34's navy
-            const w = themeColor(r, g, b, hasAlpha, 'white', role);
-            if (!w || !neutral) return w;
-            const [, , wl] = rgbToHsl(w[0], w[1], w[2]);
-            if (wl > 0.6) return hslToRgb(0.317, role === 'line' ? 0.28 : 0.32, role === 'line' ? Math.min(wl, 0.74) : Math.min(0.97, wl));   // light surfaces + lines: a breath of green
-            return hslToRgb(0.317, 0.12, Math.min(wl, 0.3));                                                                                  // text: near black, slightly green
+        if (theme === 'classicdark') {
+            // (Beta 3.17, asked for on Discord) rule34's older dark look: Dark's greys,
+            // mint instead of the pink and the blue / purple accents. Buttons (white
+            // text on them) get a deeper mint, lines, switches and text the bright one.
+            if (neutral) return null;
+            const mint = role === 'surface' ? hslToRgb(MINT_HUE, 0.62, Math.min(0.4, Math.max(0.3, l))) : hslToRgb(MINT_HUE, 0.62, 0.58);
+            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return mint;               // brand pink
+            if (h > 0.9 && h < 0.975 && s > 0.55 && l > 0.42 && l < 0.68) return mint;   // pink counters / badges (the light red artist names stay)
+            if (h > 0.53 && h < 0.93 && s > 0.35 && l < 0.68) return mint;               // UI blue, purple (tag colours stay: they're lighter)
+            return null;
         }
         if (theme === 'oled') {
             if (!neutral || l >= 0.4) return null;
@@ -6061,7 +6082,7 @@
             // White (Beta 3.7): shadows and dimming stay dark - softer - instead
             // of turning white (white shadows were invisible: no depth at all)
             // (strong dimming behind windows - alpha 0.6 and up - stays as strong as in Dark)
-            if ((theme === 'white' || theme === 'classic') && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
+            if (theme === 'white' && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
                 return parseFloat(a) >= 0.6 ? m : `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.round(parseFloat(a) * 50) / 100})`;
             }
             const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme, role);
@@ -6077,7 +6098,7 @@
         // Each innermost "selector { … }" block; keep-dark ones are skipped
         return css.replace(/([^{}]*)\{([^{}]*)\}/g, (m, sel, decls) =>
             KEEP_DARK_RE.test(sel) || /^\s*(\d+%|from|to)\s*$/.test(sel) ? m : sel + '{' + fix(decls) + '}')
-            .replace(/color-scheme:\s*dark/g, theme === 'white' || theme === 'classic' ? 'color-scheme: light' : 'color-scheme: dark');
+            .replace(/color-scheme:\s*dark/g, theme === 'white' ? 'color-scheme: light' : 'color-scheme: dark');
     }
     // Hand-tuned spots the converter can't judge
     const THEME_FIX_CSS = {
@@ -6133,6 +6154,11 @@
             html.s34-theme-white ::-webkit-scrollbar-thumb { background: #c5c8d0 !important; }
             /* (Beta 3.7) the page a soft grey, so the lighter cards and panels stand out on it */
             html.s34-theme-white { --s34-bg: #e2e4e9 !important; }
+            /* (Beta 3.17) small spots the contrast scan found (Classic had these fixes, White didn't) */
+            html.s34-theme-white .s34-pill-x { opacity: .85 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-count { color: #3d424b !important; opacity: .85 !important; }
+            html.s34-theme-white .s34-blm-account-save { color: #a35400 !important; }
+            html.s34-theme-white .s34-opt-dirty { color: #a35400 !important; }
         `,
         // (Beta 3.12, toned down in 3.13) Steamy – Steamy Design Guide → Steamy:
         // clean and black, the logo's magenta only for the main action, what's
@@ -6158,6 +6184,16 @@
             html.s34-theme-steamy .s34-end-card { background: #0b0a0e !important; }
             html.s34-theme-steamy :is(button, a, input, textarea, select):focus-visible { outline: 2px solid #ff3df2 !important; outline-offset: 2px; }
         `,
+        // (Beta 3.17) Classic Dark - rule34's older dark look with mint (an idea from Discord)
+        classicdark: `
+            html.s34-theme-classicdark ::selection { background: rgba(69,211,150,.35); color: #fff; }
+            html.s34-theme-classicdark .s34-sb-box:focus-within, html.s34-theme-classicdark textarea.s34-search:focus { border-color: #45d396 !important; }
+            html.s34-theme-classicdark :is(button, a, input, textarea, select):focus-visible { outline: 2px solid #45d396 !important; outline-offset: 2px; }
+            html.s34-theme-classicdark .image-list span.thumb:hover { box-shadow: 0 0 0 1px #45d396 !important; }
+            html.s34-theme-classicdark ::-webkit-scrollbar-thumb { background: #34343c !important; }
+            html.s34-theme-classicdark .s34-dl-btn .s34-dl-main { color: #fff !important; opacity: 1 !important; }
+            html.s34-theme-classicdark .s34-dl-btn .s34-dl-sub { color: #fff !important; opacity: .95 !important; }
+        `,
         oled: `
             html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
             html.s34-theme-oled .s34-pv-overlay { background-color: rgba(0,0,0,0.98) !important; }
@@ -6166,51 +6202,6 @@
         dark: ''
     };
 
-    // (Beta 3.16) Classic - rule34's own colours, done well: its green page
-    // (softer), white cards, navy links and its tag colours. A light mode:
-    // the White fixes apply too (the html has both classes).
-    THEME_FIX_CSS.classic = THEME_FIX_CSS.white + `
-            html.s34-theme-classic { --s34-bg: hsl(114, 56%, 77%) !important; }
-            html.s34-theme-classic, html.s34-theme-classic body { background: hsl(114, 56%, 77%) !important; color: #000 !important; }
-            html.s34-theme-classic a:link, html.s34-theme-classic a:visited { color: #10308f; }
-            html.s34-theme-classic a:hover { color: #006ffa; }
-            html.s34-theme-classic #header, html.s34-theme-classic #navbar { background: linear-gradient(90deg, #a8dca0, #b9d8f2) !important; }
-            html.s34-theme-classic #navbar li a { color: #10308f !important; }
-            html.s34-theme-classic #navbar li.current-page a, html.s34-theme-classic #navbar li.s34-current a { background: #10308f !important; color: #fff !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-artist a, html.s34-theme-classic .s34-pv-chips .s34-chip-artist .s34-chip-name { color: #b00000 !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-character a, html.s34-theme-classic .s34-pv-chips .s34-chip-character .s34-chip-name { color: #007a00 !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-copyright a, html.s34-theme-classic .s34-pv-chips .s34-chip-copyright .s34-chip-name { color: #8f008f !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-metadata a, html.s34-theme-classic .s34-pv-chips .s34-chip-metadata .s34-chip-name { color: #c66a00 !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-general a, html.s34-theme-classic .s34-pv-chips .s34-chip-general .s34-chip-name { color: #10308f !important; }
-            html.s34-theme-classic .s34-page-divider span { border-color: #10308f !important; background: #fff !important; color: #10308f !important; }
-            html.s34-theme-classic .s34-page-divider::before, html.s34-theme-classic .s34-page-divider::after { background: #8fbf88 !important; height: 1px; }
-            html.s34-theme-classic ::-webkit-scrollbar-thumb { background: hsl(114, 35%, 56%) !important; }
-            /* the post page's tags: light chips with rule34's colours (they stayed dark - unreadable) */
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] { background-color: #fff !important; border-color: hsl(114, 35%, 56%) !important; color: #000 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-artist { border-color: #cc0000 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-character { border-color: #00aa00 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-copyright { border-color: #aa00aa !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-metadata { border-color: #ff8800 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-general { border-color: #8aa6d6 !important; }
-            /* the sidebar sits on rule34's green, like on the site (Steamy34's own boxes stay white cards) */
-            html.s34-theme-classic body .sidebar, html.s34-theme-classic body #sidebar, html.s34-theme-classic body .sidebar .tag-search, html.s34-theme-classic body .tag-search, html.s34-theme-classic body #tag-sidebar { background-color: transparent !important; }
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] span:not(.s34-chip-x) { color: #444 !important; }
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] a.r34-block-btn { color: #cc0000 !important; }
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] a.r34-block-btn.blocked { color: #10308f !important; }
-            /* the popup in rule34's palette - its greens, black text, white cards (not white all over) */
-            html.s34-theme-classic .s34-pv-overlay { background-color: hsl(114, 35%, 50%) !important; color: #000 !important; }
-            html.s34-theme-classic .s34-pv-side { background-color: hsl(114, 56%, 77%) !important; border-color: hsl(114, 35%, 56%) !important; color: #000 !important; }
-            html.s34-theme-classic .s34-pv-main, html.s34-theme-classic .s34-pv-stage { background-color: transparent !important; }
-            html.s34-theme-classic .s34-cm-section { background-color: hsl(114, 45%, 66%) !important; color: #000 !important; }
-            html.s34-theme-classic .s34-pv-chips .s34-chip { background-color: #fff !important; border-color: hsl(114, 35%, 56%) !important; }
-            html.s34-theme-classic .s34-pv-side h4 { color: #10308f !important; }
-            html.s34-theme-classic .s34-cm-score { color: #0a4a0a !important; }
-            html.s34-theme-classic .s34-pv-tbar button { background-color: rgba(255,255,255,.85) !important; color: #10308f !important; }
-            html.s34-theme-classic .s34-dl-btn .s34-dl-main, html.s34-theme-classic .s34-dl-btn .s34-dl-sub { color: #fff !important; }
-            html.s34-theme-classic .s34-blm-account-save { color: #a35400 !important; }
-            html.s34-theme-classic .s34-pill-x { opacity: .85 !important; }
-            html.s34-theme-classic .s34-pv-chips .s34-chip-count { color: #3d424b !important; opacity: .85 !important; }
-        `;
 
     function injectStyles() {
         const style = document.createElement('style');
@@ -6225,8 +6216,8 @@
             (CONFIG.hideListTags && !isPostView ? HIDE_LIST_TAGS_CSS : '') +
             (!isPostView ? LIST_SIDEBAR_CSS : '') +
             (CONFIG.postTagChips && isPostView ? POST_TAGS_CSS : '');
-        // (Beta 3.16) Classic: the brand gradient becomes rule34's link blue
-        if (CONFIG.theme === 'classic') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#006ffa$1, #0030fa').replace(/#8b3dff/gi, '#0030fa');
+        // (Beta 3.17) Classic Dark: the brand gradient becomes mint (deep enough for white text)
+        if (CONFIG.theme === 'classicdark') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#27a56f$1, #1d7c53').replace(/#8b3dff/gi, '#1d7c53');
         // (Beta 3.12) Steamy: the brand gradient's pink → purple becomes the logo's magenta → violet; labels quiet grey
         if (CONFIG.theme === 'steamy') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#ff3df2$1, #9b3bff').replace(/#8b3dff/gi, '#9b3bff').replace(/#ff8fa3/gi, '#8f8b99');
         if (CONFIG.theme !== 'dark') css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];
@@ -6906,6 +6897,18 @@
         folderDbDo('readwrite', s => s.delete('dlFolder')).catch(() => {});
     }
 
+    // (Beta 3.16.4) Right at the click / key press: the browser only shows its
+    // "allow editing?" question within a few seconds of it - the popup used to
+    // load the post page first, the question was refused silently and the file
+    // went to Downloads. saveUrlAs waits for this answer.
+    let folderAsk = null;
+    function primeDownloadFolder() {
+        const go = h => (h ? folderAllowed(h, true) : false);
+        folderAsk = (folderHandle !== undefined ? Promise.resolve(go(folderHandle)) : getFolderHandle().then(go)).catch(() => false);
+        return folderAsk;
+    }
+    setTimeout(() => { getFolderHandle().catch(() => {}); }, 0);   // (loaded early, so the question can come at once)
+
     // ask: show the browser's "allow editing?" question if needed (only works
     // right after a key press / click – which a download always starts with)
     async function folderAllowed(h, ask) {
@@ -6985,6 +6988,7 @@
     async function saveUrlAs(url, filename, referer, opts = {}) {
         const video = /\.(mp4|webm|mkv|mov)(\?|$)/i.test(url);
         const timeout = video ? DL_BIG_TIMEOUT_MS : DL_TIMEOUT_MS;
+        if (folderAsk) await folderAsk;   // (the question asked at the click)
         const folder = await getFolderHandle().catch(() => null);
         if (folder) {
             // Ask now, while the key press still counts
@@ -7006,8 +7010,8 @@
                     try { saveBlob(blob, filename); return true; } catch (e2) { return false; }
                 }
             }
-            if (!folderAskShown) {
-                folderAskShown = true;
+            if (!folderAskShown || Date.now() - folderAskShown > 60000) {   // (3.16.4: not just once per page)
+                folderAskShown = Date.now();
                 showToast('Steamy34 may not write into "' + folder.name + '" yet – this one went to Downloads.', 'Allow folder', () => {
                     folderAllowed(folder, true).then(ok => showToast(ok ? 'Folder allowed – the next downloads go into "' + folder.name + '".' : 'Not allowed – downloads keep going to Downloads.'));
                 }, 15000);
@@ -7178,6 +7182,7 @@
     // pressed - the popup may be on another post by the time the file arrives)
     async function downloadOriginal(givenUrl, tagsByType, postId, confirmed, size, thumbSrc) {
         if (typeof givenUrl !== 'string') givenUrl = null; // called as a click handler
+        primeDownloadFolder();
         const url = givenUrl || getOriginalUrl();
         if (!url) {
             showToast('Couldn\'t find the original file on this page – try again once it has loaded.', null, null, 8000);
@@ -9162,9 +9167,9 @@
                 n.textContent = 'No searches yet.';
                 menu.appendChild(n);
             }
-            recent.forEach(q => menu.appendChild(menuItem(q.replace(/_/g, ' '), '',
+            recent.forEach(q => menu.appendChild(sfwMark(menuItem(q.replace(/_/g, ' '), '',
                 () => runSearch(q),
-                () => GM_setValue(HISTORY_KEY, getStoredList(HISTORY_KEY).filter(x => x !== q)))));
+                () => GM_setValue(HISTORY_KEY, getStoredList(HISTORY_KEY).filter(x => x !== q))), q)));
             if (recent.length) {
                 const clear = document.createElement('button');
                 clear.type = 'button';
@@ -10678,6 +10683,22 @@
                 row.append(text, ctl);
                 return row;
             }
+            if (extra.instant && key === 'censoredMode') {
+                // (Beta 3.16.1) Censored mode: on / off right away - it isn't saved with the settings
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.id = id;
+                cb.className = 's34-sfw-set';
+                cb.checked = sfwOn();
+                cb.addEventListener('change', () => setScreenshotMode(cb.checked));
+                const sw = document.createElement('label');
+                sw.className = 's34-sw';
+                sw.htmlFor = id;
+                sw.append(cb, Object.assign(document.createElement('span'), { className: 's34-sw-track' }));
+                ctl.appendChild(sw);
+                row.append(text, ctl);
+                return row;
+            }
             const el = makeControl(key, extra, CONFIG[key], id);
             if (el.type === 'checkbox') {
                 // A switch instead of a plain tick box
@@ -11756,7 +11777,7 @@
     }
     // =====================================================================
     //  CENSORED MODE (was "screenshot mode" until Beta 3.4)
-    //  X (or the switch in the sidebar) blurs every picture and video:
+    //  X (or Settings → Developer tools) blurs every picture and video:
     //  thumbnails, the popup, post pages, hover previews, collections - and
     //  (setting censorComments, on by default) comment texts and names.
     //  Only what you see changes - downloads stay exactly as they are.
@@ -11764,17 +11785,73 @@
     //  at the bottom says it's on. The html classes are set right at the
     //  start (10-colour-modes.js), so nothing flashes unblurred.
     //  The name lives in CENSOR_NAME only - change it there.
+    //  (Beta 3.16.1) The blur grows with the size on screen: a fixed blur
+    //  hid a thumbnail well but left a big picture in the popup readable.
+    //  Each picture's own --s34-blur is about 5 % of its diagonal (never
+    //  under 24 px); a ResizeObserver keeps it right while sizes change.
     // =====================================================================
     const SFW_KEY = 'steamy34_sfw';
     const CENSOR_NAME = 'Censored mode';
 
     function sfwOn() { return document.documentElement.classList.contains('s34-sfw'); }
 
+    // (Beta 3.16.3) Tag words: only artist, character, series and meta tags stay
+    // readable - general tags (where the explicit words are) and tags whose type
+    // isn't known yet are blurred. A search is blurred when any word in it is.
+    // Typed chips (popup, post pages, blacklist, search pills) are done in CSS by
+    // their type class; searches written out as text get the class s34-sfw-word.
+    const SFW_SAFE_TYPES = ['artist', 'character', 'copyright', 'metadata'];
+    function sfwTagSafe(word) {
+        const t = String(word || '').trim().toLowerCase().replace(/^[-~]+/, '').replace(/ /g, '_');
+        if (!t || /^[(){}~|]+$/.test(t) || t.includes(':')) return true;   // operators, score:/sort:/rating: filters
+        let type;
+        try { type = tagTypes.get(t); } catch (e) { return false; }
+        return SFW_SAFE_TYPES.includes(type);
+    }
+    function sfwQuerySafe(q) { return String(q || '').trim().split(/\s+/).every(sfwTagSafe); }
+    function sfwMark(el, query) { if (el) el.classList.toggle('s34-sfw-word', !sfwQuerySafe(query)); return el; }
+
+    const SFW_MEDIA = 'img, video, canvas';
+    let sfwRO = null, sfwMO = null, sfwLoad = null, sfwResize = null;
+    function sfwBlurFor(w, h) { return Math.min(240, Math.max(24, Math.round(Math.hypot(w, h) * 0.05))); }
+    function sfwWatch(on) {
+        if (!on) {
+            if (sfwRO) sfwRO.disconnect();
+            if (sfwMO) sfwMO.disconnect();
+            if (sfwLoad) { document.removeEventListener('load', sfwLoad, true); document.removeEventListener('loadedmetadata', sfwLoad, true); }
+            if (sfwResize) window.removeEventListener('resize', sfwResize);
+            sfwRO = sfwMO = sfwLoad = sfwResize = null;
+            return;
+        }
+        if (sfwRO || typeof ResizeObserver === 'undefined') return;
+        const size = (el, w, h) => { if (w || h) el.style.setProperty('--s34-blur', sfwBlurFor(w, h) + 'px'); };
+        const measure = el => { const r = el.getBoundingClientRect(); size(el, r.width, r.height); };
+        sfwRO = new ResizeObserver(list => list.forEach(en => size(en.target, en.contentRect.width, en.contentRect.height)));
+        // (Beta 3.16.4) also measured right away and when it loads - the observer
+        // alone can stay silent in a page that isn't being painted
+        let pending = new Set(), timer = 0;
+        const later = el => { pending.add(el); if (!timer) timer = setTimeout(() => { timer = 0; const l = pending; pending = new Set(); l.forEach(x => { if (x.isConnected) measure(x); }); }, 60); };
+        const add = n => {
+            if (n.nodeType !== 1) return;
+            const list = n.matches(SFW_MEDIA) ? [n] : [];
+            n.querySelectorAll(SFW_MEDIA).forEach(el => list.push(el));
+            list.forEach(el => { sfwRO.observe(el); later(el); });
+        };
+        add(document.documentElement);
+        sfwMO = new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(add)));
+        sfwMO.observe(document.documentElement, { childList: true, subtree: true });
+        sfwLoad = e => { const t = e.target; if (t && t.matches && t.matches(SFW_MEDIA)) later(t); };
+        document.addEventListener('load', sfwLoad, true);
+        document.addEventListener('loadedmetadata', sfwLoad, true);
+        window.addEventListener('resize', sfwResize = () => document.querySelectorAll(SFW_MEDIA).forEach(later));
+    }
+
     function setScreenshotMode(on) {
         document.documentElement.classList.toggle('s34-sfw', on);
         document.documentElement.classList.toggle('s34-sfw-text', on && CONFIG.censorComments);
         try { GM_setValue(SFW_KEY, on); } catch (e) {}
-        document.querySelectorAll('.s34-q-sfw input').forEach(cb => { cb.checked = on; });
+        document.querySelectorAll('.s34-sfw-set').forEach(cb => { cb.checked = on; });
+        sfwWatch(on);
         showSfwLabel();
         showToast(on ? `${CENSOR_NAME} on – pictures${CONFIG.censorComments ? ' and comments' : ''} are blurred, safe for screenshots. X turns it off.` : `${CENSOR_NAME} off.`);
     }
@@ -11796,6 +11873,7 @@
 
     function setupScreenshotMode() {
         showSfwLabel();
+        sfwWatch(sfwOn());
         document.addEventListener('keydown', e => {
             if (e.code !== 'KeyX' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.repeat) return;
             const t = e.target;
@@ -11805,22 +11883,6 @@
             e.preventDefault();
             setScreenshotMode(!sfwOn());
         }, true);
-    }
-
-    // The switch in the sidebar's "View" group (under "Hide downloaded")
-    function addSfwSwitch(panel) {
-        if (!panel || panel.querySelector('.s34-q-sfw')) return;
-        const row = document.createElement('label');
-        row.className = 's34-q-switch s34-q-sfw';
-        row.title = 'Blurs every picture and video' + (CONFIG.censorComments ? ' and the comments' : '') + ' – safe for screenshots or in public. X turns it on and off';
-        row.innerHTML = '<input type="checkbox"><span class="s34-q-track"></span><span class="s34-q-sfw-name"></span>';
-        row.querySelector('.s34-q-sfw-name').textContent = CENSOR_NAME;
-        const cb = row.querySelector('input');
-        cb.checked = sfwOn();
-        cb.addEventListener('change', () => setScreenshotMode(cb.checked));
-        const after = panel.querySelector('[data-k="hideDownloaded"]') || panel.querySelector('[data-k="hideViewed"]');
-        const head = panel.querySelector('.s34-q-head');
-        if (after) after.closest('label').after(row); else if (head) head.after(row); else panel.prepend(row);
     }
     // =====================================================================
     //  SUPPORT & HEALTH
@@ -12187,7 +12249,7 @@
             const id = String(t._s34Id || thumbPostId(t));
             const inColl = ids.has(id);
             t.classList.toggle('s34-in-coll', inColl);
-            t.classList.toggle('s34-coll-new', inColl && !collAtLoad.has(id));
+            t.classList.toggle('s34-coll-justin', inColl && !collAtLoad.has(id)); // (3.16.2: was s34-coll-new - clashed with the "+ New collection" card)
         });
     }
 
@@ -12517,7 +12579,6 @@
             if (sidebar) sidebar.appendChild(panel); else return;
         }
         adoptAiFilter(panel);
-        addSfwSwitch(panel); // "Blur pictures" (screenshot mode, 20d)
     }
 
     // The site's own "Filter AI posts" switch, shown as a Steamy34 switch at
@@ -12845,7 +12906,7 @@
             list.map(s => {
                 const badge = s.count ? `<small class="s34-has-new">${s.count}${s.more ? '+' : ''} new</small>` : '';
                 const open = fwState && fwState.key === fwKeySearch(s.query);
-                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${open || (here && sameQuery(here, s.query)) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)} – opens in the Following window (Ctrl + click: the search itself)"><span>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
+                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${open || (here && sameQuery(here, s.query)) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)} – opens in the Following window (Ctrl + click: the search itself)"><span${sfwQuerySafe(s.query) ? '' : ' class="s34-sfw-word"'}>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
                     `<button type="button" class="s34-saved-x" data-ss-x="${escapeHtml(s.query)}" title="Remove from your saved searches" aria-label="Remove ${escapeHtml(searchLabel(s))} from your saved searches">✕</button></div>`;
             }).join('');
     }
@@ -13159,8 +13220,23 @@
         if (!thumb) return;
         e.preventDefault();
         e.stopImmediatePropagation();
-        if (!batchRunning) toggleSelected(thumb);
+        if (batchRunning) return;
+        // (Beta 3.16.2) its collection button: save the selection - this post included - instead of unselecting it
+        const collBtn = e.target.closest('.s34-tcoll');
+        if (collBtn) { toggleSelected(thumb, true); collectSelected(collBtn, e.shiftKey); return; }
+        toggleSelected(thumb);
     }, true);
+    // the selected posts, in page order, ready for a collection
+    function selectedPosts() {
+        return allThumbs().filter(t => selected.has(t)).map(t => {
+            const img = t.querySelector('img');
+            return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' };
+        });
+    }
+    function collectSelected(anchor, forceMenu) {
+        const posts = selectedPosts();
+        if (posts.length) openCollectMenu(anchor, posts, { menu: !!forceMenu });
+    }
 
     function renderBatchBar() {
         let bar = document.querySelector('.s34-batch');
@@ -13196,11 +13272,7 @@
                     const list = allThumbs().filter(t => selected.has(t)); // page order
                     if (list.length) batchDownload(list);
                 } else if (a === 'collect') {
-                    const posts = allThumbs().filter(t => selected.has(t)).map(t => {
-                        const img = t.querySelector('img');
-                        return { id: thumbPostId(t), thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' };
-                    });
-                    if (posts.length) openCollectMenu(act, posts);
+                    collectSelected(act, e.shiftKey);   // (3.16.2: follows the collection rules; Shift = always the list)
                 } else if (a === 'stop') {
                     batchStop = true;
                 } else if (a === 'done') {
@@ -13302,6 +13374,7 @@
     }
 
     async function batchDownload(list) {
+        primeDownloadFolder();   // (3.16.4: the folder question needs the click)
         batchRunning = true;
         batchStop = false;
         let ok = 0, failed = 0;
@@ -15590,6 +15663,26 @@
         try { stylePopupExtras(); } catch (e) {}
     }
 
+    // Several posts at once into one collection (only adds - nothing is taken out)
+    function quickCollectMany(anchor, c, posts) {
+        const all = getCollections();
+        const col = all.find(x => x.id === c.id);
+        if (!col) return;
+        const addedIds = [];
+        posts.forEach(p => {
+            if (p.id && !col.posts.some(x => String(x.id) === String(p.id))) {
+                col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {}));
+                addedIds.push(p.id);
+            }
+        });
+        saveCollections(all);
+        if (addedIds.length) setTimeout(() => collectionsAdded(addedIds), 0);
+        rememberLastCollection(col.id);
+        const n = addedIds.length;
+        showToast(n ? `Saved ${n === 1 ? '1 post' : n + ' posts'} to "${col.name}".` : `Already in "${col.name}".`, 'Other collection…', () => openCollectMenu(anchor, posts, { menu: true }));
+        try { stylePopupExtras(); } catch (e) {}
+    }
+
     function openCollectMenu(anchor, posts, opts = {}) {
         // (Beta 3.9.6) the same button again closes it
         const open = document.querySelector('.s34-cmenu');
@@ -15597,6 +15690,11 @@
         if (!opts.menu && posts.length === 1 && posts[0].id) {
             const target = oneClickCollection();
             if (target) { quickCollect(anchor, target, posts[0]); return; }
+        }
+        // (Beta 3.16.2) several posts (batch select): the same rules - straight in, no list
+        if (!opts.menu && posts.length > 1) {
+            const target = oneClickCollection();
+            if (target) { quickCollectMany(anchor, target, posts); return; }
         }
         document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
         const single = posts.length === 1;
@@ -15870,6 +15968,7 @@
                     renderList();
                 } else if (act === 'dl') {
                     if (downloading) { downloading.stop = true; return; }
+                    primeDownloadFolder();
                     const posts = getCollections().find(x => x.id === id).posts.slice();
                     if (!posts.length) return;
                     downloading = { stop: false };
@@ -16543,6 +16642,30 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.17', date: '2026-11-29', notify: true, items: [
+            'New colour mode: Classic Dark – rule34\'s older dark look with mint green (an idea from the Discord). Settings → Look & feel. It replaces the light Classic mode (if you used it, you\'re on White now).',
+            'My Account → Options: the Save bar at the bottom is calm now – no dark fade over the settings.',
+            'Censored mode blurs explicit tag words too, and big pictures harder – plus the switch is in Settings → Developer tools now.',
+            'Batch select: a clean view – only the picture, VID / GIF and the score on the thumbnails; the collection button and "Add to collection" follow your collection setting.',
+            'Fixed: your own download folder works from the popup again, and thumbnails no longer break when you put a post into a collection.'
+        ] },
+        { v: 'Beta 3.16.4', date: '2026-11-29', items: [
+            'Fixed: with your own download folder, files from the popup often landed in Downloads anyway – the browser\'s "allow?" question came too late after the key press. It\'s asked right away now, and the "Allow folder" note comes back if it\'s still needed.',
+            'Batch select: the thumbnails show only the picture, VID / GIF and the score – the tick box moved to the right corner.',
+            'Censored mode measures big pictures more reliably, so their blur is always the stronger one.'
+        ] },
+        { v: 'Beta 3.16.3', date: '2026-11-29', items: [
+            'Censored mode now also blurs tag words that could be explicit: general tags (and tags whose type isn\'t known yet) in the popup, on post pages, in the blacklist, in your searches, recent and saved searches and on the start page. Artist, character, series and meta tags stay readable.'
+        ] },
+        { v: 'Beta 3.16.2', date: '2026-11-29', items: [
+            'Fixed: putting a post into a collection from its thumbnail (Watch later too) no longer turns the thumbnail\'s buttons into coloured boxes.',
+            'Batch select: a thumbnail\'s collection button now saves all selected posts (that one too) – it used to just unselect the post.',
+            'Batch select: "Add to collection" follows your collection setting – with one collection, or "the one used last", the posts go straight in. Shift + click shows the list.'
+        ] },
+        { v: 'Beta 3.16.1', date: '2026-11-29', notify: true, items: [
+            'Censored mode hides big pictures better: the blur grows with the size on screen, so the popup and post pages are blurred as well as the thumbnails.',
+            'The Censored mode switch moved from the sidebar to Settings → Developer tools (X still turns it on and off).'
+        ] },
         { v: 'Beta 3.16', date: '2026-11-29', notify: true, items: [
             'Steamy is the colour mode for everyone now (you can still pick another one in Settings → Look).',
             'New colour mode: Classic – rule34\'s own green, navy links and tag colours, done tidily.',
@@ -17237,7 +17360,7 @@
                     ['👁', 'Viewed & downloaded', 'Small marks on the thumbnails – or hide those posts completely.'],
                     ['+', 'Tags on the picture', '+ adds a tag to the search, ⊘ blacklists it' + (phone ? ' – always shown on phones.' : ' – Shift + + excludes it.')],
                     ['⧉', 'Versions grouped', 'Versions of one picture show as one thumbnail with "+N versions" (needs your API key).'],
-                    ...(phone ? [] : [['🙈', 'Censored mode', `${k('X')} blurs every picture and video – safe for screenshots.`]]),
+                    ...(phone ? [] : [['🙈', 'Censored mode', `${k('X')} (or Settings → Developer tools) blurs every picture and video – safe for screenshots.`]]),
                     ['↕', 'Size', 'The Size slider makes the thumbnails bigger or smaller.']
                 ]
             },
@@ -17311,7 +17434,7 @@
                         ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
                         ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
                         ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED'],
-                        ['classic', '<i style="background:linear-gradient(135deg,#a8dca0 50%,#ffffff 50%) !important;border-color:#8fbf88 !important"></i>', 'Classic']
+                        ['classicdark', '<i style="background:linear-gradient(135deg,#1b1b1f 62%,#45d396 62%) !important;border-color:#3a3a44 !important"></i>', 'Classic Dark']
                     ] },
                     { key: 'thumbExtras', label: 'Tags, labels and buttons on thumbnails', options: [
                         ['on', thumbStyleArt('on'), 'On the picture'],
@@ -18435,7 +18558,7 @@
             const title = it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : '');
             return sep + `<button type="button" class="s34-fw-c${it.kind === 'search' ? ' s34-fw-c-search' : ''}${it.count ? ' s34-new' : ''}${on ? ' s34-on' : ''}${it.gone ? ' s34-gone' : ''}" data-key="${escapeHtml(it.key)}" role="tab" aria-selected="${on}" title="${escapeHtml(title)}">
                 <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it, v && v.pic)}</span>
-                <span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`;
+                <span class="s34-fw-name${it.kind === 'search' && !sfwQuerySafe(it.query) ? ' s34-sfw-word' : ''}">${escapeHtml(it.label)}</span></button>`;
         }).join('');
         const d = getFollowing();
         fwEl('.s34-fw-checked').textContent = d.checkedAt ? 'checked ' + timeAgo(d.checkedAt) : '';
@@ -18464,9 +18587,9 @@
                     </div>
                     <div class="s34-fw-nums">${nums.join('')}</div>
                 </div>`;
-            head.querySelector('.s34-fw-nm').textContent = searchLabel(s);
+            sfwMark(head.querySelector('.s34-fw-nm'), s.query).textContent = searchLabel(s);
             const q = head.querySelector('.s34-fw-q');
-            if (q) q.textContent = s.query;
+            if (q) sfwMark(q, s.query).textContent = s.query;
             return;
         }
         const isAll = k === FW_ALL;
@@ -18760,6 +18883,7 @@
         card.hidden = false;
         card.innerHTML = `<div class="s34-home-resume-text"><b></b><small></small></div><a class="s34-home-btn">Go on →</a>`;
         card.querySelector('b').textContent = 'Continue: ' + (tags === 'all' ? 'all posts' : searchLabel({ query: tags }));
+        if (tags !== 'all') sfwMark(card.querySelector('b'), tags);
         card.querySelector('small').textContent = `Page ${page} · ${timeAgo(best.at)}`;
         const a = card.querySelector('a');
         a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(tags) + '&pid=' + best.pid;
@@ -18786,7 +18910,7 @@
                 a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(q);
                 a.textContent = searchLabel({ query: q });
                 a.title = 'Search: ' + q.replace(/_/g, ' ');
-                box.appendChild(a);
+                box.appendChild(sfwMark(a, q));
             });
             card.append(h, box);
         }
@@ -18808,6 +18932,7 @@
                     b.className = 's34-home-fav-chip' + (on ? ' s34-on' : '');
                     b.textContent = (on ? '✓ ' : '') + tag.replace(/_/g, ' ');
                     b.title = on ? 'In the search – click to take it out' : 'Add to the search';
+                    sfwMark(b, tag);
                     b.addEventListener('click', () => {
                         const sb = searchBox();
                         if (!sb) return;
@@ -19233,7 +19358,7 @@
     function syncSiteSwitches() {
         // rule34's theme cookie follows the colour mode (pages arrive dark - no white flash)
         if (CONFIG.matchSiteTheme) {
-            const want = CONFIG.theme === 'white' || CONFIG.theme === 'classic' ? 'light' : 'dark';
+            const want = CONFIG.theme === 'white' ? 'light' : 'dark';
             if (readSiteCookie('theme') !== want) writeSiteCookie('theme', want);
         }
         // the site's own suggestion list (it reads this itself)
@@ -20246,6 +20371,7 @@
 
     async function popupDownload() {
         if (!popupState) return;
+        primeDownloadFolder();   // (3.16.4: before the post page loads - the folder question needs the key press)
         const state = popupState;
         const thumbSrc = popupThumbSrc(state);
         let url = state.mediaUrl;

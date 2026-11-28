@@ -64,7 +64,7 @@
 
 
         // Look
-        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classic' (rule34's own colours, 3.16)
+        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classicdark' (rule34's dark look with mint, 3.17 - it replaced the light Classic)
         darkMode: true,          // (old setting - "off" becomes the White theme)
         thumbGrid: true,
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
@@ -143,9 +143,9 @@
     {
         const saved = loadSaved();
         if (saved.darkMode === false && !saved.theme) CONFIG.theme = 'white'; // old "dark mode off"
-        if (!['white', 'dark', 'oled', 'steamy', 'classic'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
+        if (CONFIG.theme === 'classic') CONFIG.theme = 'white';   // (Classic, 3.16, was taken out in 3.17 - its nearest: White)
+        if (!['white', 'dark', 'oled', 'steamy', 'classicdark'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
         document.documentElement.classList.add('s34-theme-' + CONFIG.theme);
-        if (CONFIG.theme === 'classic') document.documentElement.classList.add('s34-theme-white'); // (Classic is a light mode: White's fixes apply, its own colours on top)
         // Thumbnail extras ("below" needs the modern layout - without it, they stay on the picture)
         if (!['on', 'hover', 'below'].includes(CONFIG.thumbExtras)) CONFIG.thumbExtras = 'hover';
         if (CONFIG.thumbExtras === 'below' && !CONFIG.thumbGrid) CONFIG.thumbExtras = 'on';
@@ -171,8 +171,7 @@
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
-            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classic: 'Classic (rule34\'s own colours)' } }],
-            ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
+            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classicdark: 'Classic Dark (rule34\'s dark look, mint)' } }],
             ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
             ['matchSiteTheme', 'Match rule34\'s own theme', { adv: true, hint: 'Sets rule34\'s Light / Dark theme (in its Options) to fit your colour mode, so pages don\'t flash white while they load' }],
@@ -272,6 +271,11 @@
             ['addToSearchButtons', '+ / − next to tags', { hint: 'Add a tag to your search or take it out' }],
             ['postTagChips', 'Tags as bubbles on single posts'],
             ['reloadAfterBlock', 'Reload the page after blocking', { adv: true }]
+        ] },
+        // (Beta 3.16.1, #21) tools for screenshots - Censored mode moved here from the sidebar
+        { id: 'dev', title: 'Developer tools', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 5l-3 14"/></svg>', rows: [
+            ['censoredMode', 'Censored mode', { instant: true, hint: 'Blurs every picture and video – the bigger it is on screen, the stronger – so screenshots are safe to share. Works right away, no saving needed. Key: X' }],
+            ['censorComments', 'Censored mode also blurs comments', { hint: 'Comment texts and names too' }]
         ] }
     ];
 

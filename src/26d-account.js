@@ -247,7 +247,7 @@
     function syncSiteSwitches() {
         // rule34's theme cookie follows the colour mode (pages arrive dark - no white flash)
         if (CONFIG.matchSiteTheme) {
-            const want = CONFIG.theme === 'white' || CONFIG.theme === 'classic' ? 'light' : 'dark';
+            const want = CONFIG.theme === 'white' ? 'light' : 'dark';
             if (readSiteCookie('theme') !== want) writeSiteCookie('theme', want);
         }
         // the site's own suggestion list (it reads this itself)

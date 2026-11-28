@@ -144,10 +144,12 @@
         .s34-opt-save {
             position: sticky; bottom: 0; z-index: 5;
             display: flex; align-items: center; justify-content: flex-end; gap: 10px;
-            padding: 12px 64px 12px 0; /* (room for the Steamy34 button in the corner) */
-            background: linear-gradient(to bottom, transparent, #000 40%) !important;
+            padding: 12px 64px 12px 14px; /* (room for the Steamy34 button in the corner) */
+            /* (Beta 3.17) solid, in the page colour, with a thin line - the fade into black laid a heavy band over the settings */
+            background: var(--s34-bg) !important;
+            border-top: 1px solid rgba(255,255,255,0.08) !important;
+            box-shadow: 0 -6px 14px -10px rgba(0,0,0,0.6);
         }
-        html.s34-theme-dark .s34-opt-save { background: linear-gradient(to bottom, transparent, #0e0e11 40%) !important; }
         .s34-opt-dirty { margin-right: auto; color: #ffb347 !important; font-weight: 700; font-size: 12.5px; }
         .s34-opt input.s34-opt-submit {
             height: 36px; padding: 0 26px !important; border-radius: 9px !important; border: none !important; cursor: pointer;

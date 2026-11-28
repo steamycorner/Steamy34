@@ -6,14 +6,14 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 
 > **About the code.** Steamy34 is designed by steamycorner, a designer (web design, corporate identity, 3D) rather than a programmer. The code is written with AI (Claude), and bug fixes are made the same way, so mistakes are possible. Each version is tested before release. Problems can be reported on Discord or in the Feedback tab.
 
-> **New in Beta 3.10: blur instead of hide, and better collections.** Any blacklisted tag can now **blur** its posts instead of hiding them: the tag is named and a **Show** button uncovers the post. A post with any other blacklisted tag still stays hidden. Collections get a **cover**, **sorting**, **drag to arrange** and a **note**. Plus: a **Similar** strip in the popup (more from the same artist and character, Shift + ← / → to go through it), buttons on phones by **holding a thumbnail**, and versions of the same picture grouped into one (with your API key).
+> **New in Beta 3.16–3.17: Steamy is the new look, and Classic Dark joins.** **Steamy** – clean black with the logo's magenta – is now the default. **Classic Dark** brings rule34's older dark look with mint. **Saved searches** live in the Following window too, with NEW marks and a name of their own. **Your own file names** (`rule34_{id}`, just `{id}`, …). **Viewed / Downloaded** right in the popup (V and M), **Q** for batch select, **"Hide collected"**, **"Out once downloaded"**, one-click collections and a tidier Collections window. Censored mode blurs big pictures harder.
 
-> **Since Beta 3.9:** blocked stays blocked everywhere (lists, popup, comments, Collections, Downloads), tags **muted** for 24 hours or 7 days, backups that **combine**, Watch later, iCame in the popup, Find source / Upscale / Report, download subfolders per artist, calmer Artists, Wiki, Aliases and iCame pages. **Since 3.8:** collections on all your devices (optional), download and viewed buttons on the thumbnails, a Downloads window. **Since 3.7:** blacklists as long as you like, saved searches, an optional API key for fewer Cloudflare checks.
+> **Since Beta 3.10:** blur instead of hide (per tag), collection covers, sorting and notes, a Similar strip in the popup. **Since 3.9:** blocked stays blocked everywhere, muting tags for a while, Watch later, iCame in the popup. **Since 3.8:** collections on all your devices, buttons on the thumbnails, a Downloads window. **Since 3.7:** blacklists as long as you like, saved searches, an optional API key.
 
 ## Features
 
 **Look**
-- White, Dark, OLED (true black) and **Steamy** (neon) colour modes, each with depth (cards, panels, shadows) – rule34's own theme follows along, so pages don't flash white while they load
+- Five colour modes: **Steamy** (clean black with the logo's magenta – the default), Dark, OLED (true black), White and **Classic Dark** (rule34's older dark look, with mint) – rule34's own theme follows along, so pages don't flash white while they load
 - A calm sidebar: search, what you follow, view switches and your tools – in four tidy groups; recent searches and favourite tags open as small menus next to it (on phones: a sheet from the bottom)
 - Modern thumbnail layout (original ratios or square tiles), with a size slider
 - VID / GIF labels, plus artist and character tags right on the thumbnails – or keep the pictures clean: tags and buttons in a strip below, or only on hover
@@ -26,7 +26,8 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - Comments (all of them, with "More comments"), votes, favourites, post info and parent / child / pool links inside the popup
 - ♥ favourites both ways: ♥ again removes a favourite (with Undo) – on thumbnails, in the popup and right on your favourites page
 - **Similar** strip in the popup: more posts from the same artist and character, Shift + ← / → to go through it while ← / → stay on the page
-- Slideshow (auto next post) with a timer, theater mode, zoom and video options
+- **Viewed / Downloaded** buttons in the popup (V and M) – Downloaded follows a real download right away
+- Slideshow (auto next post) with a timer, theater mode, zoom – and video controls: loop, speed, skip, A–B repeat
 - Hover previews: videos play and score / resolution show when you hover a thumbnail
 - Post pages: a click on the picture shows it at its real size; long comic strips fit the width and read from the top
 - Videos stall? Pick another video server in the settings
@@ -38,7 +39,7 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - Recent searches and favourite tags, one click away
 - **Follow artists:** one click on the bell next to an artist – the sidebar lists everyone you follow, each with a count of their new posts
 - **The Following window** (G): your artists as circles, their newest posts in a grid – always newest first, posts since your last visit marked NEW, "Open as a search" for every filter and sort
-- **Saved searches:** the disk button next to Search saves a search with all its filters – listed under Following with its new posts; a click opens that search, with NEW on what's new
+- **Saved searches:** the disk button next to Search saves a search with all its filters – under Following in the sidebar and in the Following window, with its new posts, NEW marks and a name of its own. A click asks: open as the posts page, or in the Following window (or set it once)
 
 **Blacklist**
 - One Blacklist panel – in the sidebar and on rule34's Options page – with tag types, sorting, a filter and your recent tags
@@ -51,20 +52,20 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 
 **Organising**
 - Download and viewed buttons on the thumbnails: green = downloaded, blue = viewed. Hover the eye to mark a post as viewed – or as downloaded without downloading it. Every thumbnail item has its own switch
-- Hides viewed or downloaded posts if you like
-- Collections: your own folders of posts – optionally on all your devices (their posts are favourited too, so they're on your phone)
+- Hides viewed, downloaded or **collected** posts if you like
+- Collections: your own folders of posts – optionally on all your devices (their posts are favourited too, so they're on your phone). With one collection (or "the one used last") the button saves straight away. **Watch later** is ready-made; **"Out once downloaded"** takes posts out when you download them
 - Collection tools: pick a cover, sort the posts or drag them into your own order, add a note
-- Your favourites page: mark all as viewed or downloaded, or select posts to download, put into a collection or unfavourite in one go
+- **Batch select** (Q): tick posts, then download them, put them into a collection or – on your favourites page – unfavourite them in one go
 - A Downloads window with every post you downloaded, newest first
 - Your stats: top artists, characters and series you've downloaded
 
 **Downloads**
 - Press **B** on a post to download it (the key can be changed in the settings) – or the ⬇ on a thumbnail, without opening it
-- Downloads at maximum resolution, named `[character] [series] [artist] #post` (e.g. `[amelie lacroix] [overwatch] [someartist] #101.jpg`) – or the classic `Character_Series_Artist_Resolution` style
-- Optional own download folder – pick any folder once, e.g. Eagle's watch folder (Chrome, Edge and Brave on computers)
+- Downloads at maximum resolution, named `[character] [series] [artist] #post` (e.g. `[amelie lacroix] [overwatch] [someartist] #101.jpg`), the classic `Character_Series_Artist_Resolution` style – or **your own pattern** like `rule34_{id}` or just `{id}`
+- Optional own download folder – pick any folder once (Chrome, Edge and Brave on computers)
 - Batch download ticked posts or whole collections, with a progress panel (Pause / Cancel)
 - Asks before downloading a post a second time (can be switched off)
-- If the server doesn't answer, you get a message with a Retry button instead of a hanging download
+- If the server doesn't answer, you get a message with a Retry button instead of a hanging download – and a clear message with what to do when Tampermonkey blocks downloads
 
 **On your phone (Android)**
 - Phone layout: in the popup the picture is on top, with info, tags and comments below
@@ -75,13 +76,13 @@ An all-in-one upgrade for rule34.xxx: a cleaner look, a popup viewer, a much eas
 - The Following window fills the screen; Back closes it
 
 **More**
-- Infinite scrolling with "Page N" dividers – and "Continue at page N" when you come back to a search
+- Infinite scrolling with "Page N" dividers – and "Continue at page N" when you come back to a search; an "End of results" card with "Save this search" at the end
 - New posts from what you follow show in the browser tab: "(12) rule34"
 - With an ad blocker on, no empty ad spaces next to or above the posts (without one, every ad stays as rule34 shows it)
 - Gentle on the site: page loads are spaced out, so Cloudflare checks come much less often. When one does come, a clear notice at the bottom of the screen shows it with a *Solve* button (and a *?* that explains why it matters) – without the check, rule34 loads nothing new. The check window also points to the optional API key, which makes checks rarer
 - Steamy34 Settings sits in rule34's top menu, on every page
 - A welcome guide on first start – every feature in chapters, a keyboard map of all keys and every touch gesture – quick tips with all the shortcuts, and a short "What's new" after notable updates
-- Censored mode: press X and every picture, video and comment is blurred – share a screenshot safely
+- Censored mode: press X (or Settings → Developer tools) and every picture, video and comment is blurred – the bigger on screen, the stronger. Share a screenshot safely
 - Settings with a search box: type a word and jump straight to the right option
 - Works with the keyboard (Tab, Enter) as well
 - Backup and restore of all your settings and data – e.g. to move everything to your phone

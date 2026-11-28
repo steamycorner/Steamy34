@@ -181,7 +181,7 @@
             list.map(s => {
                 const badge = s.count ? `<small class="s34-has-new">${s.count}${s.more ? '+' : ''} new</small>` : '';
                 const open = fwState && fwState.key === fwKeySearch(s.query);
-                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${open || (here && sameQuery(here, s.query)) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)} – opens in the Following window (Ctrl + click: the search itself)"><span>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
+                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${open || (here && sameQuery(here, s.query)) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)} – opens in the Following window (Ctrl + click: the search itself)"><span${sfwQuerySafe(s.query) ? '' : ' class="s34-sfw-word"'}>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
                     `<button type="button" class="s34-saved-x" data-ss-x="${escapeHtml(s.query)}" title="Remove from your saved searches" aria-label="Remove ${escapeHtml(searchLabel(s))} from your saved searches">✕</button></div>`;
             }).join('');
     }

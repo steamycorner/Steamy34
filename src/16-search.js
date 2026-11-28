@@ -680,9 +680,9 @@
                 n.textContent = 'No searches yet.';
                 menu.appendChild(n);
             }
-            recent.forEach(q => menu.appendChild(menuItem(q.replace(/_/g, ' '), '',
+            recent.forEach(q => menu.appendChild(sfwMark(menuItem(q.replace(/_/g, ' '), '',
                 () => runSearch(q),
-                () => GM_setValue(HISTORY_KEY, getStoredList(HISTORY_KEY).filter(x => x !== q)))));
+                () => GM_setValue(HISTORY_KEY, getStoredList(HISTORY_KEY).filter(x => x !== q))), q)));
             if (recent.length) {
                 const clear = document.createElement('button');
                 clear.type = 'button';

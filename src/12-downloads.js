@@ -517,6 +517,18 @@
         folderDbDo('readwrite', s => s.delete('dlFolder')).catch(() => {});
     }
 
+    // (Beta 3.16.4) Right at the click / key press: the browser only shows its
+    // "allow editing?" question within a few seconds of it - the popup used to
+    // load the post page first, the question was refused silently and the file
+    // went to Downloads. saveUrlAs waits for this answer.
+    let folderAsk = null;
+    function primeDownloadFolder() {
+        const go = h => (h ? folderAllowed(h, true) : false);
+        folderAsk = (folderHandle !== undefined ? Promise.resolve(go(folderHandle)) : getFolderHandle().then(go)).catch(() => false);
+        return folderAsk;
+    }
+    setTimeout(() => { getFolderHandle().catch(() => {}); }, 0);   // (loaded early, so the question can come at once)
+
     // ask: show the browser's "allow editing?" question if needed (only works
     // right after a key press / click – which a download always starts with)
     async function folderAllowed(h, ask) {
@@ -596,6 +608,7 @@
     async function saveUrlAs(url, filename, referer, opts = {}) {
         const video = /\.(mp4|webm|mkv|mov)(\?|$)/i.test(url);
         const timeout = video ? DL_BIG_TIMEOUT_MS : DL_TIMEOUT_MS;
+        if (folderAsk) await folderAsk;   // (the question asked at the click)
         const folder = await getFolderHandle().catch(() => null);
         if (folder) {
             // Ask now, while the key press still counts
@@ -617,8 +630,8 @@
                     try { saveBlob(blob, filename); return true; } catch (e2) { return false; }
                 }
             }
-            if (!folderAskShown) {
-                folderAskShown = true;
+            if (!folderAskShown || Date.now() - folderAskShown > 60000) {   // (3.16.4: not just once per page)
+                folderAskShown = Date.now();
                 showToast('Steamy34 may not write into "' + folder.name + '" yet – this one went to Downloads.', 'Allow folder', () => {
                     folderAllowed(folder, true).then(ok => showToast(ok ? 'Folder allowed – the next downloads go into "' + folder.name + '".' : 'Not allowed – downloads keep going to Downloads.'));
                 }, 15000);
@@ -789,6 +802,7 @@
     // pressed - the popup may be on another post by the time the file arrives)
     async function downloadOriginal(givenUrl, tagsByType, postId, confirmed, size, thumbSrc) {
         if (typeof givenUrl !== 'string') givenUrl = null; // called as a click handler
+        primeDownloadFolder();
         const url = givenUrl || getOriginalUrl();
         if (!url) {
             showToast('Couldn\'t find the original file on this page – try again once it has loaded.', null, null, 8000);

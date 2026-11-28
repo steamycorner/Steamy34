@@ -197,7 +197,7 @@
             const id = String(t._s34Id || thumbPostId(t));
             const inColl = ids.has(id);
             t.classList.toggle('s34-in-coll', inColl);
-            t.classList.toggle('s34-coll-new', inColl && !collAtLoad.has(id));
+            t.classList.toggle('s34-coll-justin', inColl && !collAtLoad.has(id)); // (3.16.2: was s34-coll-new - clashed with the "+ New collection" card)
         });
     }
 
@@ -527,7 +527,6 @@
             if (sidebar) sidebar.appendChild(panel); else return;
         }
         adoptAiFilter(panel);
-        addSfwSwitch(panel); // "Blur pictures" (screenshot mode, 20d)
     }
 
     // The site's own "Filter AI posts" switch, shown as a Steamy34 switch at

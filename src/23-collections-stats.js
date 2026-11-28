@@ -320,6 +320,26 @@
         try { stylePopupExtras(); } catch (e) {}
     }
 
+    // Several posts at once into one collection (only adds - nothing is taken out)
+    function quickCollectMany(anchor, c, posts) {
+        const all = getCollections();
+        const col = all.find(x => x.id === c.id);
+        if (!col) return;
+        const addedIds = [];
+        posts.forEach(p => {
+            if (p.id && !col.posts.some(x => String(x.id) === String(p.id))) {
+                col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {}));
+                addedIds.push(p.id);
+            }
+        });
+        saveCollections(all);
+        if (addedIds.length) setTimeout(() => collectionsAdded(addedIds), 0);
+        rememberLastCollection(col.id);
+        const n = addedIds.length;
+        showToast(n ? `Saved ${n === 1 ? '1 post' : n + ' posts'} to "${col.name}".` : `Already in "${col.name}".`, 'Other collection…', () => openCollectMenu(anchor, posts, { menu: true }));
+        try { stylePopupExtras(); } catch (e) {}
+    }
+
     function openCollectMenu(anchor, posts, opts = {}) {
         // (Beta 3.9.6) the same button again closes it
         const open = document.querySelector('.s34-cmenu');
@@ -327,6 +347,11 @@
         if (!opts.menu && posts.length === 1 && posts[0].id) {
             const target = oneClickCollection();
             if (target) { quickCollect(anchor, target, posts[0]); return; }
+        }
+        // (Beta 3.16.2) several posts (batch select): the same rules - straight in, no list
+        if (!opts.menu && posts.length > 1) {
+            const target = oneClickCollection();
+            if (target) { quickCollectMany(anchor, target, posts); return; }
         }
         document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
         const single = posts.length === 1;
@@ -600,6 +625,7 @@
                     renderList();
                 } else if (act === 'dl') {
                     if (downloading) { downloading.stop = true; return; }
+                    primeDownloadFolder();
                     const posts = getCollections().find(x => x.id === id).posts.slice();
                     if (!posts.length) return;
                     downloading = { stop: false };

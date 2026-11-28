@@ -53,6 +53,7 @@
     // nearly black with a breath of violet, text stays neutral; the logo's
     // magenta is the accent (the brand pink and the UI blue become it)
     const STEAMY_HUE = 0.765;
+    const MINT_HUE = 0.428;   // (Beta 3.17) Classic Dark's mint
     function themeColor(r, g, b, hasAlpha, theme, role) {
         const [h, s, l] = rgbToHsl(r, g, b);
         const neutral = s < 0.2;
@@ -67,16 +68,16 @@
             if (h > 0.53 && h < 0.7 && s > 0.35 && l < 0.68) return hslToRgb(0.81, Math.min(1, s + 0.15), Math.min(0.6, l + 0.03)); // UI blue (buttons, switches) -> the accent
             return null;
         }
-        if (theme === 'classic') {
-            // (Beta 3.16) rule34's own look, tidied: White's light layers, tinted
-            // rule34's green; the brand pink becomes rule34's link blue
-            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return hslToRgb(0.6, 1, 0.42);
-            if (h > 0.68 && h < 0.93 && s > 0.4) return hslToRgb(0.63, 0.75, Math.min(0.45, Math.max(0.3, l * 0.7))); // purple / magenta -> rule34's navy
-            const w = themeColor(r, g, b, hasAlpha, 'white', role);
-            if (!w || !neutral) return w;
-            const [, , wl] = rgbToHsl(w[0], w[1], w[2]);
-            if (wl > 0.6) return hslToRgb(0.317, role === 'line' ? 0.28 : 0.32, role === 'line' ? Math.min(wl, 0.74) : Math.min(0.97, wl));   // light surfaces + lines: a breath of green
-            return hslToRgb(0.317, 0.12, Math.min(wl, 0.3));                                                                                  // text: near black, slightly green
+        if (theme === 'classicdark') {
+            // (Beta 3.17, asked for on Discord) rule34's older dark look: Dark's greys,
+            // mint instead of the pink and the blue / purple accents. Buttons (white
+            // text on them) get a deeper mint, lines, switches and text the bright one.
+            if (neutral) return null;
+            const mint = role === 'surface' ? hslToRgb(MINT_HUE, 0.62, Math.min(0.4, Math.max(0.3, l))) : hslToRgb(MINT_HUE, 0.62, 0.58);
+            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return mint;               // brand pink
+            if (h > 0.9 && h < 0.975 && s > 0.55 && l > 0.42 && l < 0.68) return mint;   // pink counters / badges (the light red artist names stay)
+            if (h > 0.53 && h < 0.93 && s > 0.35 && l < 0.68) return mint;               // UI blue, purple (tag colours stay: they're lighter)
+            return null;
         }
         if (theme === 'oled') {
             if (!neutral || l >= 0.4) return null;
@@ -119,7 +120,7 @@
             // White (Beta 3.7): shadows and dimming stay dark - softer - instead
             // of turning white (white shadows were invisible: no depth at all)
             // (strong dimming behind windows - alpha 0.6 and up - stays as strong as in Dark)
-            if ((theme === 'white' || theme === 'classic') && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
+            if (theme === 'white' && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
                 return parseFloat(a) >= 0.6 ? m : `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.round(parseFloat(a) * 50) / 100})`;
             }
             const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme, role);
@@ -135,7 +136,7 @@
         // Each innermost "selector { … }" block; keep-dark ones are skipped
         return css.replace(/([^{}]*)\{([^{}]*)\}/g, (m, sel, decls) =>
             KEEP_DARK_RE.test(sel) || /^\s*(\d+%|from|to)\s*$/.test(sel) ? m : sel + '{' + fix(decls) + '}')
-            .replace(/color-scheme:\s*dark/g, theme === 'white' || theme === 'classic' ? 'color-scheme: light' : 'color-scheme: dark');
+            .replace(/color-scheme:\s*dark/g, theme === 'white' ? 'color-scheme: light' : 'color-scheme: dark');
     }
     // Hand-tuned spots the converter can't judge
     const THEME_FIX_CSS = {
@@ -191,6 +192,11 @@
             html.s34-theme-white ::-webkit-scrollbar-thumb { background: #c5c8d0 !important; }
             /* (Beta 3.7) the page a soft grey, so the lighter cards and panels stand out on it */
             html.s34-theme-white { --s34-bg: #e2e4e9 !important; }
+            /* (Beta 3.17) small spots the contrast scan found (Classic had these fixes, White didn't) */
+            html.s34-theme-white .s34-pill-x { opacity: .85 !important; }
+            html.s34-theme-white .s34-pv-chips .s34-chip-count { color: #3d424b !important; opacity: .85 !important; }
+            html.s34-theme-white .s34-blm-account-save { color: #a35400 !important; }
+            html.s34-theme-white .s34-opt-dirty { color: #a35400 !important; }
         `,
         // (Beta 3.12, toned down in 3.13) Steamy – Steamy Design Guide → Steamy:
         // clean and black, the logo's magenta only for the main action, what's
@@ -216,6 +222,16 @@
             html.s34-theme-steamy .s34-end-card { background: #0b0a0e !important; }
             html.s34-theme-steamy :is(button, a, input, textarea, select):focus-visible { outline: 2px solid #ff3df2 !important; outline-offset: 2px; }
         `,
+        // (Beta 3.17) Classic Dark - rule34's older dark look with mint (an idea from Discord)
+        classicdark: `
+            html.s34-theme-classicdark ::selection { background: rgba(69,211,150,.35); color: #fff; }
+            html.s34-theme-classicdark .s34-sb-box:focus-within, html.s34-theme-classicdark textarea.s34-search:focus { border-color: #45d396 !important; }
+            html.s34-theme-classicdark :is(button, a, input, textarea, select):focus-visible { outline: 2px solid #45d396 !important; outline-offset: 2px; }
+            html.s34-theme-classicdark .image-list span.thumb:hover { box-shadow: 0 0 0 1px #45d396 !important; }
+            html.s34-theme-classicdark ::-webkit-scrollbar-thumb { background: #34343c !important; }
+            html.s34-theme-classicdark .s34-dl-btn .s34-dl-main { color: #fff !important; opacity: 1 !important; }
+            html.s34-theme-classicdark .s34-dl-btn .s34-dl-sub { color: #fff !important; opacity: .95 !important; }
+        `,
         oled: `
             html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
             html.s34-theme-oled .s34-pv-overlay { background-color: rgba(0,0,0,0.98) !important; }
@@ -224,51 +240,6 @@
         dark: ''
     };
 
-    // (Beta 3.16) Classic - rule34's own colours, done well: its green page
-    // (softer), white cards, navy links and its tag colours. A light mode:
-    // the White fixes apply too (the html has both classes).
-    THEME_FIX_CSS.classic = THEME_FIX_CSS.white + `
-            html.s34-theme-classic { --s34-bg: hsl(114, 56%, 77%) !important; }
-            html.s34-theme-classic, html.s34-theme-classic body { background: hsl(114, 56%, 77%) !important; color: #000 !important; }
-            html.s34-theme-classic a:link, html.s34-theme-classic a:visited { color: #10308f; }
-            html.s34-theme-classic a:hover { color: #006ffa; }
-            html.s34-theme-classic #header, html.s34-theme-classic #navbar { background: linear-gradient(90deg, #a8dca0, #b9d8f2) !important; }
-            html.s34-theme-classic #navbar li a { color: #10308f !important; }
-            html.s34-theme-classic #navbar li.current-page a, html.s34-theme-classic #navbar li.s34-current a { background: #10308f !important; color: #fff !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-artist a, html.s34-theme-classic .s34-pv-chips .s34-chip-artist .s34-chip-name { color: #b00000 !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-character a, html.s34-theme-classic .s34-pv-chips .s34-chip-character .s34-chip-name { color: #007a00 !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-copyright a, html.s34-theme-classic .s34-pv-chips .s34-chip-copyright .s34-chip-name { color: #8f008f !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-metadata a, html.s34-theme-classic .s34-pv-chips .s34-chip-metadata .s34-chip-name { color: #c66a00 !important; }
-            html.s34-theme-classic #tag-sidebar .tag-type-general a, html.s34-theme-classic .s34-pv-chips .s34-chip-general .s34-chip-name { color: #10308f !important; }
-            html.s34-theme-classic .s34-page-divider span { border-color: #10308f !important; background: #fff !important; color: #10308f !important; }
-            html.s34-theme-classic .s34-page-divider::before, html.s34-theme-classic .s34-page-divider::after { background: #8fbf88 !important; height: 1px; }
-            html.s34-theme-classic ::-webkit-scrollbar-thumb { background: hsl(114, 35%, 56%) !important; }
-            /* the post page's tags: light chips with rule34's colours (they stayed dark - unreadable) */
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] { background-color: #fff !important; border-color: hsl(114, 35%, 56%) !important; color: #000 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-artist { border-color: #cc0000 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-character { border-color: #00aa00 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-copyright { border-color: #aa00aa !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-metadata { border-color: #ff8800 !important; }
-            html.s34-theme-classic #tag-sidebar > li.tag-type-general { border-color: #8aa6d6 !important; }
-            /* the sidebar sits on rule34's green, like on the site (Steamy34's own boxes stay white cards) */
-            html.s34-theme-classic body .sidebar, html.s34-theme-classic body #sidebar, html.s34-theme-classic body .sidebar .tag-search, html.s34-theme-classic body .tag-search, html.s34-theme-classic body #tag-sidebar { background-color: transparent !important; }
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] span:not(.s34-chip-x) { color: #444 !important; }
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] a.r34-block-btn { color: #cc0000 !important; }
-            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] a.r34-block-btn.blocked { color: #10308f !important; }
-            /* the popup in rule34's palette - its greens, black text, white cards (not white all over) */
-            html.s34-theme-classic .s34-pv-overlay { background-color: hsl(114, 35%, 50%) !important; color: #000 !important; }
-            html.s34-theme-classic .s34-pv-side { background-color: hsl(114, 56%, 77%) !important; border-color: hsl(114, 35%, 56%) !important; color: #000 !important; }
-            html.s34-theme-classic .s34-pv-main, html.s34-theme-classic .s34-pv-stage { background-color: transparent !important; }
-            html.s34-theme-classic .s34-cm-section { background-color: hsl(114, 45%, 66%) !important; color: #000 !important; }
-            html.s34-theme-classic .s34-pv-chips .s34-chip { background-color: #fff !important; border-color: hsl(114, 35%, 56%) !important; }
-            html.s34-theme-classic .s34-pv-side h4 { color: #10308f !important; }
-            html.s34-theme-classic .s34-cm-score { color: #0a4a0a !important; }
-            html.s34-theme-classic .s34-pv-tbar button { background-color: rgba(255,255,255,.85) !important; color: #10308f !important; }
-            html.s34-theme-classic .s34-dl-btn .s34-dl-main, html.s34-theme-classic .s34-dl-btn .s34-dl-sub { color: #fff !important; }
-            html.s34-theme-classic .s34-blm-account-save { color: #a35400 !important; }
-            html.s34-theme-classic .s34-pill-x { opacity: .85 !important; }
-            html.s34-theme-classic .s34-pv-chips .s34-chip-count { color: #3d424b !important; opacity: .85 !important; }
-        `;
 
     function injectStyles() {
         const style = document.createElement('style');
@@ -283,8 +254,8 @@
             (CONFIG.hideListTags && !isPostView ? HIDE_LIST_TAGS_CSS : '') +
             (!isPostView ? LIST_SIDEBAR_CSS : '') +
             (CONFIG.postTagChips && isPostView ? POST_TAGS_CSS : '');
-        // (Beta 3.16) Classic: the brand gradient becomes rule34's link blue
-        if (CONFIG.theme === 'classic') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#006ffa$1, #0030fa').replace(/#8b3dff/gi, '#0030fa');
+        // (Beta 3.17) Classic Dark: the brand gradient becomes mint (deep enough for white text)
+        if (CONFIG.theme === 'classicdark') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#27a56f$1, #1d7c53').replace(/#8b3dff/gi, '#1d7c53');
         // (Beta 3.12) Steamy: the brand gradient's pink → purple becomes the logo's magenta → violet; labels quiet grey
         if (CONFIG.theme === 'steamy') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#ff3df2$1, #9b3bff').replace(/#8b3dff/gi, '#9b3bff').replace(/#ff8fa3/gi, '#8f8b99');
         if (CONFIG.theme !== 'dark') css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];

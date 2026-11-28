@@ -1,6 +1,6 @@
     // =====================================================================
     //  CENSORED MODE (was "screenshot mode" until Beta 3.4)
-    //  X (or the switch in the sidebar) blurs every picture and video:
+    //  X (or Settings → Developer tools) blurs every picture and video:
     //  thumbnails, the popup, post pages, hover previews, collections - and
     //  (setting censorComments, on by default) comment texts and names.
     //  Only what you see changes - downloads stay exactly as they are.
@@ -8,17 +8,73 @@
     //  at the bottom says it's on. The html classes are set right at the
     //  start (10-colour-modes.js), so nothing flashes unblurred.
     //  The name lives in CENSOR_NAME only - change it there.
+    //  (Beta 3.16.1) The blur grows with the size on screen: a fixed blur
+    //  hid a thumbnail well but left a big picture in the popup readable.
+    //  Each picture's own --s34-blur is about 5 % of its diagonal (never
+    //  under 24 px); a ResizeObserver keeps it right while sizes change.
     // =====================================================================
     const SFW_KEY = 'steamy34_sfw';
     const CENSOR_NAME = 'Censored mode';
 
     function sfwOn() { return document.documentElement.classList.contains('s34-sfw'); }
 
+    // (Beta 3.16.3) Tag words: only artist, character, series and meta tags stay
+    // readable - general tags (where the explicit words are) and tags whose type
+    // isn't known yet are blurred. A search is blurred when any word in it is.
+    // Typed chips (popup, post pages, blacklist, search pills) are done in CSS by
+    // their type class; searches written out as text get the class s34-sfw-word.
+    const SFW_SAFE_TYPES = ['artist', 'character', 'copyright', 'metadata'];
+    function sfwTagSafe(word) {
+        const t = String(word || '').trim().toLowerCase().replace(/^[-~]+/, '').replace(/ /g, '_');
+        if (!t || /^[(){}~|]+$/.test(t) || t.includes(':')) return true;   // operators, score:/sort:/rating: filters
+        let type;
+        try { type = tagTypes.get(t); } catch (e) { return false; }
+        return SFW_SAFE_TYPES.includes(type);
+    }
+    function sfwQuerySafe(q) { return String(q || '').trim().split(/\s+/).every(sfwTagSafe); }
+    function sfwMark(el, query) { if (el) el.classList.toggle('s34-sfw-word', !sfwQuerySafe(query)); return el; }
+
+    const SFW_MEDIA = 'img, video, canvas';
+    let sfwRO = null, sfwMO = null, sfwLoad = null, sfwResize = null;
+    function sfwBlurFor(w, h) { return Math.min(240, Math.max(24, Math.round(Math.hypot(w, h) * 0.05))); }
+    function sfwWatch(on) {
+        if (!on) {
+            if (sfwRO) sfwRO.disconnect();
+            if (sfwMO) sfwMO.disconnect();
+            if (sfwLoad) { document.removeEventListener('load', sfwLoad, true); document.removeEventListener('loadedmetadata', sfwLoad, true); }
+            if (sfwResize) window.removeEventListener('resize', sfwResize);
+            sfwRO = sfwMO = sfwLoad = sfwResize = null;
+            return;
+        }
+        if (sfwRO || typeof ResizeObserver === 'undefined') return;
+        const size = (el, w, h) => { if (w || h) el.style.setProperty('--s34-blur', sfwBlurFor(w, h) + 'px'); };
+        const measure = el => { const r = el.getBoundingClientRect(); size(el, r.width, r.height); };
+        sfwRO = new ResizeObserver(list => list.forEach(en => size(en.target, en.contentRect.width, en.contentRect.height)));
+        // (Beta 3.16.4) also measured right away and when it loads - the observer
+        // alone can stay silent in a page that isn't being painted
+        let pending = new Set(), timer = 0;
+        const later = el => { pending.add(el); if (!timer) timer = setTimeout(() => { timer = 0; const l = pending; pending = new Set(); l.forEach(x => { if (x.isConnected) measure(x); }); }, 60); };
+        const add = n => {
+            if (n.nodeType !== 1) return;
+            const list = n.matches(SFW_MEDIA) ? [n] : [];
+            n.querySelectorAll(SFW_MEDIA).forEach(el => list.push(el));
+            list.forEach(el => { sfwRO.observe(el); later(el); });
+        };
+        add(document.documentElement);
+        sfwMO = new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(add)));
+        sfwMO.observe(document.documentElement, { childList: true, subtree: true });
+        sfwLoad = e => { const t = e.target; if (t && t.matches && t.matches(SFW_MEDIA)) later(t); };
+        document.addEventListener('load', sfwLoad, true);
+        document.addEventListener('loadedmetadata', sfwLoad, true);
+        window.addEventListener('resize', sfwResize = () => document.querySelectorAll(SFW_MEDIA).forEach(later));
+    }
+
     function setScreenshotMode(on) {
         document.documentElement.classList.toggle('s34-sfw', on);
         document.documentElement.classList.toggle('s34-sfw-text', on && CONFIG.censorComments);
         try { GM_setValue(SFW_KEY, on); } catch (e) {}
-        document.querySelectorAll('.s34-q-sfw input').forEach(cb => { cb.checked = on; });
+        document.querySelectorAll('.s34-sfw-set').forEach(cb => { cb.checked = on; });
+        sfwWatch(on);
         showSfwLabel();
         showToast(on ? `${CENSOR_NAME} on – pictures${CONFIG.censorComments ? ' and comments' : ''} are blurred, safe for screenshots. X turns it off.` : `${CENSOR_NAME} off.`);
     }
@@ -40,6 +96,7 @@
 
     function setupScreenshotMode() {
         showSfwLabel();
+        sfwWatch(sfwOn());
         document.addEventListener('keydown', e => {
             if (e.code !== 'KeyX' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || e.repeat) return;
             const t = e.target;
@@ -49,20 +106,4 @@
             e.preventDefault();
             setScreenshotMode(!sfwOn());
         }, true);
-    }
-
-    // The switch in the sidebar's "View" group (under "Hide downloaded")
-    function addSfwSwitch(panel) {
-        if (!panel || panel.querySelector('.s34-q-sfw')) return;
-        const row = document.createElement('label');
-        row.className = 's34-q-switch s34-q-sfw';
-        row.title = 'Blurs every picture and video' + (CONFIG.censorComments ? ' and the comments' : '') + ' – safe for screenshots or in public. X turns it on and off';
-        row.innerHTML = '<input type="checkbox"><span class="s34-q-track"></span><span class="s34-q-sfw-name"></span>';
-        row.querySelector('.s34-q-sfw-name').textContent = CENSOR_NAME;
-        const cb = row.querySelector('input');
-        cb.checked = sfwOn();
-        cb.addEventListener('change', () => setScreenshotMode(cb.checked));
-        const after = panel.querySelector('[data-k="hideDownloaded"]') || panel.querySelector('[data-k="hideViewed"]');
-        const head = panel.querySelector('.s34-q-head');
-        if (after) after.closest('label').after(row); else if (head) head.after(row); else panel.prepend(row);
     }

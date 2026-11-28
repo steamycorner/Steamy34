@@ -294,7 +294,7 @@
             const title = it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : '');
             return sep + `<button type="button" class="s34-fw-c${it.kind === 'search' ? ' s34-fw-c-search' : ''}${it.count ? ' s34-new' : ''}${on ? ' s34-on' : ''}${it.gone ? ' s34-gone' : ''}" data-key="${escapeHtml(it.key)}" role="tab" aria-selected="${on}" title="${escapeHtml(title)}">
                 <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it, v && v.pic)}</span>
-                <span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`;
+                <span class="s34-fw-name${it.kind === 'search' && !sfwQuerySafe(it.query) ? ' s34-sfw-word' : ''}">${escapeHtml(it.label)}</span></button>`;
         }).join('');
         const d = getFollowing();
         fwEl('.s34-fw-checked').textContent = d.checkedAt ? 'checked ' + timeAgo(d.checkedAt) : '';
@@ -323,9 +323,9 @@
                     </div>
                     <div class="s34-fw-nums">${nums.join('')}</div>
                 </div>`;
-            head.querySelector('.s34-fw-nm').textContent = searchLabel(s);
+            sfwMark(head.querySelector('.s34-fw-nm'), s.query).textContent = searchLabel(s);
             const q = head.querySelector('.s34-fw-q');
-            if (q) q.textContent = s.query;
+            if (q) sfwMark(q, s.query).textContent = s.query;
             return;
         }
         const isAll = k === FW_ALL;

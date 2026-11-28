@@ -564,6 +564,7 @@
 
     async function popupDownload() {
         if (!popupState) return;
+        primeDownloadFolder();   // (3.16.4: before the post page loads - the folder question needs the key press)
         const state = popupState;
         const thumbSrc = popupThumbSrc(state);
         let url = state.mediaUrl;

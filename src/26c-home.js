@@ -79,6 +79,7 @@
         card.hidden = false;
         card.innerHTML = `<div class="s34-home-resume-text"><b></b><small></small></div><a class="s34-home-btn">Go on →</a>`;
         card.querySelector('b').textContent = 'Continue: ' + (tags === 'all' ? 'all posts' : searchLabel({ query: tags }));
+        if (tags !== 'all') sfwMark(card.querySelector('b'), tags);
         card.querySelector('small').textContent = `Page ${page} · ${timeAgo(best.at)}`;
         const a = card.querySelector('a');
         a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(tags) + '&pid=' + best.pid;
@@ -105,7 +106,7 @@
                 a.href = 'index.php?page=post&s=list&tags=' + encodeURIComponent(q);
                 a.textContent = searchLabel({ query: q });
                 a.title = 'Search: ' + q.replace(/_/g, ' ');
-                box.appendChild(a);
+                box.appendChild(sfwMark(a, q));
             });
             card.append(h, box);
         }
@@ -127,6 +128,7 @@
                     b.className = 's34-home-fav-chip' + (on ? ' s34-on' : '');
                     b.textContent = (on ? '✓ ' : '') + tag.replace(/_/g, ' ');
                     b.title = on ? 'In the search – click to take it out' : 'Add to the search';
+                    sfwMark(b, tag);
                     b.addEventListener('click', () => {
                         const sb = searchBox();
                         if (!sb) return;

@@ -152,7 +152,7 @@
         span.thumb:has(.s34-new-badge) .s34-badge { left: 46px; }
 
         /* Hide viewed / downloaded (not the ones you opened just now) */
-        html.s34-hide-coll .image-list span.thumb.s34-in-coll:not(.s34-touched-now):not(.s34-coll-new),
+        html.s34-hide-coll .image-list span.thumb.s34-in-coll:not(.s34-touched-now):not(.s34-coll-justin),
         html.s34-hide-viewed .image-list span.thumb.s34-was-viewed:not(.s34-touched-now),
         html.s34-hide-downloaded .image-list span.thumb.s34-was-downloaded:not(.s34-touched-now) {
             display: none !important;
@@ -257,11 +257,14 @@
 
         /* Select mode */
         html.s34-selecting .image-list span.thumb { cursor: pointer; }
+        /* (Beta 3.16.4) nothing on the thumbnails but VID / GIF and the score - the tick box
+           moves to the right corner, so it doesn't cover the VID label */
+        html.s34-selecting .image-list span.thumb :is(.s34-tbtns, .s34-fav-btn, .s34-tagbar, .s34-dl-mark, .s34-seen-mark, .s34-new-badge, .s34-var-badge) { display: none !important; }
         html.s34-selecting .image-list span.thumb::after {
             content: '';
             position: absolute;
             top: 8px;
-            left: 8px;
+            right: 8px;
             z-index: 6;
             width: 18px;
             height: 18px;
