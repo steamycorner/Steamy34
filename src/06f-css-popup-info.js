@@ -245,6 +245,16 @@
         .s34-pv-strip-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .s34-pv-strip-item:hover, .s34-pv-strip-item.s34-on { border-color: #ff5f8f !important; }
         .s34-pv-strip-wait { color: #aaa; font-size: 12px; }
+        /* (Beta 3.13) Viewed / Downloaded in the popup */
+        .s34-pv-marks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+        .s34-pv-marks[hidden], .s34-pv-marks button[hidden] { display: none; }
+        .s34-pv-marks button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 30px; min-width: 0; padding: 0 8px !important; border: 1px solid rgba(255,255,255,.1) !important;
+            background: transparent !important; color: #77757f !important; font: 600 12px system-ui, sans-serif; white-space: nowrap; cursor: pointer; }
+        .s34-pv-marks button span { overflow: hidden; text-overflow: ellipsis; }
+        .s34-pv-marks button:hover { border-color: rgba(255,255,255,.25) !important; color: #ddd !important; }
+        .s34-pv-marks button[data-act="markseen"].s34-on { color: #8ab4f8 !important; border-color: rgba(138,180,248,.5) !important; }
+        .s34-pv-marks button[data-act="markdl"].s34-on { color: #7ee07e !important; border-color: rgba(126,224,126,.5) !important; }
+        .s34-pv-marks button:only-of-type, .s34-pv-marks button:has(+ button[hidden]) { grid-column: 1 / -1; }
         /* Later / iCame next to Collection */
         .s34-pv-later.s34-on { border-color: #8ab4f8 !important; color: #cfe0ff !important; }
         .s34-pv-icame svg { width: 17px; height: 17px; }

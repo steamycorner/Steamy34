@@ -277,6 +277,7 @@
         showCollectionChips(thumbs);
         setupHoverInfo(thumbs);
         markFeedNew(thumbs); // Following feed: NEW on later pages too
+        markCollectionThumbs(thumbs); // (Beta 3.13) for "Hide posts in collections\"
         groupVariants(thumbs).catch(() => {});
     }
 

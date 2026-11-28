@@ -181,6 +181,24 @@
     }
     function refreshCollThumbButtons() {
         document.querySelectorAll('.s34-tcoll').forEach(b => { const t = b.closest('span.thumb'); if (t) styleCollThumbButton(b, thumbPostId(t)); });
+        markCollectionThumbs();
+    }
+
+    // (Beta 3.13) "Hide posts in collections": thumbnails of posts in a collection
+    // get a class. Ones you put in this visit stay where they are (they'd vanish
+    // under your cursor) - like "Hide viewed".
+    let collAtLoad = null;
+    function markCollectionThumbs(thumbs) {
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', () => markCollectionThumbs(), { once: true }); return; } // (collections can't be read that early)
+        let ids;
+        try { ids = new Set([].concat(...getCollections().map(c => c.posts.map(p => String(p.id))))); } catch (e) { return; }
+        if (!collAtLoad) collAtLoad = new Set(ids);
+        (thumbs || document.querySelectorAll('.image-list span.thumb')).forEach(t => {
+            const id = String(t._s34Id || thumbPostId(t));
+            const inColl = ids.has(id);
+            t.classList.toggle('s34-in-coll', inColl);
+            t.classList.toggle('s34-coll-new', inColl && !collAtLoad.has(id));
+        });
     }
 
     // On = green and always there
@@ -293,11 +311,12 @@
                 cb.className = 's34-tbtn s34-tcoll';
                 cb.innerHTML = FOLDER_SVG.replace('width="15" height="15"', 'width="13" height="13"');
                 styleCollThumbButton(cb, id);
+                const postOf = () => { const img = thumb.querySelector('img'); return [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]; };
                 cb.addEventListener('click', e => {
                     e.preventDefault(); e.stopPropagation();
-                    const img = thumb.querySelector('img');
-                    openCollectMenu(cb, [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]);
+                    openCollectMenu(cb, postOf(), { menu: e.shiftKey });
                 });
+                cb.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); openCollectMenu(cb, postOf(), { menu: true }); });
                 box.appendChild(cb);
             }
             if (wantSeen) {
@@ -448,6 +467,8 @@
     function applyHideClasses() {
         document.documentElement.classList.toggle('s34-hide-viewed', !!CONFIG.hideViewed);
         document.documentElement.classList.toggle('s34-hide-downloaded', !!CONFIG.hideDownloaded);
+        document.documentElement.classList.toggle('s34-hide-coll', !!CONFIG.hideInCollections);
+        setTimeout(() => markCollectionThumbs(), 0); // (after the whole script has started - the collections part comes later)
         window.dispatchEvent(new CustomEvent('s34-layout-changed')); // infinite scroll may need more
     }
     applyHideClasses();
@@ -467,6 +488,7 @@
             <div class="s34-q-head">View</div>
             <label class="s34-q-switch"><input type="checkbox" data-k="hideViewed"><span class="s34-q-track"></span>Hide viewed</label>
             <label class="s34-q-switch"><input type="checkbox" data-k="hideDownloaded"><span class="s34-q-track"></span>Hide downloaded</label>
+            <label class="s34-q-switch" title="Hide posts that are in one of your collections (Watch later too)"><input type="checkbox" data-k="hideInCollections"><span class="s34-q-track"></span>Hide collected</label>
             <label class="s34-q-size" title="Thumbnail size">
                 <span>Size</span>
                 <input type="range" min="100" max="500" step="10">

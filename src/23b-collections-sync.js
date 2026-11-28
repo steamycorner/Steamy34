@@ -333,6 +333,20 @@
         const later = st.overlay.querySelector('.s34-pv-later');
         if (later) { const on = inWatchLater(id); later.classList.toggle('s34-on', on); later.title = on ? 'On your Watch later list – click to take it off' : 'Watch later – a list for posts to look at properly later'; }
         styleICame(st.overlay.querySelector('.s34-pv-icame'), id);
+        // (Beta 3.13) the viewed / downloaded buttons
+        const marks = st.overlay.querySelector('.s34-pv-marks');
+        if (marks) {
+            marks.hidden = !CONFIG.trackViewed && !CONFIG.trackDownloads;
+            const done = CONFIG.trackDownloads && isDownloaded(id);
+            const seenBtn = marks.querySelector('[data-act="markseen"]'), dlBtn = marks.querySelector('[data-act="markdl"]');
+            seenBtn.hidden = !CONFIG.trackViewed;
+            dlBtn.hidden = !CONFIG.trackDownloads;
+            const seen = isSeen(id, done);
+            seenBtn.classList.toggle('s34-on', seen);
+            seenBtn.title = (seen ? 'Viewed – click to mark as not viewed' : 'Not viewed – click to mark as viewed') + ` (${keyLabel(CONFIG.markViewedKey)})`;
+            dlBtn.classList.toggle('s34-on', !!done);
+            dlBtn.title = (done ? 'Downloaded – click to take the mark off' : 'Not downloaded – click to mark it as downloaded (nothing is downloaded)') + ` (${keyLabel(CONFIG.markDlKey)})`;
+        }
     }
 
     // ---- Posts put into a collection are favourited too ----

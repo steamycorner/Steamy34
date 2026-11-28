@@ -249,6 +249,31 @@
         try { refreshCollThumbButtons(); } catch (e) {}
     }
 
+    // (Beta 3.13) Collections set to "Out once downloaded" (e.g. a "Download later"
+    // list) let go of posts as soon as they're downloaded - with Undo
+    function dropDownloadedFromCollections(ids) {
+        const want = new Set(ids.map(String));
+        const all = getCollections();
+        const gone = [];
+        all.forEach(c => {
+            if (!c.dropOnDownload) return;
+            for (let i = c.posts.length - 1; i >= 0; i--) {
+                if (want.has(String(c.posts[i].id))) { gone.push({ col: c.id, name: c.name, index: i, entry: c.posts[i] }); c.posts.splice(i, 1); }
+            }
+        });
+        if (!gone.length) return;
+        saveCollections(all);
+        const names = Array.from(new Set(gone.map(g => g.name)));
+        showToast(`Downloaded – taken out of ${names.length === 1 ? '"' + names[0] + '"' : names.length + ' collections'}.`, 'Undo', () => {
+            const again = getCollections();
+            gone.slice().reverse().forEach(g => {
+                const c = again.find(x => x.id === g.col);
+                if (c && !c.posts.some(p => String(p.id) === String(g.entry.id))) c.posts.splice(Math.min(g.index, c.posts.length), 0, g.entry);
+            });
+            saveCollections(again);
+        }, 9000);
+    }
+
     function createCollection(name) {
         const list = getCollections();
         const c = { id: 'c' + Date.now().toString(36), name: name.trim().slice(0, 60) || 'New collection', created: Date.now(), posts: [] };
@@ -258,10 +283,51 @@
     }
 
     // Small menu: tick collections for one post, or add several posts at once
-    function openCollectMenu(anchor, posts) {
+    // (Beta 3.13) The collection button adds straight away when there's only one
+    // collection (or, if chosen, to the one used last) - opts.menu: always the list
+    const COLL_LAST_KEY = 'steamy34_coll_last';
+    function oneClickCollection() {
+        const list = getCollections();
+        if (CONFIG.collectOneClick === 'off' || !list.length) return null;
+        if (list.length === 1) return list[0];
+        if (CONFIG.collectOneClick !== 'last') return null;
+        let last = '';
+        try { last = GM_getValue(COLL_LAST_KEY, ''); } catch (e) {}
+        return list.find(c => c.id === last) || null;
+    }
+    function rememberLastCollection(id) { try { GM_setValue(COLL_LAST_KEY, id); } catch (e) {} }
+    function quickCollect(anchor, c, p) {
+        const all = getCollections();
+        const col = all.find(x => x.id === c.id);
+        if (!col) return;
+        const has = col.posts.some(x => String(x.id) === String(p.id));
+        if (has) {
+            const at = col.posts.findIndex(x => String(x.id) === String(p.id));
+            const [entry] = col.posts.splice(at, 1);
+            saveCollections(all);
+            showToast(`Removed from "${col.name}".`, 'Undo', () => {
+                const again = getCollections();
+                const cc = again.find(x => x.id === c.id);
+                if (cc && !cc.posts.some(x => String(x.id) === String(p.id))) { cc.posts.splice(Math.min(at, cc.posts.length), 0, entry); saveCollections(again); }
+            });
+        } else {
+            col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {}));
+            saveCollections(all);
+            setTimeout(() => collectionsAdded([p.id]), 0);
+            showToast(`Saved to "${col.name}".`, 'Other collection…', () => openCollectMenu(anchor, [p], { menu: true }));
+        }
+        rememberLastCollection(col.id);
+        try { stylePopupExtras(); } catch (e) {}
+    }
+
+    function openCollectMenu(anchor, posts, opts = {}) {
         // (Beta 3.9.6) the same button again closes it
         const open = document.querySelector('.s34-cmenu');
         if (open && open._anchor === anchor) { open.remove(); return; }
+        if (!opts.menu && posts.length === 1 && posts[0].id) {
+            const target = oneClickCollection();
+            if (target) { quickCollect(anchor, target, posts[0]); return; }
+        }
         document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
         const single = posts.length === 1;
         const menu = document.createElement('div');
@@ -309,6 +375,7 @@
                         showToast(added ? `Saved ${added === 1 ? '' : added + ' posts '}to "${col.name}".` : `Already in "${col.name}".`);
                     }
                     saveCollections(all);
+                    rememberLastCollection(col.id);
                     if (single) render(); else menu.remove();
                 });
                 menu.appendChild(b);
@@ -325,6 +392,7 @@
                 posts.forEach(p => { if (p.id) col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {})); });
                 saveCollections(all);
                 collectionsAdded(posts.map(p => p.id).filter(Boolean));
+                rememberLastCollection(col.id);
                 showToast(`Made "${col.name}" and saved ${posts.length === 1 ? 'the post' : posts.length + ' posts'}.`);
                 if (single) render(); else menu.remove();
             };
@@ -421,7 +489,7 @@
                 // (Beta 3.10) a chosen cover fills the card; otherwise the first four
                 const chosen = c.cover && clean.find(p => String(p.id) === String(c.cover) && p.thumb);
                 (chosen ? [chosen] : clean.slice(0, 4)).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
-                if (!cover.childElementCount) cover.innerHTML = FOLDER_SVG;
+                if (!cover.childElementCount) { cover.innerHTML = (c.id === LATER_ID ? CLOCK_SVG : FOLDER_SVG) + '<span>Empty</span>'; cover.classList.add('s34-coll-cover-empty'); }
                 cover.classList.toggle('s34-coll-cover-n' + Math.min(4, cover.querySelectorAll('img').length), true);
                 const name = document.createElement('div');
                 name.className = 's34-coll-name';
@@ -442,14 +510,20 @@
             // New collection card
             const add = document.createElement('div');
             add.className = 's34-coll-card s34-coll-new';
-            add.innerHTML = '<div class="s34-coll-plus">+</div><input type="text" placeholder="New collection…" maxlength="60"><button type="button">Create</button>';
+            add.innerHTML = '<button type="button" class="s34-coll-newbtn"><span class="s34-coll-plus">+</span>New collection</button>'
+                + '<div class="s34-coll-newform" hidden><input type="text" placeholder="Name…" maxlength="60"><button type="button" class="s34-coll-create">Create</button></div>';
             const input = add.querySelector('input');
+            add.querySelector('.s34-coll-newbtn').addEventListener('click', () => {
+                add.querySelector('.s34-coll-newbtn').hidden = true;
+                add.querySelector('.s34-coll-newform').hidden = false;
+                input.focus();
+            });
             const create = () => {
                 if (!input.value.trim()) { input.focus(); return; }
                 createCollection(input.value);
                 renderList();
             };
-            add.querySelector('button').addEventListener('click', create);
+            add.querySelector('.s34-coll-create').addEventListener('click', create);
             input.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') create(); if (e.key === 'Escape') w.close(); });
             grid.appendChild(add);
             w.body.appendChild(grid);
@@ -470,8 +544,9 @@
             w.body.replaceChildren();
             const bar = document.createElement('div');
             bar.className = 's34-win-tools';
+            bar.classList.add('s34-coll-bar');
             bar.innerHTML = `
-                <button type="button" data-a="back">← All collections</button>
+                <button type="button" data-a="back" class="s34-coll-back" title="All collections">←</button>
                 <select class="s34-coll-sort" title="Order of the posts">
                     <option value="mine">${thumbButtonsHidden() ? 'My order (hold a post, then drag)' : 'My order (drag to arrange)'}</option>
                     <option value="new">Newest added first</option>
@@ -479,15 +554,39 @@
                     <option value="idhi">Post number, high → low</option>
                     <option value="idlo">Post number, low → high</option>
                 </select>
+                <label class="s34-coll-dropdl" title="Posts leave this collection as soon as you download them (or mark them as downloaded) – e.g. for a &quot;Download later&quot; list"><input type="checkbox"> Out once downloaded</label>
                 <span class="s34-grow"></span>
-                <button type="button" data-a="rename">✎ Rename</button>
-                <button type="button" data-a="delete">Delete</button>
+                <div class="s34-coll-morewrap">
+                    <button type="button" data-a="more" class="s34-coll-more" title="Rename, tidy up, delete" aria-haspopup="true">⋯</button>
+                    <div class="s34-coll-menu" hidden>
+                        <button type="button" data-a="rename">Rename</button>
+                        <button type="button" data-a="dropdone" hidden></button>
+                        <button type="button" data-a="delete" class="s34-coll-danger">Delete collection</button>
+                    </div>
+                </div>
                 <button type="button" data-a="dl" class="s34-win-primary">⬇ Download all</button>`;
             bar.addEventListener('click', async e => {
                 const a = e.target.closest('[data-a]');
                 if (!a) return;
                 const act = a.dataset.a;
+                const menu = bar.querySelector('.s34-coll-menu');
+                if (act === 'more') { menu.hidden = !menu.hidden; return; }
+                if (menu) menu.hidden = true;
                 if (act === 'back') { if (downloading) downloading.stop = true; renderList(); }
+                else if (act === 'dropdone') {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    const before = col.posts.slice();
+                    col.posts = col.posts.filter(p => !isDownloaded(p.id));
+                    const n = before.length - col.posts.length;
+                    saveCollections(all);
+                    renderOne(id);
+                    showToast(`Took ${n} downloaded post${n === 1 ? '' : 's'} out of "${col.name}".`, 'Undo', () => {
+                        const again = getCollections();
+                        const cc = again.find(x => x.id === id);
+                        if (cc) { cc.posts = before; saveCollections(again); if (current === id) renderOne(id); }
+                    }, 9000);
+                }
                 else if (act === 'rename') {
                     const name = prompt('New name for this collection:', c.name);
                     if (name === null || !name.trim()) return;
@@ -534,6 +633,19 @@
                     status.textContent = sum;
                 }
             });
+            bar.addEventListener('focusout', e => { if (!bar.contains(e.relatedTarget)) { const m = bar.querySelector('.s34-coll-menu'); if (m) m.hidden = true; } });
+            // (Beta 3.13) "Out once downloaded" + "Remove the N downloaded"
+            const dropCb = bar.querySelector('.s34-coll-dropdl input');
+            dropCb.checked = !!c.dropOnDownload;
+            dropCb.addEventListener('change', () => {
+                const all = getCollections();
+                all.find(x => x.id === id).dropOnDownload = dropCb.checked || undefined;
+                saveCollections(all);
+                showToast(dropCb.checked ? `Posts leave "${c.name}" once they're downloaded.` : `Posts stay in "${c.name}" after downloading.`);
+            });
+            const doneN = CONFIG.trackDownloads ? c.posts.filter(p => isDownloaded(p.id)).length : 0;
+            const dropBtn = bar.querySelector('[data-a="dropdone"]');
+            if (doneN) { dropBtn.hidden = false; dropBtn.textContent = `Remove the ${doneN} downloaded`; dropBtn.title = 'Take every post you already downloaded out of this collection'; }
             // (Beta 3.10) order: your own (drag), by date added or by post number
             const sort = c.sort || 'mine';
             const sortSel = bar.querySelector('.s34-coll-sort');
@@ -554,7 +666,7 @@
             note.className = 's34-coll-note';
             note.rows = 1;
             note.maxLength = 500;
-            note.placeholder = 'Add a note to this collection…';
+            note.placeholder = '✎ Add a note…';
             note.value = c.note || '';
             let noteTimer = null;
             const fitNote = () => { note.style.height = 'auto'; note.style.height = Math.min(140, note.scrollHeight + 2) + 'px'; };
@@ -827,11 +939,13 @@
         btn.type = 'button';
         btn.className = 's34-post-collect';
         btn.innerHTML = FOLDER_SVG + '<span>Save to collection</span>';
-        btn.addEventListener('click', () => {
+        const postOf = () => {
             const img = document.querySelector('#image');
             const tags = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-"]')).map(getTagFromRow).filter(Boolean).join(' ');
-            openCollectMenu(btn, [{ id, thumb: img ? img.src : '', tags }]);
-        });
+            return [{ id, thumb: img ? img.src : '', tags }];
+        };
+        btn.addEventListener('click', e => openCollectMenu(btn, postOf(), { menu: e.shiftKey }));
+        btn.addEventListener('contextmenu', e => { e.preventDefault(); openCollectMenu(btn, postOf(), { menu: true }); });
         const dl = slot.querySelector('.s34-dl-btn');
         if (dl) dl.after(btn); else slot.prepend(btn);
     }

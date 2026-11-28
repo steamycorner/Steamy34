@@ -3,9 +3,9 @@
     //  The square disk button next to Search saves what the search box
     //  holds right now (tags, score, size, sort, type, rating). The sidebar
     //  lists them under Following, each with "N new" - a row is simply that
-    //  search (the normal posts page, with NEW on what's new). Not in the
-    //  Following window or on the start page (the user's call: a search is
-    //  best as the posts page itself).
+    //  search. Since Beta 3.15 (asked for on Discord) a row opens the search in
+    //  the Following window – its own circle, NEW since your last look, a name
+    //  of its own (✎ Rename); Ctrl / middle click still opens the posts page.
     //  "New" only makes sense for searches sorted newest first: one sorted
     //  by score or at random gets no count and no NEW marks.
     //  Counting: one page per saved search, in the background check of
@@ -62,6 +62,46 @@
         return i < 0;
     }
 
+    // (Beta 3.16) "Open where?" - a small menu at the row
+    function askSavedSearchOpen(row) {
+        document.querySelectorAll('.s34-ss-menu').forEach(m => m.remove());
+        const q = row.dataset.ss;
+        const menu = document.createElement('div');
+        menu.className = 's34-cmenu s34-ss-menu';
+        menu.innerHTML = '<div class="s34-cmenu-head">Open this search…</div>'
+            + '<button type="button" class="s34-cmenu-item" data-o="page"><span class="s34-cmenu-name">Here, as the posts page</span></button>'
+            + '<button type="button" class="s34-cmenu-item" data-o="window"><span class="s34-cmenu-name">In the Following window</span></button>'
+            + '<label class="s34-ss-remember"><input type="checkbox"> Always do this</label>';
+        menu.addEventListener('click', e => {
+            const b = e.target.closest('[data-o]');
+            if (!b) return;
+            if (menu.querySelector('input').checked) { saveSettingsNow({ savedSearchOpen: b.dataset.o }); showToast('Saved searches open ' + (b.dataset.o === 'page' ? 'as the posts page' : 'in the Following window') + ' now – change it in Settings → Following.'); }
+            menu.remove();
+            if (b.dataset.o === 'window') openFollowPopup(fwKeySearch(q));
+            else location.href = row.getAttribute('href');
+        });
+        document.body.appendChild(menu);
+        const r = row.getBoundingClientRect();
+        menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8)) + 'px';
+        menu.style.top = Math.min(r.bottom + 4, window.innerHeight - menu.offsetHeight - 8) + 'px';
+        const off = e => { if (!menu.contains(e.target) && !row.contains(e.target)) { menu.remove(); document.removeEventListener('mousedown', off, true); } };
+        setTimeout(() => document.addEventListener('mousedown', off, true), 0);
+    }
+
+    // (Beta 3.15) A name of its own ("deadlock silver" → "Silver") - empty = the search itself
+    function renameSavedSearch(q) {
+        const list = getSavedSearches();
+        const s = findSavedSearch(q, list);
+        if (!s) return;
+        const name = prompt('A name for this saved search (empty = show the search itself):', s.name || '');
+        if (name === null) return;
+        const clean = name.trim().slice(0, 60);
+        if (clean && clean !== s.query) s.name = clean; else delete s.name;
+        saveSavedSearches(list);
+        refreshSavedUi();
+        showToast(clean ? `Renamed to "${clean}".` : 'Shows the search itself again.');
+    }
+
     // Everything that shows saved searches, after a change
     function refreshSavedUi() {
         renderSavedBox();
@@ -110,6 +150,17 @@
         box.addEventListener('click', e => {
             const x = e.target.closest('[data-ss-x]');
             if (x) { e.preventDefault(); toggleSavedSearch(x.dataset.ssX); return; }
+            // (Beta 3.15) a row opens the Following window on that search - like an artist
+            const row = e.target.closest('[data-ss]');
+            if (row && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                // (Beta 3.16) here as the posts page, or in the Following window - as set, or asked
+                const mode = CONFIG.savedSearchOpen;
+                if (mode === 'page') return; // (the row is a link to the search)
+                e.preventDefault();
+                if (mode === 'window') openFollowPopup(fwKeySearch(row.dataset.ss));
+                else askSavedSearchOpen(row);
+                return;
+            }
             const t = e.target.closest('[data-fb="manage"]');
             if (!t) return;
             e.preventDefault();
@@ -129,7 +180,8 @@
         box.innerHTML = `<div class="s34-follow-head">${DISK_SVG}<b>Saved searches</b><a href="#" data-fb="manage">Manage</a></div>` +
             list.map(s => {
                 const badge = s.count ? `<small class="s34-has-new">${s.count}${s.more ? '+' : ''} new</small>` : '';
-                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${here && sameQuery(here, s.query) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)}"><span>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
+                const open = fwState && fwState.key === fwKeySearch(s.query);
+                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${open || (here && sameQuery(here, s.query)) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)} – opens in the Following window (Ctrl + click: the search itself)"><span>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
                     `<button type="button" class="s34-saved-x" data-ss-x="${escapeHtml(s.query)}" title="Remove from your saved searches" aria-label="Remove ${escapeHtml(searchLabel(s))} from your saved searches">✕</button></div>`;
             }).join('');
     }

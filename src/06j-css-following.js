@@ -1,5 +1,11 @@
     // Following: bell buttons, sidebar box, Manage window, the Following window
     const FOLLOW_CSS = `
+        /* (Beta 3.16) "Open this search…" */
+        .s34-ss-menu .s34-ss-remember { display: flex; align-items: center; gap: 7px; padding: 8px 10px 4px; font-size: 12px; opacity: .75; cursor: pointer; }
+        /* (Beta 3.15) saved searches in the Following window */
+        .s34-fw-sep { flex: none; align-self: stretch; width: 1px; margin: 6px 4px 18px; background: rgba(255,255,255,.12); }
+        .s34-fw-c-search .s34-fw-av svg { width: 22px; height: 22px; }
+        .s34-fw-q { opacity: .6; font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; }
         /* The bell next to artist tags (outline = follow, filled = following) */
         svg.s34-bell, svg.s34-bell * { color: inherit !important; }
         .s34-chip .s34-chip-follow {

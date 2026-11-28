@@ -42,6 +42,7 @@
     // postId: the post number (bracket style adds it as " #1234567" if fileNamePostId is on)
     function buildFilename(url, tagsByType, size, postId) {
         const tagsOf = type => tagsByType ? (tagsByType[type] || []) : getTags(type);
+        if (CONFIG.fileNameStyle === 'custom') return buildPatternFilename(url, tagsOf, size, postId);
         if (CONFIG.fileNameStyle !== 'classic') return buildBracketFilename(url, tagsOf, postId);
         const sep = CONFIG.groupSeparator;
         const prefixParts = [
@@ -128,6 +129,46 @@
         return (name || 'rule34') + idPart + ext;
     }
 
+    // (Beta 3.14) Your own pattern, e.g. "rule34_{id}", "rule34.xxx-{id}", "{id}" or
+    // "{artist} - {character} #{id}" - for tools that read the post number from
+    // the name (and fetch the tags themselves). The file type is added by itself.
+    const FILE_NAME_FIELDS = [
+        ['id', 'the post number', '1234567'],
+        ['artist', 'artist(s)', 'artist name'],
+        ['character', 'character(s)', 'lara croft'],
+        ['series', 'series', 'tomb raider'],
+        ['tags', 'Steamy34\'s usual name', '[lara croft] [tomb raider] [artist name]'],
+        ['size', 'resolution', '1920x1080'],
+        ['date', 'today', '2026-11-28'],
+        ['hash', 'rule34\'s own file name', 'a1b2c3d4e5f6']
+    ];
+    function patternName(pattern, values, ext) {
+        let name = String(pattern || '').replace(/\{(\w+)\}/g, (m, k) => (k in values ? values[k] : m));
+        name = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[. ]+|[. ]+$/g, '');
+        const room = Math.max(10, CONFIG.maxFilenameLength - ext.length);
+        if (name.length > room) name = name.slice(0, room).replace(/[ ._-]+$/, '');
+        return (name || ('rule34_' + (values.id || 'post'))) + ext;
+    }
+    function buildPatternFilename(url, tagsOf, size, postId) {
+        const ext = ((getOriginalFilename(url).match(/\.[a-z0-9]{2,5}$/i) || ['.jpg'])[0]).toLowerCase();
+        const group = type => tidyNameGroup(Array.from(new Set(tagsOf(type).map(bracketTag).filter(Boolean))), type).slice(0, CONFIG.maxTagsPerGroup).join(', ');
+        const bracket = buildBracketFilename(url, tagsOf, '').replace(/\.[a-z0-9]{2,5}$/i, '');
+        const d = new Date();
+        const values = {
+            id: /^\d+$/.test(String(postId || '')) ? String(postId) : '',
+            artist: group('artist'), character: group('character'), series: group('copyright'),
+            tags: bracket === 'rule34' ? '' : bracket,
+            size: String(size || '').replace(/\s*[×x]\s*/i, 'x'),
+            date: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
+            hash: getOriginalFilename(url).replace(/\.[a-z0-9]{2,5}$/i, '')
+        };
+        return patternName(CONFIG.fileNamePattern || 'rule34_{id}', values, ext);
+    }
+    // What a pattern gives, with example values (Settings shows it live)
+    function patternPreview(pattern) {
+        return patternName(pattern, Object.fromEntries(FILE_NAME_FIELDS.map(f => [f[0], f[2]])), '.jpg');
+    }
+
     function saveBlob(blob, filename) {
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -188,6 +229,12 @@
         if (!downloadedUnreadable) GM_setValue(DOWNLOADED_KEY, downloaded);
         bumpMarksRev();
         showDownloadedState();
+        dropDownloadedFromCollections([id]);
+        // (Beta 3.16) the popup's Download / Downloaded buttons follow at once
+        if (popupState && String(postIdFrom(popupState.postUrl)) === String(id)) {
+            styleDownloadButton(popupState.overlay.querySelector('.s34-dl-btn'), true);
+            try { stylePopupExtras(); } catch (e) {}
+        }
     }
 
     // Change counter for the downloaded / viewed lists (see the focus handler)
@@ -254,6 +301,7 @@
         const fresh = ids.filter(id => id && !downloaded[id]);
         fresh.forEach(id => { downloaded[id] = Date.now(); touchedNow.add(id); });
         if (fresh.length && !downloadedUnreadable) { GM_setValue(DOWNLOADED_KEY, downloaded); bumpMarksRev(); }
+        if (fresh.length) dropDownloadedFromCollections(fresh);
         return fresh;
     }
     function unmarkDownloaded(ids) {
@@ -609,6 +657,8 @@
                         const err = e && e.error ? String(e.error) : '';
                         const det = e && e.details ? (typeof e.details === 'string' ? e.details : JSON.stringify(e.details)) : '';
                         finish(false, [err, det].filter(Boolean).join(': ') || 'error');
+                        if (/not_whitelisted/i.test(err + det)) explainBlockedDownload('ext');
+                        else if (/not_permitted|not permitted|refused|blacklist/i.test(err + det)) explainBlockedDownload('connect');
                     },
                     ontimeout: () => finish(false, 'timeout'),
                     headers: { Referer: referer || location.href }
@@ -618,6 +668,29 @@
                 finish(false, 'not available: ' + e.message);
             }
         });
+    }
+
+    // (Beta 3.13) Tampermonkey said no – tell exactly what to change (once per page).
+    // Before, only "Download failed" showed and it took people long to find out.
+    let blockedExplained = false;
+    function explainBlockedDownload(kind) {
+        if (blockedExplained) return;
+        blockedExplained = true;
+        showToast(kind === 'ext' ? 'Tampermonkey blocked this file type – it needs one setting.' : 'Tampermonkey blocked the download – Steamy34 needs your OK for rule34\'s picture server.', 'How to fix', () => {
+            const steps = kind === 'ext'
+                ? ['Open the Tampermonkey menu → Dashboard → the Settings tab.', 'Set "Config mode" (at the top) to Advanced.', 'Find "Downloads BETA" → "Whitelisted File Extensions" and add the type (e.g. .jpg .jpeg .png .gif .webp .mp4 .webm), one per line.', 'Save, reload rule34 – done.']
+                : ['Next time Tampermonkey asks "A userscript wants to access a cross-origin resource", choose "Always allow domain" (or "Always allow all domains").', 'Said no before? Tampermonkey menu → Dashboard → Steamy34 → its Settings tab → "XHR Security": take rule34.xxx out of the blacklist, or add *.rule34.xxx to "User domain whitelist".', 'Save, reload rule34 – downloads work again.'];
+            const overlay = document.createElement('div');
+            overlay.className = 's34-overlay s34-confirm-overlay';
+            overlay.innerHTML = `<div class="s34-confirm" role="dialog" aria-modal="true"><div class="s34-confirm-icon">⬇</div>
+                <div class="s34-confirm-title">Let Tampermonkey download</div>
+                <ol class="s34-confirm-text" style="text-align:left;margin:0;padding-left:20px">${steps.map(s => '<li></li>').join('')}</ol>
+                <div class="s34-confirm-foot"><button type="button" class="s34-btn s34-primary" data-act="ok">Got it</button></div></div>`;
+            overlay.querySelectorAll('li').forEach((li, i) => { li.textContent = steps[i]; });
+            const close = () => overlay.remove();
+            overlay.addEventListener('click', e => { if (e.target === overlay || e.target.closest('[data-act="ok"]')) close(); });
+            document.body.appendChild(overlay);
+        }, 20000);
     }
 
     // Load the whole file (resolves the Blob, or null)
@@ -637,7 +710,12 @@
                     }
                     resolve(res.response);
                 },
-                onerror: () => { console.error('[Steamy34] Download failed: no answer', url); resolve(null); },
+                onerror: res => {
+                    const why = String((res && (res.error || res.statusText || res.responseText)) || '');
+                    console.error('[Steamy34] Download failed: no answer', url, why);
+                    if (/refused|blacklist|not a part of the @connect|not permitted|forbidden|not allowed/i.test(why)) explainBlockedDownload('connect');
+                    resolve(null);
+                },
                 ontimeout: () => { console.error('[Steamy34] Download failed: took too long', url); resolve(null); }
             });
         });

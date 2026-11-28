@@ -10,6 +10,7 @@
         groupSeparator: '_',     // between copyright / character / artist / filename
         tagJoiner: '+',          // between multiple tags in the same group
         fileNamePostId: true,    // bracket style: add " #1234567" (the post number) - the post can be found again later
+        fileNamePattern: 'rule34_{id}', // fileNameStyle 'custom': your own pattern - {id} {artist} {character} {series} {tags} {size} {date} {hash} (Beta 3.14)
         maxTagsPerGroup: 3,      // e.g. 12 characters -> "a+b+c+etc"
         maxFilenameLength: 200,  // keep well below Windows' 255 limit
         wrapInBrackets: false,   // true -> [Copyright]_[Character]_[Artist]_file.jpg
@@ -26,6 +27,12 @@
         batchDelay: 1200,        // ms between files when downloading several posts at once
         hideViewed: false,       // posts page: hide posts you already viewed (sidebar switch)
         hideDownloaded: false,   // posts page: hide posts you already downloaded (sidebar switch)
+        hideInCollections: false, // posts page: hide posts that are in one of your collections (sidebar switch, Beta 3.13)
+        selectKey: 'KeyQ',       // posts page: batch select on / off (Beta 3.13)
+        markViewedKey: 'KeyV',   // popup: viewed on / off (Beta 3.13)
+        markDlKey: 'KeyM',       // popup: mark as downloaded on / off - no file (Beta 3.13)
+        savedSearchOpen: 'ask', // a saved search in the sidebar: 'ask', 'page' (this posts page) or 'window' (the Following window) (Beta 3.16)
+        collectOneClick: 'one',  // collection button: 'one' = adds straight away when you have one collection, 'last' = always to the one used last, 'off' = always the list
         hoverInfo: true,         // score and resolution on thumbnails while hovering
         collectionsSync: false,  // collections on all devices: their posts are favourited too (opt-in)
         thumbHeart: true,        // the ♥ on thumbnails (favButtons switches all ♥ - popup too)
@@ -57,7 +64,7 @@
 
 
         // Look
-        theme: 'dark',           // colour mode: 'white', 'dark' or 'oled' (true black)
+        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classic' (rule34's own colours, 3.16)
         darkMode: true,          // (old setting - "off" becomes the White theme)
         thumbGrid: true,
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
@@ -136,8 +143,9 @@
     {
         const saved = loadSaved();
         if (saved.darkMode === false && !saved.theme) CONFIG.theme = 'white'; // old "dark mode off"
-        if (!['white', 'dark', 'oled'].includes(CONFIG.theme)) CONFIG.theme = 'dark';
+        if (!['white', 'dark', 'oled', 'steamy', 'classic'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
         document.documentElement.classList.add('s34-theme-' + CONFIG.theme);
+        if (CONFIG.theme === 'classic') document.documentElement.classList.add('s34-theme-white'); // (Classic is a light mode: White's fixes apply, its own colours on top)
         // Thumbnail extras ("below" needs the modern layout - without it, they stay on the picture)
         if (!['on', 'hover', 'below'].includes(CONFIG.thumbExtras)) CONFIG.thumbExtras = 'hover';
         if (CONFIG.thumbExtras === 'below' && !CONFIG.thumbGrid) CONFIG.thumbExtras = 'on';
@@ -163,7 +171,7 @@
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
-            ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
+            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classic: 'Classic (rule34\'s own colours)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
             ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
@@ -212,6 +220,8 @@
             ['collectKey', 'Add to collection key', { hotkey: true }],
             ['theaterKey', 'Theater mode key', { hotkey: true }],
             ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
+            ['markViewedKey', 'Viewed key', { hotkey: true, hint: 'In the popup: marks the post as viewed – or not viewed' }],
+            ['markDlKey', 'Mark as downloaded key', { hotkey: true, hint: 'In the popup: marks the post as downloaded without downloading it – or takes the mark off' }],
             ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['fitToScreen', 'Fit pictures to the screen', { hint: 'On single post pages. Off: pictures open at their real size. Either way, a click on the picture switches between the two' }],
@@ -223,6 +233,8 @@
             ['padding', 'Gap to the window edges', { min: 0, max: 100, unit: 'px', adv: true }]
         ] },
         { id: 'following', title: 'Following', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 0 0-12 0c0 6.5-3 8.5-3 8.5h18s-3-2-3-8.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>', rows: [
+            ['selectKey', 'Batch select key', { hotkey: true, hint: 'On the posts page: "⬇ Batch download" (pick posts) on and off' }],
+            ['savedSearchOpen', 'A saved search opens…', { options: { ask: 'Ask each time', page: 'Here, as the posts page', window: 'In the Following window' }, hint: 'When you click a saved search in the sidebar. Ctrl + click always opens the posts page in a new tab' }],
             ['followingKey', 'Following window key', { hotkey: true, hint: 'Opens and closes the Following window – your artists\' newest posts in a grid' }],
             ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages' }],
             ['checkFollowing', 'Count new posts', { hint: 'For your followed artists – checked quietly in the background, at most every 20 minutes' }],
@@ -243,8 +255,10 @@
             ['trackDownloads', 'Remember downloaded posts', { hint: 'Download mark on thumbnails, green Download button' }],
             ['trackViewed', 'Remember viewed posts', { hint: 'Small eye on thumbnails' }],
             ['confirmRedownload', 'Ask before downloading a post again'],
+            ['collectOneClick', 'Collection button: add right away', { options: { one: 'When you have just one collection', last: 'Always to the collection used last', off: 'No – always show the list' }, hint: 'Shift + click (or right click) on the button still shows all your collections' }],
             ['collectionsSync', 'Collections on all your devices', { hint: 'Posts you put into a collection are favourited too, so they\'re on your phone as well (favourites page). Un-favourite one anywhere and it leaves its collections. Needs a rule34 login' }],
-            ['fileNameStyle', 'File names', { options: { brackets: '[character] [series] [artist]', classic: 'Character_Series_Artist_Resolution' }, hint: 'Readable names with spaces – handy for sorting in picture libraries' }],
+            ['fileNameStyle', 'File names', { options: { brackets: '[character] [series] [artist]', classic: 'Character_Series_Artist_Resolution', custom: 'Your own pattern' }, hint: 'Readable names with spaces – handy for sorting in picture libraries' }],
+            ['fileNamePattern', 'Your file name pattern', { pattern: true, hint: 'Click a placeholder to add it. The file type (.jpg, .mp4 …) is added by itself' }],
             ['fileNamePostId', 'Add the post number to file names', { hint: 'e.g. "[tracer] [overwatch] [someartist] #1234567.jpg" – so you can always find the post again. Bracket style only' }],
             ['batchDelay', 'Pause between batch downloads', { min: 300, max: 10000, unit: 'ms', adv: true }],
             ['maxTagsPerGroup', 'Max tags per group in file names', { min: 1, max: 20, adv: true }],

@@ -546,6 +546,15 @@
             white-space: nowrap;
         }
         .s34-page-divider.s34-first { margin-top: 6px; }
+        /* (Beta 3.12) End of results */
+        .s34-scroll-status.s34-scroll-end { opacity: 1; padding: 24px 0 48px; }
+        .s34-end-card { max-width: 640px; margin: 0 auto; padding: 28px 22px 24px; text-align: center; background: var(--s34-panel, #1c1c20) !important; border: 1px solid var(--s34-border, #33333a) !important; }
+        .s34-end-card h3 { margin: 0 0 8px !important; font: 800 24px/1.1 system-ui, -apple-system, "Segoe UI", sans-serif !important; letter-spacing: .3px; }
+        .s34-end-card p { margin: 0 0 16px !important; opacity: .75; font-size: 13px; }
+        .s34-end-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .s34-end-acts button { height: 34px; padding: 0 16px !important; border: 1px solid var(--s34-border, #33333a) !important; background: var(--s34-panel-2, #26262c) !important; color: inherit !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+        .s34-end-acts button:hover { border-color: #ff5f8f !important; }
+        .s34-end-acts button:first-child:not([data-end]) { border: 0 !important; color: #fff !important; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; font-weight: 700; }
         .s34-scroll-status {
             text-align: center;
             padding: 20px 0 40px;

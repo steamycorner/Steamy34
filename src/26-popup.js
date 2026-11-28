@@ -29,6 +29,29 @@
         return groups;
     }
 
+    // The post in the popup, as the collection menu wants it
+    function popupCollectPosts(s) {
+        return [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s), tags: popupTagList(s).join(' ') }];
+    }
+
+    // (Beta 3.13) Viewed / downloaded, right in the popup (before: only on thumbnails)
+    function popupToggleMark(act) {
+        const s = popupState;
+        if (!s) return;
+        const id = postIdFrom(s.postUrl);
+        if (act === 'markseen') {
+            const seen = isSeen(id, CONFIG.trackDownloads && isDownloaded(id));
+            setThumbViewed(id, !seen);
+            showToast(seen ? 'Marked as not viewed.' : 'Marked as viewed.');
+        } else {
+            if (isDownloaded(id)) { unmarkDownloaded([id]); showToast('Download mark taken off.'); }
+            else { markDownloadedOnly([id]); showToast('Marked as downloaded (nothing was downloaded).'); }
+            styleDownloadButton(s.overlay.querySelector('.s34-dl-btn'), isDownloaded(id));
+        }
+        showDownloadedState([s.thumb]);
+        stylePopupExtras();
+    }
+
     // Every tag of the post in the popup, as a plain list
     function popupTagList(st) {
         return [].concat(...Object.values((st && st.tags) || {}).map(l => (l || []).map(x => x.tag)));
@@ -77,6 +100,10 @@
                     <button type="button" class="s34-pv-later" data-act="later" title="Watch later – a list for posts to look at properly later">${CLOCK_SVG}<span>Later</span></button>
                     <button type="button" class="s34-pv-icame" data-act="icame" title="iCame – rule34's own counter (once every 24 hours)">${SPLASH_SVG}<span>iCame</span></button>
                 </div>
+                <div class="s34-pv-marks">
+                    <button type="button" data-act="markseen" title="Viewed – click to mark as not viewed (${keyLabel(CONFIG.markViewedKey)})">${TB_EYE_SVG}<span>Viewed</span></button>
+                    <button type="button" data-act="markdl" title="Mark as downloaded without downloading – or take the mark off (${keyLabel(CONFIG.markDlKey)})">${TB_DL_SVG}<span>Downloaded</span></button>
+                </div>
                 <div class="s34-auto">
                     <button type="button" class="s34-auto-toggle"></button>
                     <div class="s34-auto-row">
@@ -119,11 +146,15 @@
             else if (act === 'theater') setTheater(!overlay.classList.contains('s34-pv-theater'));
             else if (act === 'later') toggleWatchLater();
             else if (act === 'icame') sendICame(actEl);
+            else if (act === 'markseen' || act === 'markdl') popupToggleMark(act);
             else if (act === 'collect') {
                 const s = popupState;
-                if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
-                    tags: popupTagList(s).join(' ') }]);
+                if (s) openCollectMenu(actEl, popupCollectPosts(s), { menu: e.shiftKey });
             }
+        });
+        overlay.querySelector('.s34-pv-collect').addEventListener('contextmenu', e => {
+            e.preventDefault();
+            if (popupState) openCollectMenu(e.currentTarget, popupCollectPosts(popupState), { menu: true });
         });
         setTheater(GM_getValue(THEATER_KEY, false) === true, overlay);
 
@@ -599,6 +630,18 @@
             if (!artists.length) { showToast('This post has no artist tag to follow.'); return; }
             // one artist: follow right away (with Undo); several: a small menu to choose
             followArtistByKey(artists, popupState.overlay.querySelector('.s34-chip-artist'));
+            return;
+        }
+        // V / M (changeable, Beta 3.13): viewed, marked as downloaded
+        if (e.code === CONFIG.markViewedKey || e.code === CONFIG.markDlKey) {
+            e.preventDefault();
+            popupToggleMark(e.code === CONFIG.markViewedKey ? 'markseen' : 'markdl');
+            return;
+        }
+        // Shift + C: the list of all collections (C alone may add straight away)
+        if (e.code === CONFIG.collectKey && e.shiftKey) {
+            e.preventDefault();
+            openCollectMenu(ov.querySelector('.s34-pv-collect'), popupCollectPosts(popupState), { menu: true });
             return;
         }
         // F / C / T (changeable): favourite, collection, theater mode

@@ -169,6 +169,17 @@
         .s34-set-label small { font-size: 11.5px; opacity: .55; margin-top: 1px; line-height: 1.4; }
         .s34-set-plain p, .s34-set-row { white-space: normal !important; }
         .s34-set-ctl { flex: none; display: flex; align-items: center; gap: 6px; }
+        /* (Beta 3.14) your own file name pattern: field, placeholders, ready-made ones, the example */
+        .s34-set-row:has(.s34-fn-ctl) { flex-wrap: wrap; }
+        .s34-set-row[hidden] { display: none !important; }
+        .s34-set-ctl.s34-fn-ctl { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: 8px; margin-top: 8px; }
+        .s34-set .s34-fn-ctl input[type="text"] { width: 100% !important; max-width: none !important; text-align: left !important; box-sizing: border-box; font-family: ui-monospace, Consolas, monospace; }
+        .s34-fn-chips, .s34-fn-presets { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .s34-fn-presets span { font-size: 11px; opacity: .6; margin-right: 2px; }
+        .s34-set .s34-fn-chips button, .s34-set .s34-fn-presets button { padding: 3px 8px !important; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(255,255,255,.04) !important;
+            color: inherit !important; font: 600 11.5px ui-monospace, Consolas, monospace; cursor: pointer; }
+        .s34-set .s34-fn-chips button:hover, .s34-set .s34-fn-presets button:hover { border-color: #ff5f8f !important; }
+        .s34-fn-example { padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); font: 12px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
         .s34-set-ctl.s34-folder-ctl { flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
         .s34-folder-name { font-size: 12.5px; font-weight: 600; overflow-wrap: anywhere; }
         .s34-folder-note { font-size: 11.5px; opacity: .7; text-align: right; white-space: normal !important; overflow-wrap: anywhere; max-width: 260px; }
@@ -228,6 +239,11 @@
         .s34-set-plain a { color: #8ab4f8 !important; }
         .s34-set-ver { opacity: .45 !important; font-size: 11.5px !important; }
         .s34-set-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        /* (Beta 3.11.2) Steamy34 on other sites? */
+        .s34-set input.s34-moresites-other { width: 100%; box-sizing: border-box; height: 34px; padding: 0 12px; border-radius: 9px; margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.12) !important; background: rgba(255,255,255,0.03) !important; color: inherit !important; font: 13px system-ui, sans-serif; }
+        .s34-set .s34-moresites { margin-top: 12px; }
+        .s34-set .s34-moresites .s34-set-hint { font-size: 12px; opacity: .65; }
         .s34-set .s34-set-btn, .s34-set .s34-btn {
             display: inline-flex;
             align-items: center;

@@ -119,7 +119,7 @@
             color: #e8e8ee !important;
             font: inherit;
         }
-        .s34-win .s34-coll-card:hover { border-color: #ffb347 !important; }
+        .s34-win .s34-coll-card:hover { border-color: rgba(255,255,255,0.25) !important; }
         .s34-coll-cover {
             aspect-ratio: 4 / 3;
             border-radius: 10px;
@@ -139,14 +139,41 @@
         .s34-coll-cover.s34-coll-cover-n3 img:first-child { grid-row: 1 / 3; }
         .s34-coll-name { font-weight: 700; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 2px 0; }
         .s34-coll-n { font-size: 11px; opacity: .55; padding: 0 2px; }
+        /* (Beta 3.16) Collections, tidied: calm cards, an "Empty" placeholder, a dashed "+ New collection",
+           one toolbar row (back · order · out once downloaded … ⋯ · Download all), a quiet note */
+        .s34-coll-cover.s34-coll-cover-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background-color: rgba(255,255,255,0.03) !important; color: #5e5c66 !important; }
+        .s34-coll-cover.s34-coll-cover-empty svg { width: 26px; height: 26px; grid-column: auto; grid-row: auto; }
+        .s34-coll-cover.s34-coll-cover-empty span { font-size: 11px; letter-spacing: .4px; }
+        .s34-win .s34-coll-card.s34-coll-new { padding: 0 !important; border-style: dashed !important; background: transparent !important; justify-content: center; min-height: 140px; }
+        .s34-win .s34-coll-newbtn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; border: none !important; background: transparent !important; color: #9a98a3 !important; font: 600 12.5px system-ui, sans-serif; cursor: pointer; }
+        .s34-win .s34-coll-newbtn:hover { color: #fff !important; }
+        .s34-coll-newform { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+        .s34-coll-newform[hidden] { display: none; }
+        .s34-win .s34-coll-newform input { height: 32px; padding: 0 10px; border: 1px solid rgba(255,255,255,0.14) !important; background: rgba(0,0,0,.3) !important; color: inherit !important; font: 13px system-ui, sans-serif; }
+        .s34-win .s34-coll-newform .s34-coll-create { height: 32px; border: none !important; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; font: 700 12.5px system-ui, sans-serif; cursor: pointer; }
+        .s34-win-tools.s34-coll-bar { flex-wrap: nowrap; gap: 8px; }
+        .s34-win .s34-win-tools .s34-coll-back { width: 34px; padding: 0 !important; font-size: 16px; }
+        .s34-coll-morewrap { position: relative; }
+        .s34-win .s34-win-tools .s34-coll-more { width: 34px; padding: 0 !important; font-size: 16px; letter-spacing: 1px; }
+        .s34-coll-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 5; display: flex; flex-direction: column; min-width: 200px; padding: 4px; background: #17161c !important; border: 1px solid rgba(255,255,255,0.12) !important; box-shadow: 0 14px 34px rgba(0,0,0,.6); }
+        .s34-coll-menu[hidden] { display: none; }
+        .s34-win .s34-coll-menu button { justify-content: flex-start; height: 32px; width: 100%; padding: 0 10px !important; border: none !important; background: transparent !important; text-align: left; font: 600 12.5px system-ui, sans-serif; }
+        .s34-win .s34-coll-menu button:hover { background: rgba(255,255,255,0.06) !important; }
+        .s34-win .s34-coll-menu button[hidden] { display: none; }
+        .s34-win .s34-coll-menu .s34-coll-danger { color: #ff7a8a !important; }
+        .s34-win .s34-win-tools.s34-coll-bar button.s34-win-primary { background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; border-color: transparent !important; white-space: nowrap; }
+        @media (max-width: 640px) { .s34-win-tools.s34-coll-bar { flex-wrap: wrap; } }
         /* (Beta 3.10) collection tools: note, sort, cover, drag to arrange */
         .s34-coll-notep { font-size: 11px; opacity: .7; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
-        .s34-win textarea.s34-coll-note { display: block; width: 100%; box-sizing: border-box; margin: 0 0 12px; padding: 8px 12px; min-height: 36px; resize: none; border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1) !important; background: rgba(255,255,255,0.03) !important; color: inherit !important; font: 13px/1.45 system-ui, sans-serif; }
-        .s34-win textarea.s34-coll-note:focus { outline: none; border-color: rgba(255,95,143,.6) !important; }
+        .s34-win textarea.s34-coll-note { display: block; width: 100%; box-sizing: border-box; margin: 0 0 10px; padding: 6px 2px; min-height: 30px; resize: none; border-radius: 0;
+            border: none !important; border-bottom: 1px solid transparent !important; background: transparent !important; color: inherit !important; font: 13px/1.45 system-ui, sans-serif; opacity: .85; }
+        .s34-win textarea.s34-coll-note:hover { border-bottom-color: rgba(255,255,255,0.12) !important; }
+        .s34-win textarea.s34-coll-note:focus { outline: none; opacity: 1; border-bottom-color: #ff5f8f !important; }
         .s34-win select.s34-coll-sort { height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12) !important; background: rgba(255,255,255,0.04) !important; color: inherit !important; font: 600 12px system-ui, sans-serif; }
         .s34-win select.s34-coll-sort option { background: #1c1c22; color: #e8e8ee; }
         .s34-tiles-drag .s34-tile { cursor: grab; }
+        .s34-win .s34-coll-dropdl { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; opacity: .85; cursor: pointer; white-space: nowrap; }
+        .s34-win .s34-coll-dropdl input { accent-color: #ff5f8f; }
         .s34-tile.s34-dragging { opacity: .35; }
         .s34-tile.s34-drop-before { box-shadow: -4px 0 0 #ff5f8f; }
         .s34-tile.s34-drop-after { box-shadow: 4px 0 0 #ff5f8f; }

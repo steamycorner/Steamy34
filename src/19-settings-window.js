@@ -105,10 +105,12 @@
             return el;
         }
 
+        const rowEls = {};
         function makeRow(key, label, extra) {
             const row = document.createElement('div');
             row.className = 's34-set-row' + (extra.adv ? ' s34-set-adv' : '');
             row.dataset.key = key;
+            rowEls[key] = row;
             const id = 's34-set-' + key;
             const text = document.createElement('label');
             text.className = 's34-set-label';
@@ -138,6 +140,44 @@
                 sw.htmlFor = id;
                 sw.append(el, Object.assign(document.createElement('span'), { className: 's34-sw-track' }));
                 ctl.appendChild(sw);
+            } else if (extra.pattern) {
+                // (Beta 3.14) the pattern, placeholders to click, and what it gives
+                ctl.classList.add('s34-fn-ctl');
+                el.placeholder = 'rule34_{id}';
+                el.spellcheck = false;
+                const chips = document.createElement('div');
+                chips.className = 's34-fn-chips';
+                FILE_NAME_FIELDS.forEach(([k, what]) => {
+                    const c = document.createElement('button');
+                    c.type = 'button';
+                    c.textContent = '{' + k + '}';
+                    c.title = what;
+                    c.addEventListener('click', () => {
+                        const at = el.selectionStart != null ? el.selectionStart : el.value.length;
+                        el.value = el.value.slice(0, at) + '{' + k + '}' + el.value.slice(el.selectionEnd != null ? el.selectionEnd : at);
+                        el.focus();
+                        el.dispatchEvent(new Event('input'));
+                        markDirty();
+                    });
+                    chips.appendChild(c);
+                });
+                const ex = document.createElement('div');
+                ex.className = 's34-fn-example';
+                const show = () => { ex.textContent = 'Example: ' + patternPreview(el.value || 'rule34_{id}'); };
+                el.addEventListener('input', () => { show(); markDirty(); });
+                el.addEventListener('keydown', e => e.stopPropagation()); // (typing doesn't trigger hotkeys)
+                show();
+                const presets = document.createElement('div');
+                presets.className = 's34-fn-presets';
+                presets.append(Object.assign(document.createElement('span'), { textContent: 'Ready-made:' }));
+                ['rule34_{id}', 'rule34.xxx-{id}', '{id}', '{tags} #{id}', '{artist} - {character} ({id})'].forEach(p => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.textContent = p;
+                    b.addEventListener('click', () => { el.value = p; el.dispatchEvent(new Event('input')); markDirty(); });
+                    presets.appendChild(b);
+                });
+                ctl.append(el, chips, presets, ex);
             } else {
                 ctl.appendChild(el);
                 if (extra.unit) {
@@ -150,6 +190,14 @@
             fields[key] = el;
             row.append(text, ctl);
             return row;
+        }
+
+        // (Beta 3.14) The pattern row only for "Your own pattern"; "#post number" only for the bracket style
+        function syncFileNameRows() {
+            const style = fields.fileNameStyle && fields.fileNameStyle.value;
+            const rowOf = k => rowEls[k];
+            if (rowOf('fileNamePattern')) rowOf('fileNamePattern').hidden = style !== 'custom';
+            if (rowOf('fileNamePostId')) rowOf('fileNamePostId').hidden = style !== 'brackets';
         }
 
         // ---- the setting sections ----
@@ -179,6 +227,8 @@
             }
             pages[sec.id] = page;
         });
+        syncFileNameRows();
+        if (fields.fileNameStyle) fields.fileNameStyle.addEventListener('change', syncFileNameRows);
 
         // ---- Privacy & data: what is stored, backup, reset ----
         {
@@ -213,6 +263,9 @@
         }
 
         // ---- Help ----
+        // (Beta 3.11.2) "Steamy34 on other sites?" - tick the sites you'd use. Steamy34
+        // can't send anything itself (it only talks to rule34), so the answer is
+        // copied and Discord / Sleazy Fork's feedback opens to paste it.
         {
             const page = document.createElement('div');
             page.className = 's34-set-page';
@@ -235,6 +288,7 @@
                     <p>Join the Steamy34 channels (#feedback, #new-ideas) on steamycorner's <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – or write in the <a href="${SLEAZY_URL}/feedback" target="_blank" rel="noopener noreferrer">Feedback tab on Sleazy Fork</a>. More from steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a></p>
                     <p class="s34-set-ver">Steamy34 ${CURRENT_VERSION}</p>
                 </div>`;
+            page.appendChild(buildMoreSitesCard());
             pages.help = page;
         }
 
@@ -279,7 +333,8 @@
             ['help', 'Shortcuts & quick tips', 'All keys and gestures – keyboard, hotkeys, help'],
             ['help', 'What\'s new', 'The changelog – updates, version'],
             ['help', 'On your phone', 'Android guide – mobile, install'],
-            ['help', 'About Steamy34', 'Fan project, contact, feedback, bugs']
+            ['help', 'About Steamy34', 'Fan project, contact, feedback, bugs'],
+            ['help', 'Steamy34 on other sites?', 'Tell us where else you\'d use it – other boorus, more sites, similar websites']
         ].forEach(([sec, label, hint]) => searchIndex.push({ sec, key: null, label, hint, adv: false, text: (label + ' ' + hint + ' ' + sec).toLowerCase() }));
 
         const searchBox = panel.querySelector('.s34-set-search');
@@ -520,3 +575,35 @@
         return slot;
     }
 
+    // ---- (Beta 3.11.2) Settings → Help: "Steamy34 on other sites?" ----
+    const MORE_SITES_KEY = 'steamy34_more_sites';
+    function getMoreSites() {
+        try { const v = GM_getValue(MORE_SITES_KEY, null); return { other: String((v && v.other) || '') }; }
+        catch (e) { return { other: '' }; }
+    }
+    function buildMoreSitesCard() {
+        const card = document.createElement('div');
+        card.className = 's34-set-card s34-set-plain s34-moresites';
+        card.innerHTML = `
+            <div class="s34-set-cardhead">Steamy34 on other sites?</div>
+            <p>Steamy34 only works on rule34.xxx for now. Would you like it on other, similar sites too? Tell us which ones.</p>
+            <input type="text" class="s34-moresites-other" maxlength="200" placeholder="The sites you'd use it on…">
+            <p class="s34-set-hint">Steamy34 can't send anything itself – it only ever talks to rule34. The buttons copy your answer and open the place to paste it.</p>
+            <div class="s34-set-actions">
+                <button type="button" class="s34-set-btn s34-set-primary" data-ms="discord">Copy &amp; open Discord</button>
+                <button type="button" class="s34-set-btn" data-ms="sleazy">Copy &amp; open Sleazy Fork feedback</button>
+            </div>`;
+        const st = getMoreSites();
+        const field = card.querySelector('.s34-moresites-other');
+        field.value = st.other;
+        field.addEventListener('input', () => { st.other = field.value.trim(); try { GM_setValue(MORE_SITES_KEY, { other: st.other }); } catch (e) {} });
+        field.addEventListener('keydown', e => e.stopPropagation()); // (typing doesn't trigger hotkeys)
+        card.querySelectorAll('[data-ms]').forEach(b => b.addEventListener('click', async () => {
+            if (!st.other) { showToast('Type the sites you\'d use it on first.'); field.focus(); return; }
+            const text = 'Steamy34 on other sites – I\'d use it on: ' + st.other + ' (Steamy34 ' + CURRENT_VERSION + ')';
+            const ok = await copyText(text);
+            window.open(b.dataset.ms === 'discord' ? DISCORD_URL : SLEAZY_URL + '/feedback', '_blank', 'noopener');
+            showToast(ok ? 'Copied – paste it into your message. Thank you!' : 'Couldn\'t copy – please write the sites in your message.', null, null, 8000);
+        }));
+        return card;
+    }

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steamy34
 // @namespace    https://linktr.ee/steamycorner
-// @version      3.11.1-beta
+// @version      3.16-beta
 // @license      CC-BY-NC-SA-4.0
 // @author       steamycorner
 // @homepageURL  https://sleazyfork.org/en/scripts/606445-steamy34
@@ -96,7 +96,7 @@
  *    series, last 14 days), backup & restore.
  *
  *  Look
- *  - White, Dark and OLED colour modes.
+ *  - White, Dark, OLED and Steamy (neon) colour modes.
  *
  *  Phones (Firefox for Android + Tampermonkey)
  *  - Picture on top in the popup, swipe to browse, swipe down / Back to
@@ -127,6 +127,7 @@
         groupSeparator: '_',     // between copyright / character / artist / filename
         tagJoiner: '+',          // between multiple tags in the same group
         fileNamePostId: true,    // bracket style: add " #1234567" (the post number) - the post can be found again later
+        fileNamePattern: 'rule34_{id}', // fileNameStyle 'custom': your own pattern - {id} {artist} {character} {series} {tags} {size} {date} {hash} (Beta 3.14)
         maxTagsPerGroup: 3,      // e.g. 12 characters -> "a+b+c+etc"
         maxFilenameLength: 200,  // keep well below Windows' 255 limit
         wrapInBrackets: false,   // true -> [Copyright]_[Character]_[Artist]_file.jpg
@@ -143,6 +144,12 @@
         batchDelay: 1200,        // ms between files when downloading several posts at once
         hideViewed: false,       // posts page: hide posts you already viewed (sidebar switch)
         hideDownloaded: false,   // posts page: hide posts you already downloaded (sidebar switch)
+        hideInCollections: false, // posts page: hide posts that are in one of your collections (sidebar switch, Beta 3.13)
+        selectKey: 'KeyQ',       // posts page: batch select on / off (Beta 3.13)
+        markViewedKey: 'KeyV',   // popup: viewed on / off (Beta 3.13)
+        markDlKey: 'KeyM',       // popup: mark as downloaded on / off - no file (Beta 3.13)
+        savedSearchOpen: 'ask', // a saved search in the sidebar: 'ask', 'page' (this posts page) or 'window' (the Following window) (Beta 3.16)
+        collectOneClick: 'one',  // collection button: 'one' = adds straight away when you have one collection, 'last' = always to the one used last, 'off' = always the list
         hoverInfo: true,         // score and resolution on thumbnails while hovering
         collectionsSync: false,  // collections on all devices: their posts are favourited too (opt-in)
         thumbHeart: true,        // the ♥ on thumbnails (favButtons switches all ♥ - popup too)
@@ -174,7 +181,7 @@
 
 
         // Look
-        theme: 'dark',           // colour mode: 'white', 'dark' or 'oled' (true black)
+        theme: 'steamy',         // colour mode: 'white', 'dark', 'oled' (true black), 'steamy' (the default since 3.16) or 'classic' (rule34's own colours, 3.16)
         darkMode: true,          // (old setting - "off" becomes the White theme)
         thumbGrid: true,
         thumbLayout: 'justified',// 'justified' = rows of equal height, original ratios, no gaps
@@ -253,8 +260,9 @@
     {
         const saved = loadSaved();
         if (saved.darkMode === false && !saved.theme) CONFIG.theme = 'white'; // old "dark mode off"
-        if (!['white', 'dark', 'oled'].includes(CONFIG.theme)) CONFIG.theme = 'dark';
+        if (!['white', 'dark', 'oled', 'steamy', 'classic'].includes(CONFIG.theme)) CONFIG.theme = 'steamy';
         document.documentElement.classList.add('s34-theme-' + CONFIG.theme);
+        if (CONFIG.theme === 'classic') document.documentElement.classList.add('s34-theme-white'); // (Classic is a light mode: White's fixes apply, its own colours on top)
         // Thumbnail extras ("below" needs the modern layout - without it, they stay on the picture)
         if (!['on', 'hover', 'below'].includes(CONFIG.thumbExtras)) CONFIG.thumbExtras = 'hover';
         if (CONFIG.thumbExtras === 'below' && !CONFIG.thumbGrid) CONFIG.thumbExtras = 'on';
@@ -280,7 +288,7 @@
     // hotkey, hint (small grey line under the label), adv (under "Show advanced").
     const SETTINGS_UI = [
         { id: 'look', title: 'Look & feel', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a3 3 0 0 1 0-6h2"/></svg>', rows: [
-            ['theme', 'Colour mode', { options: { white: 'White', dark: 'Dark', oled: 'OLED (true black)' } }],
+            ['theme', 'Colour mode', { options: { steamy: 'Steamy', dark: 'Dark', oled: 'OLED (true black)', white: 'White', classic: 'Classic (rule34\'s own colours)' } }],
             ['censorComments', 'Censored mode also blurs comments', { hint: 'Censored mode (X, or the switch in the sidebar) blurs every picture and video – with this on, comment texts and names too, so screenshots are safe to share' }],
             ['sitePages', 'Steamy34 look for Artists, Wiki, Aliases and iCame Top 100', { hint: 'Calmer tables, follow bells on Artists, a leaderboard for iCame Top 100' }],
             ['accountPages', 'Steamy34 look for My Account and Options', { hint: 'Tiles instead of a list of links on My Account, and rule34\'s Options sorted into groups – with tag bubbles for the blacklist. Off: the site\'s own pages' }],
@@ -329,6 +337,8 @@
             ['collectKey', 'Add to collection key', { hotkey: true }],
             ['theaterKey', 'Theater mode key', { hotkey: true }],
             ['followKey', 'Follow key', { hotkey: true, hint: 'Follows (or unfollows) the post\'s artist' }],
+            ['markViewedKey', 'Viewed key', { hotkey: true, hint: 'In the popup: marks the post as viewed – or not viewed' }],
+            ['markDlKey', 'Mark as downloaded key', { hotkey: true, hint: 'In the popup: marks the post as downloaded without downloading it – or takes the mark off' }],
             ['popupPreload', 'Load the next post in advance', { hint: 'Once you stay on a post for a moment, the next one is ready when you get there. Off on phones by default (saves mobile data)' }],
             ['autoplay', 'Autoplay videos'],
             ['fitToScreen', 'Fit pictures to the screen', { hint: 'On single post pages. Off: pictures open at their real size. Either way, a click on the picture switches between the two' }],
@@ -340,6 +350,8 @@
             ['padding', 'Gap to the window edges', { min: 0, max: 100, unit: 'px', adv: true }]
         ] },
         { id: 'following', title: 'Following', icon: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 0 0-12 0c0 6.5-3 8.5-3 8.5h18s-3-2-3-8.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>', rows: [
+            ['selectKey', 'Batch select key', { hotkey: true, hint: 'On the posts page: "⬇ Batch download" (pick posts) on and off' }],
+            ['savedSearchOpen', 'A saved search opens…', { options: { ask: 'Ask each time', page: 'Here, as the posts page', window: 'In the Following window' }, hint: 'When you click a saved search in the sidebar. Ctrl + click always opens the posts page in a new tab' }],
             ['followingKey', 'Following window key', { hotkey: true, hint: 'Opens and closes the Following window – your artists\' newest posts in a grid' }],
             ['followButtons', 'Follow buttons (bell) on artists', { hint: 'Next to artists in the popup and on post pages' }],
             ['checkFollowing', 'Count new posts', { hint: 'For your followed artists – checked quietly in the background, at most every 20 minutes' }],
@@ -360,8 +372,10 @@
             ['trackDownloads', 'Remember downloaded posts', { hint: 'Download mark on thumbnails, green Download button' }],
             ['trackViewed', 'Remember viewed posts', { hint: 'Small eye on thumbnails' }],
             ['confirmRedownload', 'Ask before downloading a post again'],
+            ['collectOneClick', 'Collection button: add right away', { options: { one: 'When you have just one collection', last: 'Always to the collection used last', off: 'No – always show the list' }, hint: 'Shift + click (or right click) on the button still shows all your collections' }],
             ['collectionsSync', 'Collections on all your devices', { hint: 'Posts you put into a collection are favourited too, so they\'re on your phone as well (favourites page). Un-favourite one anywhere and it leaves its collections. Needs a rule34 login' }],
-            ['fileNameStyle', 'File names', { options: { brackets: '[character] [series] [artist]', classic: 'Character_Series_Artist_Resolution' }, hint: 'Readable names with spaces – handy for sorting in picture libraries' }],
+            ['fileNameStyle', 'File names', { options: { brackets: '[character] [series] [artist]', classic: 'Character_Series_Artist_Resolution', custom: 'Your own pattern' }, hint: 'Readable names with spaces – handy for sorting in picture libraries' }],
+            ['fileNamePattern', 'Your file name pattern', { pattern: true, hint: 'Click a placeholder to add it. The file type (.jpg, .mp4 …) is added by itself' }],
             ['fileNamePostId', 'Add the post number to file names', { hint: 'e.g. "[tracer] [overwatch] [someartist] #1234567.jpg" – so you can always find the post again. Bracket style only' }],
             ['batchDelay', 'Pause between batch downloads', { min: 300, max: 10000, unit: 'ms', adv: true }],
             ['maxTagsPerGroup', 'Max tags per group in file names', { min: 1, max: 20, adv: true }],
@@ -1241,6 +1255,15 @@
             white-space: nowrap;
         }
         .s34-page-divider.s34-first { margin-top: 6px; }
+        /* (Beta 3.12) End of results */
+        .s34-scroll-status.s34-scroll-end { opacity: 1; padding: 24px 0 48px; }
+        .s34-end-card { max-width: 640px; margin: 0 auto; padding: 28px 22px 24px; text-align: center; background: var(--s34-panel, #1c1c20) !important; border: 1px solid var(--s34-border, #33333a) !important; }
+        .s34-end-card h3 { margin: 0 0 8px !important; font: 800 24px/1.1 system-ui, -apple-system, "Segoe UI", sans-serif !important; letter-spacing: .3px; }
+        .s34-end-card p { margin: 0 0 16px !important; opacity: .75; font-size: 13px; }
+        .s34-end-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .s34-end-acts button { height: 34px; padding: 0 16px !important; border: 1px solid var(--s34-border, #33333a) !important; background: var(--s34-panel-2, #26262c) !important; color: inherit !important; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+        .s34-end-acts button:hover { border-color: #ff5f8f !important; }
+        .s34-end-acts button:first-child:not([data-end]) { border: 0 !important; color: #fff !important; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; font-weight: 700; }
         .s34-scroll-status {
             text-align: center;
             padding: 20px 0 40px;
@@ -1559,6 +1582,7 @@
         span.thumb:has(.s34-new-badge) .s34-badge { left: 46px; }
 
         /* Hide viewed / downloaded (not the ones you opened just now) */
+        html.s34-hide-coll .image-list span.thumb.s34-in-coll:not(.s34-touched-now):not(.s34-coll-new),
         html.s34-hide-viewed .image-list span.thumb.s34-was-viewed:not(.s34-touched-now),
         html.s34-hide-downloaded .image-list span.thumb.s34-was-downloaded:not(.s34-touched-now) {
             display: none !important;
@@ -2552,6 +2576,17 @@
         .s34-set-label small { font-size: 11.5px; opacity: .55; margin-top: 1px; line-height: 1.4; }
         .s34-set-plain p, .s34-set-row { white-space: normal !important; }
         .s34-set-ctl { flex: none; display: flex; align-items: center; gap: 6px; }
+        /* (Beta 3.14) your own file name pattern: field, placeholders, ready-made ones, the example */
+        .s34-set-row:has(.s34-fn-ctl) { flex-wrap: wrap; }
+        .s34-set-row[hidden] { display: none !important; }
+        .s34-set-ctl.s34-fn-ctl { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: 8px; margin-top: 8px; }
+        .s34-set .s34-fn-ctl input[type="text"] { width: 100% !important; max-width: none !important; text-align: left !important; box-sizing: border-box; font-family: ui-monospace, Consolas, monospace; }
+        .s34-fn-chips, .s34-fn-presets { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .s34-fn-presets span { font-size: 11px; opacity: .6; margin-right: 2px; }
+        .s34-set .s34-fn-chips button, .s34-set .s34-fn-presets button { padding: 3px 8px !important; border: 1px solid rgba(255,255,255,.14) !important; background: rgba(255,255,255,.04) !important;
+            color: inherit !important; font: 600 11.5px ui-monospace, Consolas, monospace; cursor: pointer; }
+        .s34-set .s34-fn-chips button:hover, .s34-set .s34-fn-presets button:hover { border-color: #ff5f8f !important; }
+        .s34-fn-example { padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); font: 12px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
         .s34-set-ctl.s34-folder-ctl { flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
         .s34-folder-name { font-size: 12.5px; font-weight: 600; overflow-wrap: anywhere; }
         .s34-folder-note { font-size: 11.5px; opacity: .7; text-align: right; white-space: normal !important; overflow-wrap: anywhere; max-width: 260px; }
@@ -2611,6 +2646,11 @@
         .s34-set-plain a { color: #8ab4f8 !important; }
         .s34-set-ver { opacity: .45 !important; font-size: 11.5px !important; }
         .s34-set-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        /* (Beta 3.11.2) Steamy34 on other sites? */
+        .s34-set input.s34-moresites-other { width: 100%; box-sizing: border-box; height: 34px; padding: 0 12px; border-radius: 9px; margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.12) !important; background: rgba(255,255,255,0.03) !important; color: inherit !important; font: 13px system-ui, sans-serif; }
+        .s34-set .s34-moresites { margin-top: 12px; }
+        .s34-set .s34-moresites .s34-set-hint { font-size: 12px; opacity: .65; }
         .s34-set .s34-set-btn, .s34-set .s34-btn {
             display: inline-flex;
             align-items: center;
@@ -3102,7 +3142,7 @@
             color: #e8e8ee !important;
             font: inherit;
         }
-        .s34-win .s34-coll-card:hover { border-color: #ffb347 !important; }
+        .s34-win .s34-coll-card:hover { border-color: rgba(255,255,255,0.25) !important; }
         .s34-coll-cover {
             aspect-ratio: 4 / 3;
             border-radius: 10px;
@@ -3122,14 +3162,41 @@
         .s34-coll-cover.s34-coll-cover-n3 img:first-child { grid-row: 1 / 3; }
         .s34-coll-name { font-weight: 700; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 2px 0; }
         .s34-coll-n { font-size: 11px; opacity: .55; padding: 0 2px; }
+        /* (Beta 3.16) Collections, tidied: calm cards, an "Empty" placeholder, a dashed "+ New collection",
+           one toolbar row (back · order · out once downloaded … ⋯ · Download all), a quiet note */
+        .s34-coll-cover.s34-coll-cover-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background-color: rgba(255,255,255,0.03) !important; color: #5e5c66 !important; }
+        .s34-coll-cover.s34-coll-cover-empty svg { width: 26px; height: 26px; grid-column: auto; grid-row: auto; }
+        .s34-coll-cover.s34-coll-cover-empty span { font-size: 11px; letter-spacing: .4px; }
+        .s34-win .s34-coll-card.s34-coll-new { padding: 0 !important; border-style: dashed !important; background: transparent !important; justify-content: center; min-height: 140px; }
+        .s34-win .s34-coll-newbtn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; border: none !important; background: transparent !important; color: #9a98a3 !important; font: 600 12.5px system-ui, sans-serif; cursor: pointer; }
+        .s34-win .s34-coll-newbtn:hover { color: #fff !important; }
+        .s34-coll-newform { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+        .s34-coll-newform[hidden] { display: none; }
+        .s34-win .s34-coll-newform input { height: 32px; padding: 0 10px; border: 1px solid rgba(255,255,255,0.14) !important; background: rgba(0,0,0,.3) !important; color: inherit !important; font: 13px system-ui, sans-serif; }
+        .s34-win .s34-coll-newform .s34-coll-create { height: 32px; border: none !important; background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; color: #fff !important; font: 700 12.5px system-ui, sans-serif; cursor: pointer; }
+        .s34-win-tools.s34-coll-bar { flex-wrap: nowrap; gap: 8px; }
+        .s34-win .s34-win-tools .s34-coll-back { width: 34px; padding: 0 !important; font-size: 16px; }
+        .s34-coll-morewrap { position: relative; }
+        .s34-win .s34-win-tools .s34-coll-more { width: 34px; padding: 0 !important; font-size: 16px; letter-spacing: 1px; }
+        .s34-coll-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 5; display: flex; flex-direction: column; min-width: 200px; padding: 4px; background: #17161c !important; border: 1px solid rgba(255,255,255,0.12) !important; box-shadow: 0 14px 34px rgba(0,0,0,.6); }
+        .s34-coll-menu[hidden] { display: none; }
+        .s34-win .s34-coll-menu button { justify-content: flex-start; height: 32px; width: 100%; padding: 0 10px !important; border: none !important; background: transparent !important; text-align: left; font: 600 12.5px system-ui, sans-serif; }
+        .s34-win .s34-coll-menu button:hover { background: rgba(255,255,255,0.06) !important; }
+        .s34-win .s34-coll-menu button[hidden] { display: none; }
+        .s34-win .s34-coll-menu .s34-coll-danger { color: #ff7a8a !important; }
+        .s34-win .s34-win-tools.s34-coll-bar button.s34-win-primary { background: linear-gradient(135deg, #ff5f8f, #8b3dff) !important; border-color: transparent !important; white-space: nowrap; }
+        @media (max-width: 640px) { .s34-win-tools.s34-coll-bar { flex-wrap: wrap; } }
         /* (Beta 3.10) collection tools: note, sort, cover, drag to arrange */
         .s34-coll-notep { font-size: 11px; opacity: .7; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
-        .s34-win textarea.s34-coll-note { display: block; width: 100%; box-sizing: border-box; margin: 0 0 12px; padding: 8px 12px; min-height: 36px; resize: none; border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1) !important; background: rgba(255,255,255,0.03) !important; color: inherit !important; font: 13px/1.45 system-ui, sans-serif; }
-        .s34-win textarea.s34-coll-note:focus { outline: none; border-color: rgba(255,95,143,.6) !important; }
+        .s34-win textarea.s34-coll-note { display: block; width: 100%; box-sizing: border-box; margin: 0 0 10px; padding: 6px 2px; min-height: 30px; resize: none; border-radius: 0;
+            border: none !important; border-bottom: 1px solid transparent !important; background: transparent !important; color: inherit !important; font: 13px/1.45 system-ui, sans-serif; opacity: .85; }
+        .s34-win textarea.s34-coll-note:hover { border-bottom-color: rgba(255,255,255,0.12) !important; }
+        .s34-win textarea.s34-coll-note:focus { outline: none; opacity: 1; border-bottom-color: #ff5f8f !important; }
         .s34-win select.s34-coll-sort { height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12) !important; background: rgba(255,255,255,0.04) !important; color: inherit !important; font: 600 12px system-ui, sans-serif; }
         .s34-win select.s34-coll-sort option { background: #1c1c22; color: #e8e8ee; }
         .s34-tiles-drag .s34-tile { cursor: grab; }
+        .s34-win .s34-coll-dropdl { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; opacity: .85; cursor: pointer; white-space: nowrap; }
+        .s34-win .s34-coll-dropdl input { accent-color: #ff5f8f; }
         .s34-tile.s34-dragging { opacity: .35; }
         .s34-tile.s34-drop-before { box-shadow: -4px 0 0 #ff5f8f; }
         .s34-tile.s34-drop-after { box-shadow: 4px 0 0 #ff5f8f; }
@@ -3501,6 +3568,16 @@
         .s34-pv-strip-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .s34-pv-strip-item:hover, .s34-pv-strip-item.s34-on { border-color: #ff5f8f !important; }
         .s34-pv-strip-wait { color: #aaa; font-size: 12px; }
+        /* (Beta 3.13) Viewed / Downloaded in the popup */
+        .s34-pv-marks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+        .s34-pv-marks[hidden], .s34-pv-marks button[hidden] { display: none; }
+        .s34-pv-marks button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 30px; min-width: 0; padding: 0 8px !important; border: 1px solid rgba(255,255,255,.1) !important;
+            background: transparent !important; color: #77757f !important; font: 600 12px system-ui, sans-serif; white-space: nowrap; cursor: pointer; }
+        .s34-pv-marks button span { overflow: hidden; text-overflow: ellipsis; }
+        .s34-pv-marks button:hover { border-color: rgba(255,255,255,.25) !important; color: #ddd !important; }
+        .s34-pv-marks button[data-act="markseen"].s34-on { color: #8ab4f8 !important; border-color: rgba(138,180,248,.5) !important; }
+        .s34-pv-marks button[data-act="markdl"].s34-on { color: #7ee07e !important; border-color: rgba(126,224,126,.5) !important; }
+        .s34-pv-marks button:only-of-type, .s34-pv-marks button:has(+ button[hidden]) { grid-column: 1 / -1; }
         /* Later / iCame next to Collection */
         .s34-pv-later.s34-on { border-color: #8ab4f8 !important; color: #cfe0ff !important; }
         .s34-pv-icame svg { width: 17px; height: 17px; }
@@ -4208,6 +4285,12 @@
     // Modern search box (chips, filters, recent & saved)
     // Following: bell buttons, sidebar box, Manage window, the Following window
     const FOLLOW_CSS = `
+        /* (Beta 3.16) "Open this search…" */
+        .s34-ss-menu .s34-ss-remember { display: flex; align-items: center; gap: 7px; padding: 8px 10px 4px; font-size: 12px; opacity: .75; cursor: pointer; }
+        /* (Beta 3.15) saved searches in the Following window */
+        .s34-fw-sep { flex: none; align-self: stretch; width: 1px; margin: 6px 4px 18px; background: rgba(255,255,255,.12); }
+        .s34-fw-c-search .s34-fw-av svg { width: 22px; height: 22px; }
+        .s34-fw-q { opacity: .6; font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; }
         /* The bell next to artist tags (outline = follow, filled = following) */
         svg.s34-bell, svg.s34-bell * { color: inherit !important; }
         .s34-chip .s34-chip-follow {
@@ -5908,10 +5991,35 @@
     //  White: surfaces light, raised ones lighter (cards near white on a soft
     //         grey page); lines darker than the surfaces they frame
     //  OLED:  the page true black, panels a little above it, lines as in Dark
+    // (Beta 3.12, toned down in 3.13) Steamy: clean and black - the greys go
+    // nearly black with a breath of violet, text stays neutral; the logo's
+    // magenta is the accent (the brand pink and the UI blue become it)
+    const STEAMY_HUE = 0.765;
     function themeColor(r, g, b, hasAlpha, theme, role) {
         const [h, s, l] = rgbToHsl(r, g, b);
         const neutral = s < 0.2;
         let l2 = l;
+        if (theme === 'steamy') {
+            if (neutral) {
+                if (l >= 0.5) return null;                                                                             // text: neutral, as in Dark
+                if (role === 'line') return hslToRgb(STEAMY_HUE, 0.08, l);                                            // lines: neutral
+                return hslToRgb(STEAMY_HUE, 0.2, l < 0.09 ? 0.018 : Math.max(0.022, l - 0.055));                     // surfaces: nearly black
+            }
+            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return hslToRgb(0.845, 1, 0.62);                         // brand pink -> magenta
+            if (h > 0.53 && h < 0.7 && s > 0.35 && l < 0.68) return hslToRgb(0.81, Math.min(1, s + 0.15), Math.min(0.6, l + 0.03)); // UI blue (buttons, switches) -> the accent
+            return null;
+        }
+        if (theme === 'classic') {
+            // (Beta 3.16) rule34's own look, tidied: White's light layers, tinted
+            // rule34's green; the brand pink becomes rule34's link blue
+            if (h > 0.93 && h < 0.99 && s > 0.75 && l > 0.55) return hslToRgb(0.6, 1, 0.42);
+            if (h > 0.68 && h < 0.93 && s > 0.4) return hslToRgb(0.63, 0.75, Math.min(0.45, Math.max(0.3, l * 0.7))); // purple / magenta -> rule34's navy
+            const w = themeColor(r, g, b, hasAlpha, 'white', role);
+            if (!w || !neutral) return w;
+            const [, , wl] = rgbToHsl(w[0], w[1], w[2]);
+            if (wl > 0.6) return hslToRgb(0.317, role === 'line' ? 0.28 : 0.32, role === 'line' ? Math.min(wl, 0.74) : Math.min(0.97, wl));   // light surfaces + lines: a breath of green
+            return hslToRgb(0.317, 0.12, Math.min(wl, 0.3));                                                                                  // text: near black, slightly green
+        }
         if (theme === 'oled') {
             if (!neutral || l >= 0.4) return null;
             if (role === 'line') return null;                          // lines: as in Dark
@@ -5953,7 +6061,7 @@
             // White (Beta 3.7): shadows and dimming stay dark - softer - instead
             // of turning white (white shadows were invisible: no depth at all)
             // (strong dimming behind windows - alpha 0.6 and up - stays as strong as in Dark)
-            if (theme === 'white' && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
+            if ((theme === 'white' || theme === 'classic') && a != null && Math.max(rgb[0], rgb[1], rgb[2]) < 40) {
                 return parseFloat(a) >= 0.6 ? m : `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.round(parseFloat(a) * 50) / 100})`;
             }
             const out = themeColor(rgb[0], rgb[1], rgb[2], a != null, theme, role);
@@ -5969,7 +6077,7 @@
         // Each innermost "selector { … }" block; keep-dark ones are skipped
         return css.replace(/([^{}]*)\{([^{}]*)\}/g, (m, sel, decls) =>
             KEEP_DARK_RE.test(sel) || /^\s*(\d+%|from|to)\s*$/.test(sel) ? m : sel + '{' + fix(decls) + '}')
-            .replace(/color-scheme:\s*dark/g, theme === 'white' ? 'color-scheme: light' : 'color-scheme: dark');
+            .replace(/color-scheme:\s*dark/g, theme === 'white' || theme === 'classic' ? 'color-scheme: light' : 'color-scheme: dark');
     }
     // Hand-tuned spots the converter can't judge
     const THEME_FIX_CSS = {
@@ -6026,6 +6134,30 @@
             /* (Beta 3.7) the page a soft grey, so the lighter cards and panels stand out on it */
             html.s34-theme-white { --s34-bg: #e2e4e9 !important; }
         `,
+        // (Beta 3.12, toned down in 3.13) Steamy – Steamy Design Guide → Steamy:
+        // clean and black, the logo's magenta only for the main action, what's
+        // active and counts. No glows, glitch, scanlines or slanted type.
+        steamy: `
+            html.s34-theme-steamy { --s34-bg: #050407 !important; }
+            html.s34-theme-steamy, html.s34-theme-steamy body { background: #050407 !important; }
+            html.s34-theme-steamy ::-webkit-scrollbar-thumb { background: #2a2730 !important; }
+            html.s34-theme-steamy ::selection { background: rgba(255,61,242,.35); color: #fff; }
+            /* the posts page's sidebar: see-through (painted in the page colour it looked like a slab) */
+            html.s34-theme-steamy body .sidebar, html.s34-theme-steamy body .sidebar .tag-search, html.s34-theme-steamy body .tag-search, html.s34-theme-steamy body #tag-sidebar { background-color: transparent !important; }
+            /* page dividers: quiet - a thin line and grey text */
+            html.s34-theme-steamy .s34-page-divider::before, html.s34-theme-steamy .s34-page-divider::after { height: 1px; background: rgba(255,255,255,.08) !important; }
+            html.s34-theme-steamy .s34-page-divider span { border-radius: 0; border-color: rgba(255,255,255,.1) !important; background-color: transparent !important; color: #8f8b99 !important; font-size: 11px; }
+            /* labels on thumbnails: neutral */
+            html.s34-theme-steamy span.thumb .s34-badge.s34-video, html.s34-theme-steamy span.thumb .s34-badge.s34-gif { background: rgba(5,4,7,.8) !important; color: #fff !important; border: 1px solid rgba(255,255,255,.12); }
+            /* thumbnails: a thin magenta line on hover, nothing else */
+            html.s34-theme-steamy .image-list span.thumb:hover { box-shadow: 0 0 0 1px #ff3df2 !important; }
+            /* the search box: a magenta line while you type */
+            html.s34-theme-steamy .s34-sb-box:focus-within, html.s34-theme-steamy textarea.s34-search:focus { border-color: #ff3df2 !important; box-shadow: none !important; }
+            /* windows and the popup: black */
+            html.s34-theme-steamy .s34-pv-overlay { background-color: rgba(5,4,7,0.98) !important; }
+            html.s34-theme-steamy .s34-end-card { background: #0b0a0e !important; }
+            html.s34-theme-steamy :is(button, a, input, textarea, select):focus-visible { outline: 2px solid #ff3df2 !important; outline-offset: 2px; }
+        `,
         oled: `
             html.s34-theme-oled, html.s34-theme-oled body { background: #000 !important; }
             html.s34-theme-oled .s34-pv-overlay { background-color: rgba(0,0,0,0.98) !important; }
@@ -6033,6 +6165,52 @@
         `,
         dark: ''
     };
+
+    // (Beta 3.16) Classic - rule34's own colours, done well: its green page
+    // (softer), white cards, navy links and its tag colours. A light mode:
+    // the White fixes apply too (the html has both classes).
+    THEME_FIX_CSS.classic = THEME_FIX_CSS.white + `
+            html.s34-theme-classic { --s34-bg: hsl(114, 56%, 77%) !important; }
+            html.s34-theme-classic, html.s34-theme-classic body { background: hsl(114, 56%, 77%) !important; color: #000 !important; }
+            html.s34-theme-classic a:link, html.s34-theme-classic a:visited { color: #10308f; }
+            html.s34-theme-classic a:hover { color: #006ffa; }
+            html.s34-theme-classic #header, html.s34-theme-classic #navbar { background: linear-gradient(90deg, #a8dca0, #b9d8f2) !important; }
+            html.s34-theme-classic #navbar li a { color: #10308f !important; }
+            html.s34-theme-classic #navbar li.current-page a, html.s34-theme-classic #navbar li.s34-current a { background: #10308f !important; color: #fff !important; }
+            html.s34-theme-classic #tag-sidebar .tag-type-artist a, html.s34-theme-classic .s34-pv-chips .s34-chip-artist .s34-chip-name { color: #b00000 !important; }
+            html.s34-theme-classic #tag-sidebar .tag-type-character a, html.s34-theme-classic .s34-pv-chips .s34-chip-character .s34-chip-name { color: #007a00 !important; }
+            html.s34-theme-classic #tag-sidebar .tag-type-copyright a, html.s34-theme-classic .s34-pv-chips .s34-chip-copyright .s34-chip-name { color: #8f008f !important; }
+            html.s34-theme-classic #tag-sidebar .tag-type-metadata a, html.s34-theme-classic .s34-pv-chips .s34-chip-metadata .s34-chip-name { color: #c66a00 !important; }
+            html.s34-theme-classic #tag-sidebar .tag-type-general a, html.s34-theme-classic .s34-pv-chips .s34-chip-general .s34-chip-name { color: #10308f !important; }
+            html.s34-theme-classic .s34-page-divider span { border-color: #10308f !important; background: #fff !important; color: #10308f !important; }
+            html.s34-theme-classic .s34-page-divider::before, html.s34-theme-classic .s34-page-divider::after { background: #8fbf88 !important; height: 1px; }
+            html.s34-theme-classic ::-webkit-scrollbar-thumb { background: hsl(114, 35%, 56%) !important; }
+            /* the post page's tags: light chips with rule34's colours (they stayed dark - unreadable) */
+            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] { background-color: #fff !important; border-color: hsl(114, 35%, 56%) !important; color: #000 !important; }
+            html.s34-theme-classic #tag-sidebar > li.tag-type-artist { border-color: #cc0000 !important; }
+            html.s34-theme-classic #tag-sidebar > li.tag-type-character { border-color: #00aa00 !important; }
+            html.s34-theme-classic #tag-sidebar > li.tag-type-copyright { border-color: #aa00aa !important; }
+            html.s34-theme-classic #tag-sidebar > li.tag-type-metadata { border-color: #ff8800 !important; }
+            html.s34-theme-classic #tag-sidebar > li.tag-type-general { border-color: #8aa6d6 !important; }
+            /* the sidebar sits on rule34's green, like on the site (Steamy34's own boxes stay white cards) */
+            html.s34-theme-classic body .sidebar, html.s34-theme-classic body #sidebar, html.s34-theme-classic body .sidebar .tag-search, html.s34-theme-classic body .tag-search, html.s34-theme-classic body #tag-sidebar { background-color: transparent !important; }
+            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] span:not(.s34-chip-x) { color: #444 !important; }
+            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] a.r34-block-btn { color: #cc0000 !important; }
+            html.s34-theme-classic #tag-sidebar > li[class*="tag-type-"] a.r34-block-btn.blocked { color: #10308f !important; }
+            /* the popup in rule34's palette - its greens, black text, white cards (not white all over) */
+            html.s34-theme-classic .s34-pv-overlay { background-color: hsl(114, 35%, 50%) !important; color: #000 !important; }
+            html.s34-theme-classic .s34-pv-side { background-color: hsl(114, 56%, 77%) !important; border-color: hsl(114, 35%, 56%) !important; color: #000 !important; }
+            html.s34-theme-classic .s34-pv-main, html.s34-theme-classic .s34-pv-stage { background-color: transparent !important; }
+            html.s34-theme-classic .s34-cm-section { background-color: hsl(114, 45%, 66%) !important; color: #000 !important; }
+            html.s34-theme-classic .s34-pv-chips .s34-chip { background-color: #fff !important; border-color: hsl(114, 35%, 56%) !important; }
+            html.s34-theme-classic .s34-pv-side h4 { color: #10308f !important; }
+            html.s34-theme-classic .s34-cm-score { color: #0a4a0a !important; }
+            html.s34-theme-classic .s34-pv-tbar button { background-color: rgba(255,255,255,.85) !important; color: #10308f !important; }
+            html.s34-theme-classic .s34-dl-btn .s34-dl-main, html.s34-theme-classic .s34-dl-btn .s34-dl-sub { color: #fff !important; }
+            html.s34-theme-classic .s34-blm-account-save { color: #a35400 !important; }
+            html.s34-theme-classic .s34-pill-x { opacity: .85 !important; }
+            html.s34-theme-classic .s34-pv-chips .s34-chip-count { color: #3d424b !important; opacity: .85 !important; }
+        `;
 
     function injectStyles() {
         const style = document.createElement('style');
@@ -6047,6 +6225,10 @@
             (CONFIG.hideListTags && !isPostView ? HIDE_LIST_TAGS_CSS : '') +
             (!isPostView ? LIST_SIDEBAR_CSS : '') +
             (CONFIG.postTagChips && isPostView ? POST_TAGS_CSS : '');
+        // (Beta 3.16) Classic: the brand gradient becomes rule34's link blue
+        if (CONFIG.theme === 'classic') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#006ffa$1, #0030fa').replace(/#8b3dff/gi, '#0030fa');
+        // (Beta 3.12) Steamy: the brand gradient's pink → purple becomes the logo's magenta → violet; labels quiet grey
+        if (CONFIG.theme === 'steamy') css = css.replace(/#ff5f8f(\s*(?:\d+%)?\s*),\s*#8b3dff/gi, '#ff3df2$1, #9b3bff').replace(/#8b3dff/gi, '#9b3bff').replace(/#ff8fa3/gi, '#8f8b99');
         if (CONFIG.theme !== 'dark') css = recolorCss(css, CONFIG.theme) + THEME_FIX_CSS[CONFIG.theme];
         style.textContent = css;
         (document.head || document.documentElement).appendChild(style);
@@ -6249,6 +6431,7 @@
     // postId: the post number (bracket style adds it as " #1234567" if fileNamePostId is on)
     function buildFilename(url, tagsByType, size, postId) {
         const tagsOf = type => tagsByType ? (tagsByType[type] || []) : getTags(type);
+        if (CONFIG.fileNameStyle === 'custom') return buildPatternFilename(url, tagsOf, size, postId);
         if (CONFIG.fileNameStyle !== 'classic') return buildBracketFilename(url, tagsOf, postId);
         const sep = CONFIG.groupSeparator;
         const prefixParts = [
@@ -6335,6 +6518,46 @@
         return (name || 'rule34') + idPart + ext;
     }
 
+    // (Beta 3.14) Your own pattern, e.g. "rule34_{id}", "rule34.xxx-{id}", "{id}" or
+    // "{artist} - {character} #{id}" - for tools that read the post number from
+    // the name (and fetch the tags themselves). The file type is added by itself.
+    const FILE_NAME_FIELDS = [
+        ['id', 'the post number', '1234567'],
+        ['artist', 'artist(s)', 'artist name'],
+        ['character', 'character(s)', 'lara croft'],
+        ['series', 'series', 'tomb raider'],
+        ['tags', 'Steamy34\'s usual name', '[lara croft] [tomb raider] [artist name]'],
+        ['size', 'resolution', '1920x1080'],
+        ['date', 'today', '2026-11-28'],
+        ['hash', 'rule34\'s own file name', 'a1b2c3d4e5f6']
+    ];
+    function patternName(pattern, values, ext) {
+        let name = String(pattern || '').replace(/\{(\w+)\}/g, (m, k) => (k in values ? values[k] : m));
+        name = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[. ]+|[. ]+$/g, '');
+        const room = Math.max(10, CONFIG.maxFilenameLength - ext.length);
+        if (name.length > room) name = name.slice(0, room).replace(/[ ._-]+$/, '');
+        return (name || ('rule34_' + (values.id || 'post'))) + ext;
+    }
+    function buildPatternFilename(url, tagsOf, size, postId) {
+        const ext = ((getOriginalFilename(url).match(/\.[a-z0-9]{2,5}$/i) || ['.jpg'])[0]).toLowerCase();
+        const group = type => tidyNameGroup(Array.from(new Set(tagsOf(type).map(bracketTag).filter(Boolean))), type).slice(0, CONFIG.maxTagsPerGroup).join(', ');
+        const bracket = buildBracketFilename(url, tagsOf, '').replace(/\.[a-z0-9]{2,5}$/i, '');
+        const d = new Date();
+        const values = {
+            id: /^\d+$/.test(String(postId || '')) ? String(postId) : '',
+            artist: group('artist'), character: group('character'), series: group('copyright'),
+            tags: bracket === 'rule34' ? '' : bracket,
+            size: String(size || '').replace(/\s*[×x]\s*/i, 'x'),
+            date: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
+            hash: getOriginalFilename(url).replace(/\.[a-z0-9]{2,5}$/i, '')
+        };
+        return patternName(CONFIG.fileNamePattern || 'rule34_{id}', values, ext);
+    }
+    // What a pattern gives, with example values (Settings shows it live)
+    function patternPreview(pattern) {
+        return patternName(pattern, Object.fromEntries(FILE_NAME_FIELDS.map(f => [f[0], f[2]])), '.jpg');
+    }
+
     function saveBlob(blob, filename) {
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -6395,6 +6618,12 @@
         if (!downloadedUnreadable) GM_setValue(DOWNLOADED_KEY, downloaded);
         bumpMarksRev();
         showDownloadedState();
+        dropDownloadedFromCollections([id]);
+        // (Beta 3.16) the popup's Download / Downloaded buttons follow at once
+        if (popupState && String(postIdFrom(popupState.postUrl)) === String(id)) {
+            styleDownloadButton(popupState.overlay.querySelector('.s34-dl-btn'), true);
+            try { stylePopupExtras(); } catch (e) {}
+        }
     }
 
     // Change counter for the downloaded / viewed lists (see the focus handler)
@@ -6461,6 +6690,7 @@
         const fresh = ids.filter(id => id && !downloaded[id]);
         fresh.forEach(id => { downloaded[id] = Date.now(); touchedNow.add(id); });
         if (fresh.length && !downloadedUnreadable) { GM_setValue(DOWNLOADED_KEY, downloaded); bumpMarksRev(); }
+        if (fresh.length) dropDownloadedFromCollections(fresh);
         return fresh;
     }
     function unmarkDownloaded(ids) {
@@ -6816,6 +7046,8 @@
                         const err = e && e.error ? String(e.error) : '';
                         const det = e && e.details ? (typeof e.details === 'string' ? e.details : JSON.stringify(e.details)) : '';
                         finish(false, [err, det].filter(Boolean).join(': ') || 'error');
+                        if (/not_whitelisted/i.test(err + det)) explainBlockedDownload('ext');
+                        else if (/not_permitted|not permitted|refused|blacklist/i.test(err + det)) explainBlockedDownload('connect');
                     },
                     ontimeout: () => finish(false, 'timeout'),
                     headers: { Referer: referer || location.href }
@@ -6825,6 +7057,29 @@
                 finish(false, 'not available: ' + e.message);
             }
         });
+    }
+
+    // (Beta 3.13) Tampermonkey said no – tell exactly what to change (once per page).
+    // Before, only "Download failed" showed and it took people long to find out.
+    let blockedExplained = false;
+    function explainBlockedDownload(kind) {
+        if (blockedExplained) return;
+        blockedExplained = true;
+        showToast(kind === 'ext' ? 'Tampermonkey blocked this file type – it needs one setting.' : 'Tampermonkey blocked the download – Steamy34 needs your OK for rule34\'s picture server.', 'How to fix', () => {
+            const steps = kind === 'ext'
+                ? ['Open the Tampermonkey menu → Dashboard → the Settings tab.', 'Set "Config mode" (at the top) to Advanced.', 'Find "Downloads BETA" → "Whitelisted File Extensions" and add the type (e.g. .jpg .jpeg .png .gif .webp .mp4 .webm), one per line.', 'Save, reload rule34 – done.']
+                : ['Next time Tampermonkey asks "A userscript wants to access a cross-origin resource", choose "Always allow domain" (or "Always allow all domains").', 'Said no before? Tampermonkey menu → Dashboard → Steamy34 → its Settings tab → "XHR Security": take rule34.xxx out of the blacklist, or add *.rule34.xxx to "User domain whitelist".', 'Save, reload rule34 – downloads work again.'];
+            const overlay = document.createElement('div');
+            overlay.className = 's34-overlay s34-confirm-overlay';
+            overlay.innerHTML = `<div class="s34-confirm" role="dialog" aria-modal="true"><div class="s34-confirm-icon">⬇</div>
+                <div class="s34-confirm-title">Let Tampermonkey download</div>
+                <ol class="s34-confirm-text" style="text-align:left;margin:0;padding-left:20px">${steps.map(s => '<li></li>').join('')}</ol>
+                <div class="s34-confirm-foot"><button type="button" class="s34-btn s34-primary" data-act="ok">Got it</button></div></div>`;
+            overlay.querySelectorAll('li').forEach((li, i) => { li.textContent = steps[i]; });
+            const close = () => overlay.remove();
+            overlay.addEventListener('click', e => { if (e.target === overlay || e.target.closest('[data-act="ok"]')) close(); });
+            document.body.appendChild(overlay);
+        }, 20000);
     }
 
     // Load the whole file (resolves the Blob, or null)
@@ -6844,7 +7099,12 @@
                     }
                     resolve(res.response);
                 },
-                onerror: () => { console.error('[Steamy34] Download failed: no answer', url); resolve(null); },
+                onerror: res => {
+                    const why = String((res && (res.error || res.statusText || res.responseText)) || '');
+                    console.error('[Steamy34] Download failed: no answer', url, why);
+                    if (/refused|blacklist|not a part of the @connect|not permitted|forbidden|not allowed/i.test(why)) explainBlockedDownload('connect');
+                    resolve(null);
+                },
                 ontimeout: () => { console.error('[Steamy34] Download failed: took too long', url); resolve(null); }
             });
         });
@@ -9562,6 +9822,7 @@
         showCollectionChips(thumbs);
         setupHoverInfo(thumbs);
         markFeedNew(thumbs); // Following feed: NEW on later pages too
+        markCollectionThumbs(thumbs); // (Beta 3.13) for "Hide posts in collections\"
         groupVariants(thumbs).catch(() => {});
     }
 
@@ -10041,6 +10302,29 @@
         if (durationMs > 0) toast._s34Timer = setTimeout(() => hideToast(toast), durationMs);
     }
 
+    // (Beta 3.12) The end of a search: a card instead of a grey line - what
+    // happened, and where to go from here
+    function showEndCard(status) {
+        const n = document.querySelectorAll('.image-list span.thumb:not(.s34-bl-hidden)').length;
+        const card = document.createElement('div');
+        card.className = 's34-end-card';
+        card.innerHTML = '<h3>End of results</h3><p></p><div class="s34-end-acts"><button type="button" data-end="top">↑ Back to the top</button></div>';
+        card.querySelector('p').textContent = n ? `That's every post for this search – ${n} shown.` : 'That\'s every post for this search.';
+        const acts = card.querySelector('.s34-end-acts');
+        const save = document.querySelector('.s34-sb .s34-sb-save:not(.s34-on)');
+        if (save) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = '💾 Save this search';
+            b.title = 'Saved searches show their new posts in the sidebar';
+            b.addEventListener('click', () => { save.click(); b.remove(); });
+            acts.prepend(b);
+        }
+        card.querySelector('[data-end="top"]').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        status.classList.add('s34-scroll-end');
+        status.replaceChildren(card);
+    }
+
     function makeDivider(pageNumber) {
         const div = document.createElement('div');
         div.className = 's34-page-divider';
@@ -10145,7 +10429,7 @@
 
         function finish(reason) {
             done = true;
-            status.textContent = 'End of results';
+            showEndCard(status);
             console.log('[Steamy34] Infinite scroll finished:', reason);
         }
 
@@ -10367,10 +10651,12 @@
             return el;
         }
 
+        const rowEls = {};
         function makeRow(key, label, extra) {
             const row = document.createElement('div');
             row.className = 's34-set-row' + (extra.adv ? ' s34-set-adv' : '');
             row.dataset.key = key;
+            rowEls[key] = row;
             const id = 's34-set-' + key;
             const text = document.createElement('label');
             text.className = 's34-set-label';
@@ -10400,6 +10686,44 @@
                 sw.htmlFor = id;
                 sw.append(el, Object.assign(document.createElement('span'), { className: 's34-sw-track' }));
                 ctl.appendChild(sw);
+            } else if (extra.pattern) {
+                // (Beta 3.14) the pattern, placeholders to click, and what it gives
+                ctl.classList.add('s34-fn-ctl');
+                el.placeholder = 'rule34_{id}';
+                el.spellcheck = false;
+                const chips = document.createElement('div');
+                chips.className = 's34-fn-chips';
+                FILE_NAME_FIELDS.forEach(([k, what]) => {
+                    const c = document.createElement('button');
+                    c.type = 'button';
+                    c.textContent = '{' + k + '}';
+                    c.title = what;
+                    c.addEventListener('click', () => {
+                        const at = el.selectionStart != null ? el.selectionStart : el.value.length;
+                        el.value = el.value.slice(0, at) + '{' + k + '}' + el.value.slice(el.selectionEnd != null ? el.selectionEnd : at);
+                        el.focus();
+                        el.dispatchEvent(new Event('input'));
+                        markDirty();
+                    });
+                    chips.appendChild(c);
+                });
+                const ex = document.createElement('div');
+                ex.className = 's34-fn-example';
+                const show = () => { ex.textContent = 'Example: ' + patternPreview(el.value || 'rule34_{id}'); };
+                el.addEventListener('input', () => { show(); markDirty(); });
+                el.addEventListener('keydown', e => e.stopPropagation()); // (typing doesn't trigger hotkeys)
+                show();
+                const presets = document.createElement('div');
+                presets.className = 's34-fn-presets';
+                presets.append(Object.assign(document.createElement('span'), { textContent: 'Ready-made:' }));
+                ['rule34_{id}', 'rule34.xxx-{id}', '{id}', '{tags} #{id}', '{artist} - {character} ({id})'].forEach(p => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.textContent = p;
+                    b.addEventListener('click', () => { el.value = p; el.dispatchEvent(new Event('input')); markDirty(); });
+                    presets.appendChild(b);
+                });
+                ctl.append(el, chips, presets, ex);
             } else {
                 ctl.appendChild(el);
                 if (extra.unit) {
@@ -10412,6 +10736,14 @@
             fields[key] = el;
             row.append(text, ctl);
             return row;
+        }
+
+        // (Beta 3.14) The pattern row only for "Your own pattern"; "#post number" only for the bracket style
+        function syncFileNameRows() {
+            const style = fields.fileNameStyle && fields.fileNameStyle.value;
+            const rowOf = k => rowEls[k];
+            if (rowOf('fileNamePattern')) rowOf('fileNamePattern').hidden = style !== 'custom';
+            if (rowOf('fileNamePostId')) rowOf('fileNamePostId').hidden = style !== 'brackets';
         }
 
         // ---- the setting sections ----
@@ -10441,6 +10773,8 @@
             }
             pages[sec.id] = page;
         });
+        syncFileNameRows();
+        if (fields.fileNameStyle) fields.fileNameStyle.addEventListener('change', syncFileNameRows);
 
         // ---- Privacy & data: what is stored, backup, reset ----
         {
@@ -10475,6 +10809,9 @@
         }
 
         // ---- Help ----
+        // (Beta 3.11.2) "Steamy34 on other sites?" - tick the sites you'd use. Steamy34
+        // can't send anything itself (it only talks to rule34), so the answer is
+        // copied and Discord / Sleazy Fork's feedback opens to paste it.
         {
             const page = document.createElement('div');
             page.className = 's34-set-page';
@@ -10497,6 +10834,7 @@
                     <p>Join the Steamy34 channels (#feedback, #new-ideas) on steamycorner's <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Discord</a> – or write in the <a href="${SLEAZY_URL}/feedback" target="_blank" rel="noopener noreferrer">Feedback tab on Sleazy Fork</a>. More from steamycorner: <a href="https://linktr.ee/steamycorner" target="_blank" rel="noopener noreferrer">linktr.ee/steamycorner</a></p>
                     <p class="s34-set-ver">Steamy34 ${CURRENT_VERSION}</p>
                 </div>`;
+            page.appendChild(buildMoreSitesCard());
             pages.help = page;
         }
 
@@ -10541,7 +10879,8 @@
             ['help', 'Shortcuts & quick tips', 'All keys and gestures – keyboard, hotkeys, help'],
             ['help', 'What\'s new', 'The changelog – updates, version'],
             ['help', 'On your phone', 'Android guide – mobile, install'],
-            ['help', 'About Steamy34', 'Fan project, contact, feedback, bugs']
+            ['help', 'About Steamy34', 'Fan project, contact, feedback, bugs'],
+            ['help', 'Steamy34 on other sites?', 'Tell us where else you\'d use it – other boorus, more sites, similar websites']
         ].forEach(([sec, label, hint]) => searchIndex.push({ sec, key: null, label, hint, adv: false, text: (label + ' ' + hint + ' ' + sec).toLowerCase() }));
 
         const searchBox = panel.querySelector('.s34-set-search');
@@ -10782,6 +11121,38 @@
         return slot;
     }
 
+    // ---- (Beta 3.11.2) Settings → Help: "Steamy34 on other sites?" ----
+    const MORE_SITES_KEY = 'steamy34_more_sites';
+    function getMoreSites() {
+        try { const v = GM_getValue(MORE_SITES_KEY, null); return { other: String((v && v.other) || '') }; }
+        catch (e) { return { other: '' }; }
+    }
+    function buildMoreSitesCard() {
+        const card = document.createElement('div');
+        card.className = 's34-set-card s34-set-plain s34-moresites';
+        card.innerHTML = `
+            <div class="s34-set-cardhead">Steamy34 on other sites?</div>
+            <p>Steamy34 only works on rule34.xxx for now. Would you like it on other, similar sites too? Tell us which ones.</p>
+            <input type="text" class="s34-moresites-other" maxlength="200" placeholder="The sites you'd use it on…">
+            <p class="s34-set-hint">Steamy34 can't send anything itself – it only ever talks to rule34. The buttons copy your answer and open the place to paste it.</p>
+            <div class="s34-set-actions">
+                <button type="button" class="s34-set-btn s34-set-primary" data-ms="discord">Copy &amp; open Discord</button>
+                <button type="button" class="s34-set-btn" data-ms="sleazy">Copy &amp; open Sleazy Fork feedback</button>
+            </div>`;
+        const st = getMoreSites();
+        const field = card.querySelector('.s34-moresites-other');
+        field.value = st.other;
+        field.addEventListener('input', () => { st.other = field.value.trim(); try { GM_setValue(MORE_SITES_KEY, { other: st.other }); } catch (e) {} });
+        field.addEventListener('keydown', e => e.stopPropagation()); // (typing doesn't trigger hotkeys)
+        card.querySelectorAll('[data-ms]').forEach(b => b.addEventListener('click', async () => {
+            if (!st.other) { showToast('Type the sites you\'d use it on first.'); field.focus(); return; }
+            const text = 'Steamy34 on other sites – I\'d use it on: ' + st.other + ' (Steamy34 ' + CURRENT_VERSION + ')';
+            const ok = await copyText(text);
+            window.open(b.dataset.ms === 'discord' ? DISCORD_URL : SLEAZY_URL + '/feedback', '_blank', 'noopener');
+            showToast(ok ? 'Copied – paste it into your message. Thank you!' : 'Couldn\'t copy – please write the sites in your message.', null, null, 8000);
+        }));
+        return card;
+    }
     // =====================================================================
     //  FOLLOWING: artists (only artists since Beta 3.6)
     //  The bell next to an artist (popup, post pages) follows them. The
@@ -11800,6 +12171,24 @@
     }
     function refreshCollThumbButtons() {
         document.querySelectorAll('.s34-tcoll').forEach(b => { const t = b.closest('span.thumb'); if (t) styleCollThumbButton(b, thumbPostId(t)); });
+        markCollectionThumbs();
+    }
+
+    // (Beta 3.13) "Hide posts in collections": thumbnails of posts in a collection
+    // get a class. Ones you put in this visit stay where they are (they'd vanish
+    // under your cursor) - like "Hide viewed".
+    let collAtLoad = null;
+    function markCollectionThumbs(thumbs) {
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', () => markCollectionThumbs(), { once: true }); return; } // (collections can't be read that early)
+        let ids;
+        try { ids = new Set([].concat(...getCollections().map(c => c.posts.map(p => String(p.id))))); } catch (e) { return; }
+        if (!collAtLoad) collAtLoad = new Set(ids);
+        (thumbs || document.querySelectorAll('.image-list span.thumb')).forEach(t => {
+            const id = String(t._s34Id || thumbPostId(t));
+            const inColl = ids.has(id);
+            t.classList.toggle('s34-in-coll', inColl);
+            t.classList.toggle('s34-coll-new', inColl && !collAtLoad.has(id));
+        });
     }
 
     // On = green and always there
@@ -11912,11 +12301,12 @@
                 cb.className = 's34-tbtn s34-tcoll';
                 cb.innerHTML = FOLDER_SVG.replace('width="15" height="15"', 'width="13" height="13"');
                 styleCollThumbButton(cb, id);
+                const postOf = () => { const img = thumb.querySelector('img'); return [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]; };
                 cb.addEventListener('click', e => {
                     e.preventDefault(); e.stopPropagation();
-                    const img = thumb.querySelector('img');
-                    openCollectMenu(cb, [{ id, thumb: img ? img.getAttribute('src') : '', tags: img ? thumbTags(img).trim() : '' }]);
+                    openCollectMenu(cb, postOf(), { menu: e.shiftKey });
                 });
+                cb.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); openCollectMenu(cb, postOf(), { menu: true }); });
                 box.appendChild(cb);
             }
             if (wantSeen) {
@@ -12067,6 +12457,8 @@
     function applyHideClasses() {
         document.documentElement.classList.toggle('s34-hide-viewed', !!CONFIG.hideViewed);
         document.documentElement.classList.toggle('s34-hide-downloaded', !!CONFIG.hideDownloaded);
+        document.documentElement.classList.toggle('s34-hide-coll', !!CONFIG.hideInCollections);
+        setTimeout(() => markCollectionThumbs(), 0); // (after the whole script has started - the collections part comes later)
         window.dispatchEvent(new CustomEvent('s34-layout-changed')); // infinite scroll may need more
     }
     applyHideClasses();
@@ -12086,6 +12478,7 @@
             <div class="s34-q-head">View</div>
             <label class="s34-q-switch"><input type="checkbox" data-k="hideViewed"><span class="s34-q-track"></span>Hide viewed</label>
             <label class="s34-q-switch"><input type="checkbox" data-k="hideDownloaded"><span class="s34-q-track"></span>Hide downloaded</label>
+            <label class="s34-q-switch" title="Hide posts that are in one of your collections (Watch later too)"><input type="checkbox" data-k="hideInCollections"><span class="s34-q-track"></span>Hide collected</label>
             <label class="s34-q-size" title="Thumbnail size">
                 <span>Size</span>
                 <input type="range" min="100" max="500" step="10">
@@ -12274,9 +12667,9 @@
     //  The square disk button next to Search saves what the search box
     //  holds right now (tags, score, size, sort, type, rating). The sidebar
     //  lists them under Following, each with "N new" - a row is simply that
-    //  search (the normal posts page, with NEW on what's new). Not in the
-    //  Following window or on the start page (the user's call: a search is
-    //  best as the posts page itself).
+    //  search. Since Beta 3.15 (asked for on Discord) a row opens the search in
+    //  the Following window – its own circle, NEW since your last look, a name
+    //  of its own (✎ Rename); Ctrl / middle click still opens the posts page.
     //  "New" only makes sense for searches sorted newest first: one sorted
     //  by score or at random gets no count and no NEW marks.
     //  Counting: one page per saved search, in the background check of
@@ -12333,6 +12726,46 @@
         return i < 0;
     }
 
+    // (Beta 3.16) "Open where?" - a small menu at the row
+    function askSavedSearchOpen(row) {
+        document.querySelectorAll('.s34-ss-menu').forEach(m => m.remove());
+        const q = row.dataset.ss;
+        const menu = document.createElement('div');
+        menu.className = 's34-cmenu s34-ss-menu';
+        menu.innerHTML = '<div class="s34-cmenu-head">Open this search…</div>'
+            + '<button type="button" class="s34-cmenu-item" data-o="page"><span class="s34-cmenu-name">Here, as the posts page</span></button>'
+            + '<button type="button" class="s34-cmenu-item" data-o="window"><span class="s34-cmenu-name">In the Following window</span></button>'
+            + '<label class="s34-ss-remember"><input type="checkbox"> Always do this</label>';
+        menu.addEventListener('click', e => {
+            const b = e.target.closest('[data-o]');
+            if (!b) return;
+            if (menu.querySelector('input').checked) { saveSettingsNow({ savedSearchOpen: b.dataset.o }); showToast('Saved searches open ' + (b.dataset.o === 'page' ? 'as the posts page' : 'in the Following window') + ' now – change it in Settings → Following.'); }
+            menu.remove();
+            if (b.dataset.o === 'window') openFollowPopup(fwKeySearch(q));
+            else location.href = row.getAttribute('href');
+        });
+        document.body.appendChild(menu);
+        const r = row.getBoundingClientRect();
+        menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8)) + 'px';
+        menu.style.top = Math.min(r.bottom + 4, window.innerHeight - menu.offsetHeight - 8) + 'px';
+        const off = e => { if (!menu.contains(e.target) && !row.contains(e.target)) { menu.remove(); document.removeEventListener('mousedown', off, true); } };
+        setTimeout(() => document.addEventListener('mousedown', off, true), 0);
+    }
+
+    // (Beta 3.15) A name of its own ("deadlock silver" → "Silver") - empty = the search itself
+    function renameSavedSearch(q) {
+        const list = getSavedSearches();
+        const s = findSavedSearch(q, list);
+        if (!s) return;
+        const name = prompt('A name for this saved search (empty = show the search itself):', s.name || '');
+        if (name === null) return;
+        const clean = name.trim().slice(0, 60);
+        if (clean && clean !== s.query) s.name = clean; else delete s.name;
+        saveSavedSearches(list);
+        refreshSavedUi();
+        showToast(clean ? `Renamed to "${clean}".` : 'Shows the search itself again.');
+    }
+
     // Everything that shows saved searches, after a change
     function refreshSavedUi() {
         renderSavedBox();
@@ -12381,6 +12814,17 @@
         box.addEventListener('click', e => {
             const x = e.target.closest('[data-ss-x]');
             if (x) { e.preventDefault(); toggleSavedSearch(x.dataset.ssX); return; }
+            // (Beta 3.15) a row opens the Following window on that search - like an artist
+            const row = e.target.closest('[data-ss]');
+            if (row && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                // (Beta 3.16) here as the posts page, or in the Following window - as set, or asked
+                const mode = CONFIG.savedSearchOpen;
+                if (mode === 'page') return; // (the row is a link to the search)
+                e.preventDefault();
+                if (mode === 'window') openFollowPopup(fwKeySearch(row.dataset.ss));
+                else askSavedSearchOpen(row);
+                return;
+            }
             const t = e.target.closest('[data-fb="manage"]');
             if (!t) return;
             e.preventDefault();
@@ -12400,7 +12844,8 @@
         box.innerHTML = `<div class="s34-follow-head">${DISK_SVG}<b>Saved searches</b><a href="#" data-fb="manage">Manage</a></div>` +
             list.map(s => {
                 const badge = s.count ? `<small class="s34-has-new">${s.count}${s.more ? '+' : ''} new</small>` : '';
-                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${here && sameQuery(here, s.query) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)}"><span>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
+                const open = fwState && fwState.key === fwKeySearch(s.query);
+                return `<div class="s34-saved-item"><a href="${escapeHtml(plainSearchUrl(s.query))}" class="s34-follow-row s34-saved-row${open || (here && sameQuery(here, s.query)) ? ' s34-on' : ''}" data-ss="${escapeHtml(s.query)}" title="${escapeHtml(s.query)} – opens in the Following window (Ctrl + click: the search itself)"><span>${escapeHtml(searchLabel(s))}</span>${badge}</a>` +
                     `<button type="button" class="s34-saved-x" data-ss-x="${escapeHtml(s.query)}" title="Remove from your saved searches" aria-label="Remove ${escapeHtml(searchLabel(s))} from your saved searches">✕</button></div>`;
             }).join('');
     }
@@ -12672,6 +13117,17 @@
     let batchStop = false;
     let batchStatus = '';
     const selected = new Set();
+
+    // (Beta 3.13) Q (changeable): batch select on / off, on the posts page
+    document.addEventListener('keydown', e => {
+        if (e.code !== CONFIG.selectKey || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat) return;
+        const t = e.target;
+        if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+        if (popupState || document.querySelector('.s34-overlay, .s34-cmenu, .s34-menu-overlay, .s34-fw-overlay')) return;
+        if (!document.querySelector('.s34-q-select')) return; // (only where the button is)
+        e.preventDefault();
+        setSelectMode(!selectMode);
+    }, true);
 
     function setSelectMode(on) {
         selectMode = on;
@@ -13224,6 +13680,7 @@
         ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
         ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
+        ['steamy34_more_sites', 'Other sites you\'d use', 'What you typed under Help → "Steamy34 on other sites?" (only kept here – nothing is sent)', {}],
         ['steamy34_collfav_failed', 'Collections → favourites pause', 'When adding collection posts to your favourites last failed (it waits a few hours before trying again)', 0],
         ['steamy34_bl_soft', 'Blurred blacklist tags', 'Blacklisted tags whose posts are blurred with a Show button instead of hidden', []],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],
@@ -14255,6 +14712,20 @@
         const later = st.overlay.querySelector('.s34-pv-later');
         if (later) { const on = inWatchLater(id); later.classList.toggle('s34-on', on); later.title = on ? 'On your Watch later list – click to take it off' : 'Watch later – a list for posts to look at properly later'; }
         styleICame(st.overlay.querySelector('.s34-pv-icame'), id);
+        // (Beta 3.13) the viewed / downloaded buttons
+        const marks = st.overlay.querySelector('.s34-pv-marks');
+        if (marks) {
+            marks.hidden = !CONFIG.trackViewed && !CONFIG.trackDownloads;
+            const done = CONFIG.trackDownloads && isDownloaded(id);
+            const seenBtn = marks.querySelector('[data-act="markseen"]'), dlBtn = marks.querySelector('[data-act="markdl"]');
+            seenBtn.hidden = !CONFIG.trackViewed;
+            dlBtn.hidden = !CONFIG.trackDownloads;
+            const seen = isSeen(id, done);
+            seenBtn.classList.toggle('s34-on', seen);
+            seenBtn.title = (seen ? 'Viewed – click to mark as not viewed' : 'Not viewed – click to mark as viewed') + ` (${keyLabel(CONFIG.markViewedKey)})`;
+            dlBtn.classList.toggle('s34-on', !!done);
+            dlBtn.title = (done ? 'Downloaded – click to take the mark off' : 'Not downloaded – click to mark it as downloaded (nothing is downloaded)') + ` (${keyLabel(CONFIG.markDlKey)})`;
+        }
     }
 
     // ---- Posts put into a collection are favourited too ----
@@ -15048,6 +15519,31 @@
         try { refreshCollThumbButtons(); } catch (e) {}
     }
 
+    // (Beta 3.13) Collections set to "Out once downloaded" (e.g. a "Download later"
+    // list) let go of posts as soon as they're downloaded - with Undo
+    function dropDownloadedFromCollections(ids) {
+        const want = new Set(ids.map(String));
+        const all = getCollections();
+        const gone = [];
+        all.forEach(c => {
+            if (!c.dropOnDownload) return;
+            for (let i = c.posts.length - 1; i >= 0; i--) {
+                if (want.has(String(c.posts[i].id))) { gone.push({ col: c.id, name: c.name, index: i, entry: c.posts[i] }); c.posts.splice(i, 1); }
+            }
+        });
+        if (!gone.length) return;
+        saveCollections(all);
+        const names = Array.from(new Set(gone.map(g => g.name)));
+        showToast(`Downloaded – taken out of ${names.length === 1 ? '"' + names[0] + '"' : names.length + ' collections'}.`, 'Undo', () => {
+            const again = getCollections();
+            gone.slice().reverse().forEach(g => {
+                const c = again.find(x => x.id === g.col);
+                if (c && !c.posts.some(p => String(p.id) === String(g.entry.id))) c.posts.splice(Math.min(g.index, c.posts.length), 0, g.entry);
+            });
+            saveCollections(again);
+        }, 9000);
+    }
+
     function createCollection(name) {
         const list = getCollections();
         const c = { id: 'c' + Date.now().toString(36), name: name.trim().slice(0, 60) || 'New collection', created: Date.now(), posts: [] };
@@ -15057,10 +15553,51 @@
     }
 
     // Small menu: tick collections for one post, or add several posts at once
-    function openCollectMenu(anchor, posts) {
+    // (Beta 3.13) The collection button adds straight away when there's only one
+    // collection (or, if chosen, to the one used last) - opts.menu: always the list
+    const COLL_LAST_KEY = 'steamy34_coll_last';
+    function oneClickCollection() {
+        const list = getCollections();
+        if (CONFIG.collectOneClick === 'off' || !list.length) return null;
+        if (list.length === 1) return list[0];
+        if (CONFIG.collectOneClick !== 'last') return null;
+        let last = '';
+        try { last = GM_getValue(COLL_LAST_KEY, ''); } catch (e) {}
+        return list.find(c => c.id === last) || null;
+    }
+    function rememberLastCollection(id) { try { GM_setValue(COLL_LAST_KEY, id); } catch (e) {} }
+    function quickCollect(anchor, c, p) {
+        const all = getCollections();
+        const col = all.find(x => x.id === c.id);
+        if (!col) return;
+        const has = col.posts.some(x => String(x.id) === String(p.id));
+        if (has) {
+            const at = col.posts.findIndex(x => String(x.id) === String(p.id));
+            const [entry] = col.posts.splice(at, 1);
+            saveCollections(all);
+            showToast(`Removed from "${col.name}".`, 'Undo', () => {
+                const again = getCollections();
+                const cc = again.find(x => x.id === c.id);
+                if (cc && !cc.posts.some(x => String(x.id) === String(p.id))) { cc.posts.splice(Math.min(at, cc.posts.length), 0, entry); saveCollections(again); }
+            });
+        } else {
+            col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {}));
+            saveCollections(all);
+            setTimeout(() => collectionsAdded([p.id]), 0);
+            showToast(`Saved to "${col.name}".`, 'Other collection…', () => openCollectMenu(anchor, [p], { menu: true }));
+        }
+        rememberLastCollection(col.id);
+        try { stylePopupExtras(); } catch (e) {}
+    }
+
+    function openCollectMenu(anchor, posts, opts = {}) {
         // (Beta 3.9.6) the same button again closes it
         const open = document.querySelector('.s34-cmenu');
         if (open && open._anchor === anchor) { open.remove(); return; }
+        if (!opts.menu && posts.length === 1 && posts[0].id) {
+            const target = oneClickCollection();
+            if (target) { quickCollect(anchor, target, posts[0]); return; }
+        }
         document.querySelectorAll('.s34-cmenu').forEach(m => m.remove());
         const single = posts.length === 1;
         const menu = document.createElement('div');
@@ -15108,6 +15645,7 @@
                         showToast(added ? `Saved ${added === 1 ? '' : added + ' posts '}to "${col.name}".` : `Already in "${col.name}".`);
                     }
                     saveCollections(all);
+                    rememberLastCollection(col.id);
                     if (single) render(); else menu.remove();
                 });
                 menu.appendChild(b);
@@ -15124,6 +15662,7 @@
                 posts.forEach(p => { if (p.id) col.posts.unshift(Object.assign({ id: p.id, thumb: p.thumb || '', time: Date.now() }, p.tags ? { tags: String(p.tags).slice(0, 2000) } : {})); });
                 saveCollections(all);
                 collectionsAdded(posts.map(p => p.id).filter(Boolean));
+                rememberLastCollection(col.id);
                 showToast(`Made "${col.name}" and saved ${posts.length === 1 ? 'the post' : posts.length + ' posts'}.`);
                 if (single) render(); else menu.remove();
             };
@@ -15220,7 +15759,7 @@
                 // (Beta 3.10) a chosen cover fills the card; otherwise the first four
                 const chosen = c.cover && clean.find(p => String(p.id) === String(c.cover) && p.thumb);
                 (chosen ? [chosen] : clean.slice(0, 4)).forEach(p => { if (p.thumb) { const i = new Image(); i.src = p.thumb; i.alt = ''; i.loading = 'lazy'; cover.appendChild(i); } });
-                if (!cover.childElementCount) cover.innerHTML = FOLDER_SVG;
+                if (!cover.childElementCount) { cover.innerHTML = (c.id === LATER_ID ? CLOCK_SVG : FOLDER_SVG) + '<span>Empty</span>'; cover.classList.add('s34-coll-cover-empty'); }
                 cover.classList.toggle('s34-coll-cover-n' + Math.min(4, cover.querySelectorAll('img').length), true);
                 const name = document.createElement('div');
                 name.className = 's34-coll-name';
@@ -15241,14 +15780,20 @@
             // New collection card
             const add = document.createElement('div');
             add.className = 's34-coll-card s34-coll-new';
-            add.innerHTML = '<div class="s34-coll-plus">+</div><input type="text" placeholder="New collection…" maxlength="60"><button type="button">Create</button>';
+            add.innerHTML = '<button type="button" class="s34-coll-newbtn"><span class="s34-coll-plus">+</span>New collection</button>'
+                + '<div class="s34-coll-newform" hidden><input type="text" placeholder="Name…" maxlength="60"><button type="button" class="s34-coll-create">Create</button></div>';
             const input = add.querySelector('input');
+            add.querySelector('.s34-coll-newbtn').addEventListener('click', () => {
+                add.querySelector('.s34-coll-newbtn').hidden = true;
+                add.querySelector('.s34-coll-newform').hidden = false;
+                input.focus();
+            });
             const create = () => {
                 if (!input.value.trim()) { input.focus(); return; }
                 createCollection(input.value);
                 renderList();
             };
-            add.querySelector('button').addEventListener('click', create);
+            add.querySelector('.s34-coll-create').addEventListener('click', create);
             input.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') create(); if (e.key === 'Escape') w.close(); });
             grid.appendChild(add);
             w.body.appendChild(grid);
@@ -15269,8 +15814,9 @@
             w.body.replaceChildren();
             const bar = document.createElement('div');
             bar.className = 's34-win-tools';
+            bar.classList.add('s34-coll-bar');
             bar.innerHTML = `
-                <button type="button" data-a="back">← All collections</button>
+                <button type="button" data-a="back" class="s34-coll-back" title="All collections">←</button>
                 <select class="s34-coll-sort" title="Order of the posts">
                     <option value="mine">${thumbButtonsHidden() ? 'My order (hold a post, then drag)' : 'My order (drag to arrange)'}</option>
                     <option value="new">Newest added first</option>
@@ -15278,15 +15824,39 @@
                     <option value="idhi">Post number, high → low</option>
                     <option value="idlo">Post number, low → high</option>
                 </select>
+                <label class="s34-coll-dropdl" title="Posts leave this collection as soon as you download them (or mark them as downloaded) – e.g. for a &quot;Download later&quot; list"><input type="checkbox"> Out once downloaded</label>
                 <span class="s34-grow"></span>
-                <button type="button" data-a="rename">✎ Rename</button>
-                <button type="button" data-a="delete">Delete</button>
+                <div class="s34-coll-morewrap">
+                    <button type="button" data-a="more" class="s34-coll-more" title="Rename, tidy up, delete" aria-haspopup="true">⋯</button>
+                    <div class="s34-coll-menu" hidden>
+                        <button type="button" data-a="rename">Rename</button>
+                        <button type="button" data-a="dropdone" hidden></button>
+                        <button type="button" data-a="delete" class="s34-coll-danger">Delete collection</button>
+                    </div>
+                </div>
                 <button type="button" data-a="dl" class="s34-win-primary">⬇ Download all</button>`;
             bar.addEventListener('click', async e => {
                 const a = e.target.closest('[data-a]');
                 if (!a) return;
                 const act = a.dataset.a;
+                const menu = bar.querySelector('.s34-coll-menu');
+                if (act === 'more') { menu.hidden = !menu.hidden; return; }
+                if (menu) menu.hidden = true;
                 if (act === 'back') { if (downloading) downloading.stop = true; renderList(); }
+                else if (act === 'dropdone') {
+                    const all = getCollections();
+                    const col = all.find(x => x.id === id);
+                    const before = col.posts.slice();
+                    col.posts = col.posts.filter(p => !isDownloaded(p.id));
+                    const n = before.length - col.posts.length;
+                    saveCollections(all);
+                    renderOne(id);
+                    showToast(`Took ${n} downloaded post${n === 1 ? '' : 's'} out of "${col.name}".`, 'Undo', () => {
+                        const again = getCollections();
+                        const cc = again.find(x => x.id === id);
+                        if (cc) { cc.posts = before; saveCollections(again); if (current === id) renderOne(id); }
+                    }, 9000);
+                }
                 else if (act === 'rename') {
                     const name = prompt('New name for this collection:', c.name);
                     if (name === null || !name.trim()) return;
@@ -15333,6 +15903,19 @@
                     status.textContent = sum;
                 }
             });
+            bar.addEventListener('focusout', e => { if (!bar.contains(e.relatedTarget)) { const m = bar.querySelector('.s34-coll-menu'); if (m) m.hidden = true; } });
+            // (Beta 3.13) "Out once downloaded" + "Remove the N downloaded"
+            const dropCb = bar.querySelector('.s34-coll-dropdl input');
+            dropCb.checked = !!c.dropOnDownload;
+            dropCb.addEventListener('change', () => {
+                const all = getCollections();
+                all.find(x => x.id === id).dropOnDownload = dropCb.checked || undefined;
+                saveCollections(all);
+                showToast(dropCb.checked ? `Posts leave "${c.name}" once they're downloaded.` : `Posts stay in "${c.name}" after downloading.`);
+            });
+            const doneN = CONFIG.trackDownloads ? c.posts.filter(p => isDownloaded(p.id)).length : 0;
+            const dropBtn = bar.querySelector('[data-a="dropdone"]');
+            if (doneN) { dropBtn.hidden = false; dropBtn.textContent = `Remove the ${doneN} downloaded`; dropBtn.title = 'Take every post you already downloaded out of this collection'; }
             // (Beta 3.10) order: your own (drag), by date added or by post number
             const sort = c.sort || 'mine';
             const sortSel = bar.querySelector('.s34-coll-sort');
@@ -15353,7 +15936,7 @@
             note.className = 's34-coll-note';
             note.rows = 1;
             note.maxLength = 500;
-            note.placeholder = 'Add a note to this collection…';
+            note.placeholder = '✎ Add a note…';
             note.value = c.note || '';
             let noteTimer = null;
             const fitNote = () => { note.style.height = 'auto'; note.style.height = Math.min(140, note.scrollHeight + 2) + 'px'; };
@@ -15626,11 +16209,13 @@
         btn.type = 'button';
         btn.className = 's34-post-collect';
         btn.innerHTML = FOLDER_SVG + '<span>Save to collection</span>';
-        btn.addEventListener('click', () => {
+        const postOf = () => {
             const img = document.querySelector('#image');
             const tags = Array.from(document.querySelectorAll('#tag-sidebar li[class*="tag-type-"]')).map(getTagFromRow).filter(Boolean).join(' ');
-            openCollectMenu(btn, [{ id, thumb: img ? img.src : '', tags }]);
-        });
+            return [{ id, thumb: img ? img.src : '', tags }];
+        };
+        btn.addEventListener('click', e => openCollectMenu(btn, postOf(), { menu: e.shiftKey }));
+        btn.addEventListener('contextmenu', e => { e.preventDefault(); openCollectMenu(btn, postOf(), { menu: true }); });
         const dl = slot.querySelector('.s34-dl-btn');
         if (dl) dl.after(btn); else slot.prepend(btn);
     }
@@ -15958,6 +16543,35 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.16', date: '2026-11-29', notify: true, items: [
+            'Steamy is the colour mode for everyone now (you can still pick another one in Settings → Look).',
+            'New colour mode: Classic – rule34\'s own green, navy links and tag colours, done tidily.',
+            'A saved search in the sidebar asks where to open: here as the posts page, or in the Following window. Tick "Always do this" – or set it in Settings → Following.',
+            'Collections, tidied up: one calm toolbar (order, "Out once downloaded", ⋯ for Rename / Remove downloaded / Delete, Download all), a quiet note line, an "Empty" placeholder and a simple "+ New collection".',
+            'The popup\'s Viewed / Downloaded buttons: always one short word, lit when on – and they follow a real download right away.'
+        ] },
+        { v: 'Beta 3.15', date: '2026-11-28', notify: true, items: [
+            'Saved searches in the Following window: each one gets a circle next to your artists, with its newest posts in the grid and NEW on the ones since your last look. A saved search in the sidebar opens it there (Ctrl + click: the normal search).',
+            'Rename a saved search: "✎ Rename" in the Following window gives it a name of its own – e.g. "Silver" instead of "deadlock silver score:>=100".'
+        ] },
+        { v: 'Beta 3.14', date: '2026-11-28', notify: true, items: [
+            'Your own file names: Settings → Downloads → File names → "Your own pattern". Placeholders like {id}, {artist}, {character}, {series}, {tags}, {size}, {date} – e.g. "rule34_{id}" or just "{id}" for tools that read the post number. A live example shows what you get.'
+        ] },
+        { v: 'Beta 3.13', date: '2026-11-28', notify: true, items: [
+            '"Hide collected" – a new switch in the sidebar, under "Hide downloaded": hides posts that are in one of your collections.',
+            'Viewed and Downloaded right in the popup: two buttons under the Download button, and the keys V and M. "Downloaded" only sets the mark – nothing is downloaded.',
+            'Q switches batch select on and off on the posts page.',
+            'Just one collection? The collection button (and C) now adds straight to it – Shift + click, right click or Shift + C shows them all. Settings → Downloads can also make it "always the collection used last".',
+            'Collections can let go of posts once you download them: tick "Out once downloaded" in a collection – great for a "Download later" list. "Remove the N downloaded" clears old ones.',
+            'When Tampermonkey blocks a download, Steamy34 now says exactly which setting to change.'
+        ] },
+        { v: 'Beta 3.12', date: '2026-11-27', notify: true, items: [
+            'New colour mode: Steamy – clean and black, with the magenta of the Steamycorner logo as the accent. Settings → Look → Colour mode, or in the welcome guide.',
+            'The end of a search is a proper card now – "End of results", how many posts you saw, Save this search, Back to the top.'
+        ] },
+        { v: 'Beta 3.11.2', date: '2026-11-24', items: [
+            'Settings → Help → "Steamy34 on other sites?": would you like Steamy34 on other, similar sites too? Type which ones – the button copies your answer and opens Discord or Sleazy Fork feedback to paste it.'
+        ] },
         { v: 'Beta 3.11.1', date: '2026-11-24', items: [
             'Blacklist: muted tags, rating:e and tags with an apostrophe no longer come back on screen when you blacklist another tag with ⊘.',
             'Long sessions stay light: the popup no longer leaves a timer running for every post you open, and only the most recent post pages are kept in memory.',
@@ -16503,12 +17117,16 @@
                 [k(L(CONFIG.collectKey)), 'Put it into a collection (again: close the list)', [CONFIG.collectKey], 'Coll.'],
                 [k(L(CONFIG.theaterKey)), 'Theater mode – only the picture', [CONFIG.theaterKey], 'Theater'],
                 [k(L(CONFIG.followKey)), 'Follow / unfollow the artist', [CONFIG.followKey], 'Follow'],
+                [k(L(CONFIG.markViewedKey)), 'Viewed on / off', [CONFIG.markViewedKey], 'Viewed'],
+                [k(L(CONFIG.markDlKey)), 'Mark as downloaded (no file) on / off', [CONFIG.markDlKey], 'Mark ⬇'],
+                [`${k('Shift')} + ${k(L(CONFIG.collectKey))}`, 'All your collections (when the key adds straight away)', [], ''],
                 ...(wasd ? [[`${k('W')} ${k('S')}`, 'Scroll to the comments and back', ['KeyW', 'KeyS'], 'Scroll']] : []),
                 [`${k('Shift')} + ${arrows ? `${k('←')} ${k('→')}` : `${k('A')} ${k('D')}`}`, 'Go through the Similar strip (More → Similar)', ['ShiftLeft'], 'Similar'],
                 [`${k(',')} ${k('.')}`, 'Video paused: one frame back / forward', ['Comma', 'Period'], 'Frame']
             ]],
             ['Anywhere', '#a77bff', [
                 [k(L(CONFIG.followingKey)), 'The Following window – your artists\' newest posts', [CONFIG.followingKey], 'Follow­ing'],
+                [k(L(CONFIG.selectKey)), 'Posts page: batch select on / off – pick posts, download them all', [CONFIG.selectKey], 'Select'],
                 ...(ownKeys.includes('KeyX') ? [] : [[k('X'), 'Censored mode – blurs every picture and video (safe screenshots)', ['KeyX'], 'Censor']]),
                 [k('Esc'), 'Close any Steamy34 window', ['Escape'], 'Close'],
                 [`${k('Ctrl')} + click`, 'A thumbnail: the post page in a new tab instead of the popup', ['ControlLeft'], 'New tab']
@@ -16689,9 +17307,11 @@
                 text: 'Choose a colour mode and how thumbnails show their extras – you can change all of it any time in Settings → Look.',
                 picks: [
                     { key: 'theme', label: 'Colour mode', options: [
+                        ['steamy', '<i style="background:linear-gradient(135deg,#050407 62%,#ff3df2 62%,#9b3bff 100%) !important;border-color:#2a2730 !important"></i>', 'Steamy'],
                         ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
                         ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
-                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED']
+                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED'],
+                        ['classic', '<i style="background:linear-gradient(135deg,#a8dca0 50%,#ffffff 50%) !important;border-color:#8fbf88 !important"></i>', 'Classic']
                     ] },
                     { key: 'thumbExtras', label: 'Tags, labels and buttons on thumbnails', options: [
                         ['on', thumbStyleArt('on'), 'On the picture'],
@@ -17588,14 +18208,20 @@
             items.push({ key: FW_ALL, kind: 'all', label: 'All', count: t.n, more: /\+/.test(t.text) });
         }
         d.artists.forEach(a => items.push({ key: fwKeyArtist(a.tag), kind: 'artist', tag: a.tag, label: prettyTag(a.tag), count: a.count || 0, more: !!a.more, pic: a.pic || '' }));
+        // (Beta 3.15) saved searches too - same circles, same grid, NEW since your last look
+        getSavedSearches().forEach(s => items.push({ key: fwKeySearch(s.query), kind: 'search', query: s.query, label: searchLabel(s), count: searchCountable(s.query) ? s.count || 0 : 0, more: !!s.more, pic: s.pic || '' }));
         return items;
     }
 
     // "Seen" as it was when the window opened (per artist): the
     // posts after it are NEW for as long as the window is open, even after
     // you looked at them once
+    const fwKeySearch = q => 's:' + normQuery(q).toLowerCase();
+    const fwIsSearch = k => String(k || '').startsWith('s:');
+    const fwSearchOf = k => findSavedSearch(k.slice(2));
     function fwSeen(k) {
         const st = fwState;
+        if (!(k in st.seen) && fwIsSearch(k)) { const s = fwSearchOf(k); st.seen[k] = s && searchCountable(s.query) ? s.seen || 0 : 0; }
         if (!(k in st.seen)) {
             const it = findArtist(k.slice(2), getFollowing());
             st.seen[k] = it ? it.seen || 0 : 0;
@@ -17607,6 +18233,7 @@
     const fwHue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
     function fwAvatarHtml(item, pic) {
         if (item.kind === 'all') return `<span class="s34-fw-pic s34-fw-av s34-fw-allpic">${BELL_ON_SVG}</span>`;
+        if (item.kind === 'search' && !(pic || item.pic)) return `<span class="s34-fw-pic s34-fw-av s34-fw-allpic">${DISK_SVG}</span>`;
         const src = pic || item.pic;
         const inner = src ? `<img class="s34-fw-av" alt="" src="${escapeHtml(src)}">`
             : `<span class="s34-fw-letter">${escapeHtml((item.label || '?').trim().charAt(0).toUpperCase())}</span>`;
@@ -17673,6 +18300,7 @@
                     const k = fwState.key;
                     if (k.startsWith('a:')) toggleFollow(k.slice(2));
                 }
+                else if (what === 'rename') { const s = fwSearchOf(fwState.key); if (s) renameSavedSearch(s.query); }
                 return;
             }
             const c = e.target.closest('.s34-fw-c');
@@ -17760,7 +18388,7 @@
         fwEl('.s34-fw-grid').replaceChildren(...view.tiles);
         fwEl('.s34-fw-scroll').scrollTop = view.scrollTop || 0;
         fwRenderStatus(view);
-        renderFollowBox(); // the sidebar row of what's shown
+        renderFollowBox(); renderSavedBox(); // the sidebar row of what's shown
         const on = fwEl('.s34-fw-c.s34-on');
         if (on) { try { on.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} }
         if (!key) return;
@@ -17774,6 +18402,7 @@
         let sources = [];
         if (key === FW_ALL) sources = followGroups(d).map(g => ({ query: groupQuery(g), tags: g }));
         else if (key.startsWith('a:')) sources = [{ query: key.slice(2), tags: [key.slice(2)] }];
+        else if (fwIsSearch(key)) { const s = fwSearchOf(key); if (s) sources = [{ query: s.query, tags: [], search: true }]; }
         sources.forEach(s => Object.assign(s, { next: null, started: false, done: false, buf: [] }));
         const item = fwItems(d).find(i => i.key === key) || {};
         return {
@@ -17798,11 +18427,13 @@
         const box = fwEl('.s34-fw-circles');
         const items = fwOrderedItems();
         box.hidden = !items.length;
+        let firstSearch = true;
         box.innerHTML = items.map(it => {
             const v = st.views.get(it.key);
             const on = it.key === st.key;
+            const sep = it.kind === 'search' && firstSearch && items.some(x => x.kind !== 'search') ? (firstSearch = false, '<span class="s34-fw-sep" aria-hidden="true"></span>') : (it.kind === 'search' ? (firstSearch = false, '') : '');
             const title = it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : '');
-            return `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}${on ? ' s34-on' : ''}${it.gone ? ' s34-gone' : ''}" data-key="${escapeHtml(it.key)}" role="tab" aria-selected="${on}" title="${escapeHtml(title)}">
+            return sep + `<button type="button" class="s34-fw-c${it.kind === 'search' ? ' s34-fw-c-search' : ''}${it.count ? ' s34-new' : ''}${on ? ' s34-on' : ''}${it.gone ? ' s34-gone' : ''}" data-key="${escapeHtml(it.key)}" role="tab" aria-selected="${on}" title="${escapeHtml(title)}">
                 <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it, v && v.pic)}</span>
                 <span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`;
         }).join('');
@@ -17816,6 +18447,26 @@
         const k = view.key;
         if (!k) {
             head.innerHTML = `<div class="s34-fw-empty">Nothing followed yet. Follow an artist with the ${BELL_TEXT} next to their name in a post. Their newest posts show up here, with NEW on the ones since your last visit.</div>`;
+            return;
+        }
+        if (fwIsSearch(k)) {
+            const s = fwSearchOf(k) || { query: k.slice(2) };
+            const item = fwState.items.get(k) || { kind: 'search', label: searchLabel(s) };
+            const n = Math.max(view.newN, view.countAtOpen);
+            const nums = [searchCountable(s.query) ? `<span><b>${n}${view.moreAtOpen && n === view.countAtOpen && n ? '+' : ''}</b> new since your last look</span>` : '<span>sorted by its own order – no NEW count</span>'];
+            if (s.name && s.name !== s.query) nums.push('<span class="s34-fw-q"></span>');
+            head.innerHTML = `
+                <span class="s34-fw-big s34-fw-av">${fwAvatarHtml(item, view.pic)}</span>
+                <div class="s34-fw-info">
+                    <div class="s34-fw-row"><b class="s34-fw-nm"></b>
+                        <button type="button" class="s34-fw-btn" data-fw="rename" title="Give this saved search a name of its own">✎ Rename</button>
+                        <a class="s34-fw-btn s34-fw-search" href="${escapeHtml(plainSearchUrl(s.query))}" title="The normal search – with every filter and sort">Open as a search ↗</a>
+                    </div>
+                    <div class="s34-fw-nums">${nums.join('')}</div>
+                </div>`;
+            head.querySelector('.s34-fw-nm').textContent = searchLabel(s);
+            const q = head.querySelector('.s34-fw-q');
+            if (q) q.textContent = s.query;
             return;
         }
         const isAll = k === FW_ALL;
@@ -17930,6 +18581,19 @@
     // A source's first page: the total, the picture, and everyone on it is
     // now "seen" (like opening their page used to be - the NEW marks stay)
     function fwLearn(view, src, doc, thumbs) {
+        if (src.search) {
+            const list = getSavedSearches();
+            const s = findSavedSearch(src.query, list);
+            if (!s) return;
+            const max = thumbs.reduce((m, t) => Math.max(m, parseInt(thumbPostId(t), 10) || 0), 0);
+            if (max && searchCountable(s.query)) { s.seen = Math.max(s.seen || 0, max); s.latest = Math.max(s.latest || 0, max); }
+            s.count = 0; s.more = false;
+            if (thumbs.length) s.pic = thumbPicOf(thumbs[0]) || s.pic;
+            saveSavedSearches(list);
+            renderSavedBox();
+            updateTabBadge();
+            return;
+        }
         const d = getFollowing();
         const ids = thumbs.map(t => parseInt(thumbPostId(t), 10) || 0);
         const seenUpTo = (it, mine) => {
@@ -17964,6 +18628,7 @@
 
     function fwIsNew(view, t) {
         const id = parseInt(thumbPostId(t), 10) || 0;
+        if (fwIsSearch(view.key)) { const s = fwSeen(view.key); return !!s && id > s; }
         const tags = view.key === FW_ALL ? thumbArtists(t, view.sources.reduce((all, s) => all.concat(s.tags), [])) : [view.key.slice(2)];
         return tags.some(tag => { const s = fwSeen(fwKeyArtist(tag)); return !!s && id > s; });
     }
@@ -18568,7 +19233,7 @@
     function syncSiteSwitches() {
         // rule34's theme cookie follows the colour mode (pages arrive dark - no white flash)
         if (CONFIG.matchSiteTheme) {
-            const want = CONFIG.theme === 'white' ? 'light' : 'dark';
+            const want = CONFIG.theme === 'white' || CONFIG.theme === 'classic' ? 'light' : 'dark';
             if (readSiteCookie('theme') !== want) writeSiteCookie('theme', want);
         }
         // the site's own suggestion list (it reads this itself)
@@ -19046,6 +19711,29 @@
         return groups;
     }
 
+    // The post in the popup, as the collection menu wants it
+    function popupCollectPosts(s) {
+        return [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s), tags: popupTagList(s).join(' ') }];
+    }
+
+    // (Beta 3.13) Viewed / downloaded, right in the popup (before: only on thumbnails)
+    function popupToggleMark(act) {
+        const s = popupState;
+        if (!s) return;
+        const id = postIdFrom(s.postUrl);
+        if (act === 'markseen') {
+            const seen = isSeen(id, CONFIG.trackDownloads && isDownloaded(id));
+            setThumbViewed(id, !seen);
+            showToast(seen ? 'Marked as not viewed.' : 'Marked as viewed.');
+        } else {
+            if (isDownloaded(id)) { unmarkDownloaded([id]); showToast('Download mark taken off.'); }
+            else { markDownloadedOnly([id]); showToast('Marked as downloaded (nothing was downloaded).'); }
+            styleDownloadButton(s.overlay.querySelector('.s34-dl-btn'), isDownloaded(id));
+        }
+        showDownloadedState([s.thumb]);
+        stylePopupExtras();
+    }
+
     // Every tag of the post in the popup, as a plain list
     function popupTagList(st) {
         return [].concat(...Object.values((st && st.tags) || {}).map(l => (l || []).map(x => x.tag)));
@@ -19094,6 +19782,10 @@
                     <button type="button" class="s34-pv-later" data-act="later" title="Watch later – a list for posts to look at properly later">${CLOCK_SVG}<span>Later</span></button>
                     <button type="button" class="s34-pv-icame" data-act="icame" title="iCame – rule34's own counter (once every 24 hours)">${SPLASH_SVG}<span>iCame</span></button>
                 </div>
+                <div class="s34-pv-marks">
+                    <button type="button" data-act="markseen" title="Viewed – click to mark as not viewed (${keyLabel(CONFIG.markViewedKey)})">${TB_EYE_SVG}<span>Viewed</span></button>
+                    <button type="button" data-act="markdl" title="Mark as downloaded without downloading – or take the mark off (${keyLabel(CONFIG.markDlKey)})">${TB_DL_SVG}<span>Downloaded</span></button>
+                </div>
                 <div class="s34-auto">
                     <button type="button" class="s34-auto-toggle"></button>
                     <div class="s34-auto-row">
@@ -19136,11 +19828,15 @@
             else if (act === 'theater') setTheater(!overlay.classList.contains('s34-pv-theater'));
             else if (act === 'later') toggleWatchLater();
             else if (act === 'icame') sendICame(actEl);
+            else if (act === 'markseen' || act === 'markdl') popupToggleMark(act);
             else if (act === 'collect') {
                 const s = popupState;
-                if (s) openCollectMenu(actEl, [{ id: postIdFrom(s.postUrl), thumb: popupThumbSrc(s),
-                    tags: popupTagList(s).join(' ') }]);
+                if (s) openCollectMenu(actEl, popupCollectPosts(s), { menu: e.shiftKey });
             }
+        });
+        overlay.querySelector('.s34-pv-collect').addEventListener('contextmenu', e => {
+            e.preventDefault();
+            if (popupState) openCollectMenu(e.currentTarget, popupCollectPosts(popupState), { menu: true });
         });
         setTheater(GM_getValue(THEATER_KEY, false) === true, overlay);
 
@@ -19616,6 +20312,18 @@
             if (!artists.length) { showToast('This post has no artist tag to follow.'); return; }
             // one artist: follow right away (with Undo); several: a small menu to choose
             followArtistByKey(artists, popupState.overlay.querySelector('.s34-chip-artist'));
+            return;
+        }
+        // V / M (changeable, Beta 3.13): viewed, marked as downloaded
+        if (e.code === CONFIG.markViewedKey || e.code === CONFIG.markDlKey) {
+            e.preventDefault();
+            popupToggleMark(e.code === CONFIG.markViewedKey ? 'markseen' : 'markdl');
+            return;
+        }
+        // Shift + C: the list of all collections (C alone may add straight away)
+        if (e.code === CONFIG.collectKey && e.shiftKey) {
+            e.preventDefault();
+            openCollectMenu(ov.querySelector('.s34-pv-collect'), popupCollectPosts(popupState), { menu: true });
             return;
         }
         // F / C / T (changeable): favourite, collection, theater mode

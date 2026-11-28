@@ -5,6 +5,17 @@
     let batchStatus = '';
     const selected = new Set();
 
+    // (Beta 3.13) Q (changeable): batch select on / off, on the posts page
+    document.addEventListener('keydown', e => {
+        if (e.code !== CONFIG.selectKey || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat) return;
+        const t = e.target;
+        if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return;
+        if (popupState || document.querySelector('.s34-overlay, .s34-cmenu, .s34-menu-overlay, .s34-fw-overlay')) return;
+        if (!document.querySelector('.s34-q-select')) return; // (only where the button is)
+        e.preventDefault();
+        setSelectMode(!selectMode);
+    }, true);
+
     function setSelectMode(on) {
         selectMode = on;
         document.documentElement.classList.toggle('s34-selecting', on);
@@ -556,6 +567,7 @@
         ['steamy34_bl_full', 'Full blacklist', 'Your whole blacklist – also the tags that don\'t fit into rule34\'s own list (its cookie holds about 4,000 characters)', []],
         ['steamy34_bl_account', 'Your account\'s blacklist', 'What your account\'s blacklist held the last time Options was open – for the "not on your account yet" marks', {}],
         ['steamy34_bltimes', 'Blacklist dates', 'When you blacklisted each tag', {}],
+        ['steamy34_more_sites', 'Other sites you\'d use', 'What you typed under Help → "Steamy34 on other sites?" (only kept here – nothing is sent)', {}],
         ['steamy34_collfav_failed', 'Collections → favourites pause', 'When adding collection posts to your favourites last failed (it waits a few hours before trying again)', 0],
         ['steamy34_bl_soft', 'Blurred blacklist tags', 'Blacklisted tags whose posts are blurred with a Show button instead of hidden', []],
         ['steamy34_video', 'Video options', 'Volume, mute, loop and speed', {}],

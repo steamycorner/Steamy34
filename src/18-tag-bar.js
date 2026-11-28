@@ -474,6 +474,29 @@
         if (durationMs > 0) toast._s34Timer = setTimeout(() => hideToast(toast), durationMs);
     }
 
+    // (Beta 3.12) The end of a search: a card instead of a grey line - what
+    // happened, and where to go from here
+    function showEndCard(status) {
+        const n = document.querySelectorAll('.image-list span.thumb:not(.s34-bl-hidden)').length;
+        const card = document.createElement('div');
+        card.className = 's34-end-card';
+        card.innerHTML = '<h3>End of results</h3><p></p><div class="s34-end-acts"><button type="button" data-end="top">↑ Back to the top</button></div>';
+        card.querySelector('p').textContent = n ? `That's every post for this search – ${n} shown.` : 'That\'s every post for this search.';
+        const acts = card.querySelector('.s34-end-acts');
+        const save = document.querySelector('.s34-sb .s34-sb-save:not(.s34-on)');
+        if (save) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = '💾 Save this search';
+            b.title = 'Saved searches show their new posts in the sidebar';
+            b.addEventListener('click', () => { save.click(); b.remove(); });
+            acts.prepend(b);
+        }
+        card.querySelector('[data-end="top"]').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        status.classList.add('s34-scroll-end');
+        status.replaceChildren(card);
+    }
+
     function makeDivider(pageNumber) {
         const div = document.createElement('div');
         div.className = 's34-page-divider';
@@ -578,7 +601,7 @@
 
         function finish(reason) {
             done = true;
-            status.textContent = 'End of results';
+            showEndCard(status);
             console.log('[Steamy34] Infinite scroll finished:', reason);
         }
 

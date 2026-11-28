@@ -67,14 +67,20 @@
             items.push({ key: FW_ALL, kind: 'all', label: 'All', count: t.n, more: /\+/.test(t.text) });
         }
         d.artists.forEach(a => items.push({ key: fwKeyArtist(a.tag), kind: 'artist', tag: a.tag, label: prettyTag(a.tag), count: a.count || 0, more: !!a.more, pic: a.pic || '' }));
+        // (Beta 3.15) saved searches too - same circles, same grid, NEW since your last look
+        getSavedSearches().forEach(s => items.push({ key: fwKeySearch(s.query), kind: 'search', query: s.query, label: searchLabel(s), count: searchCountable(s.query) ? s.count || 0 : 0, more: !!s.more, pic: s.pic || '' }));
         return items;
     }
 
     // "Seen" as it was when the window opened (per artist): the
     // posts after it are NEW for as long as the window is open, even after
     // you looked at them once
+    const fwKeySearch = q => 's:' + normQuery(q).toLowerCase();
+    const fwIsSearch = k => String(k || '').startsWith('s:');
+    const fwSearchOf = k => findSavedSearch(k.slice(2));
     function fwSeen(k) {
         const st = fwState;
+        if (!(k in st.seen) && fwIsSearch(k)) { const s = fwSearchOf(k); st.seen[k] = s && searchCountable(s.query) ? s.seen || 0 : 0; }
         if (!(k in st.seen)) {
             const it = findArtist(k.slice(2), getFollowing());
             st.seen[k] = it ? it.seen || 0 : 0;
@@ -86,6 +92,7 @@
     const fwHue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
     function fwAvatarHtml(item, pic) {
         if (item.kind === 'all') return `<span class="s34-fw-pic s34-fw-av s34-fw-allpic">${BELL_ON_SVG}</span>`;
+        if (item.kind === 'search' && !(pic || item.pic)) return `<span class="s34-fw-pic s34-fw-av s34-fw-allpic">${DISK_SVG}</span>`;
         const src = pic || item.pic;
         const inner = src ? `<img class="s34-fw-av" alt="" src="${escapeHtml(src)}">`
             : `<span class="s34-fw-letter">${escapeHtml((item.label || '?').trim().charAt(0).toUpperCase())}</span>`;
@@ -152,6 +159,7 @@
                     const k = fwState.key;
                     if (k.startsWith('a:')) toggleFollow(k.slice(2));
                 }
+                else if (what === 'rename') { const s = fwSearchOf(fwState.key); if (s) renameSavedSearch(s.query); }
                 return;
             }
             const c = e.target.closest('.s34-fw-c');
@@ -239,7 +247,7 @@
         fwEl('.s34-fw-grid').replaceChildren(...view.tiles);
         fwEl('.s34-fw-scroll').scrollTop = view.scrollTop || 0;
         fwRenderStatus(view);
-        renderFollowBox(); // the sidebar row of what's shown
+        renderFollowBox(); renderSavedBox(); // the sidebar row of what's shown
         const on = fwEl('.s34-fw-c.s34-on');
         if (on) { try { on.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} }
         if (!key) return;
@@ -253,6 +261,7 @@
         let sources = [];
         if (key === FW_ALL) sources = followGroups(d).map(g => ({ query: groupQuery(g), tags: g }));
         else if (key.startsWith('a:')) sources = [{ query: key.slice(2), tags: [key.slice(2)] }];
+        else if (fwIsSearch(key)) { const s = fwSearchOf(key); if (s) sources = [{ query: s.query, tags: [], search: true }]; }
         sources.forEach(s => Object.assign(s, { next: null, started: false, done: false, buf: [] }));
         const item = fwItems(d).find(i => i.key === key) || {};
         return {
@@ -277,11 +286,13 @@
         const box = fwEl('.s34-fw-circles');
         const items = fwOrderedItems();
         box.hidden = !items.length;
+        let firstSearch = true;
         box.innerHTML = items.map(it => {
             const v = st.views.get(it.key);
             const on = it.key === st.key;
+            const sep = it.kind === 'search' && firstSearch && items.some(x => x.kind !== 'search') ? (firstSearch = false, '<span class="s34-fw-sep" aria-hidden="true"></span>') : (it.kind === 'search' ? (firstSearch = false, '') : '');
             const title = it.label + (it.count ? ' – ' + it.count + (it.more ? '+' : '') + ' new' : '');
-            return `<button type="button" class="s34-fw-c${it.count ? ' s34-new' : ''}${on ? ' s34-on' : ''}${it.gone ? ' s34-gone' : ''}" data-key="${escapeHtml(it.key)}" role="tab" aria-selected="${on}" title="${escapeHtml(title)}">
+            return sep + `<button type="button" class="s34-fw-c${it.kind === 'search' ? ' s34-fw-c-search' : ''}${it.count ? ' s34-new' : ''}${on ? ' s34-on' : ''}${it.gone ? ' s34-gone' : ''}" data-key="${escapeHtml(it.key)}" role="tab" aria-selected="${on}" title="${escapeHtml(title)}">
                 <span class="s34-fw-ring s34-fw-av">${fwAvatarHtml(it, v && v.pic)}</span>
                 <span class="s34-fw-name">${escapeHtml(it.label)}</span></button>`;
         }).join('');
@@ -295,6 +306,26 @@
         const k = view.key;
         if (!k) {
             head.innerHTML = `<div class="s34-fw-empty">Nothing followed yet. Follow an artist with the ${BELL_TEXT} next to their name in a post. Their newest posts show up here, with NEW on the ones since your last visit.</div>`;
+            return;
+        }
+        if (fwIsSearch(k)) {
+            const s = fwSearchOf(k) || { query: k.slice(2) };
+            const item = fwState.items.get(k) || { kind: 'search', label: searchLabel(s) };
+            const n = Math.max(view.newN, view.countAtOpen);
+            const nums = [searchCountable(s.query) ? `<span><b>${n}${view.moreAtOpen && n === view.countAtOpen && n ? '+' : ''}</b> new since your last look</span>` : '<span>sorted by its own order – no NEW count</span>'];
+            if (s.name && s.name !== s.query) nums.push('<span class="s34-fw-q"></span>');
+            head.innerHTML = `
+                <span class="s34-fw-big s34-fw-av">${fwAvatarHtml(item, view.pic)}</span>
+                <div class="s34-fw-info">
+                    <div class="s34-fw-row"><b class="s34-fw-nm"></b>
+                        <button type="button" class="s34-fw-btn" data-fw="rename" title="Give this saved search a name of its own">✎ Rename</button>
+                        <a class="s34-fw-btn s34-fw-search" href="${escapeHtml(plainSearchUrl(s.query))}" title="The normal search – with every filter and sort">Open as a search ↗</a>
+                    </div>
+                    <div class="s34-fw-nums">${nums.join('')}</div>
+                </div>`;
+            head.querySelector('.s34-fw-nm').textContent = searchLabel(s);
+            const q = head.querySelector('.s34-fw-q');
+            if (q) q.textContent = s.query;
             return;
         }
         const isAll = k === FW_ALL;
@@ -409,6 +440,19 @@
     // A source's first page: the total, the picture, and everyone on it is
     // now "seen" (like opening their page used to be - the NEW marks stay)
     function fwLearn(view, src, doc, thumbs) {
+        if (src.search) {
+            const list = getSavedSearches();
+            const s = findSavedSearch(src.query, list);
+            if (!s) return;
+            const max = thumbs.reduce((m, t) => Math.max(m, parseInt(thumbPostId(t), 10) || 0), 0);
+            if (max && searchCountable(s.query)) { s.seen = Math.max(s.seen || 0, max); s.latest = Math.max(s.latest || 0, max); }
+            s.count = 0; s.more = false;
+            if (thumbs.length) s.pic = thumbPicOf(thumbs[0]) || s.pic;
+            saveSavedSearches(list);
+            renderSavedBox();
+            updateTabBadge();
+            return;
+        }
         const d = getFollowing();
         const ids = thumbs.map(t => parseInt(thumbPostId(t), 10) || 0);
         const seenUpTo = (it, mine) => {
@@ -443,6 +487,7 @@
 
     function fwIsNew(view, t) {
         const id = parseInt(thumbPostId(t), 10) || 0;
+        if (fwIsSearch(view.key)) { const s = fwSeen(view.key); return !!s && id > s; }
         const tags = view.key === FW_ALL ? thumbArtists(t, view.sources.reduce((all, s) => all.concat(s.tags), [])) : [view.key.slice(2)];
         return tags.some(tag => { const s = fwSeen(fwKeyArtist(tag)); return !!s && id > s; });
     }

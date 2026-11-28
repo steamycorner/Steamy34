@@ -203,6 +203,35 @@
     // ADDING A VERSION: put it on top here and update @version + the
     // console line at the end of the file.
     const CHANGELOG = [
+        { v: 'Beta 3.16', date: '2026-11-29', notify: true, items: [
+            'Steamy is the colour mode for everyone now (you can still pick another one in Settings → Look).',
+            'New colour mode: Classic – rule34\'s own green, navy links and tag colours, done tidily.',
+            'A saved search in the sidebar asks where to open: here as the posts page, or in the Following window. Tick "Always do this" – or set it in Settings → Following.',
+            'Collections, tidied up: one calm toolbar (order, "Out once downloaded", ⋯ for Rename / Remove downloaded / Delete, Download all), a quiet note line, an "Empty" placeholder and a simple "+ New collection".',
+            'The popup\'s Viewed / Downloaded buttons: always one short word, lit when on – and they follow a real download right away.'
+        ] },
+        { v: 'Beta 3.15', date: '2026-11-28', notify: true, items: [
+            'Saved searches in the Following window: each one gets a circle next to your artists, with its newest posts in the grid and NEW on the ones since your last look. A saved search in the sidebar opens it there (Ctrl + click: the normal search).',
+            'Rename a saved search: "✎ Rename" in the Following window gives it a name of its own – e.g. "Silver" instead of "deadlock silver score:>=100".'
+        ] },
+        { v: 'Beta 3.14', date: '2026-11-28', notify: true, items: [
+            'Your own file names: Settings → Downloads → File names → "Your own pattern". Placeholders like {id}, {artist}, {character}, {series}, {tags}, {size}, {date} – e.g. "rule34_{id}" or just "{id}" for tools that read the post number. A live example shows what you get.'
+        ] },
+        { v: 'Beta 3.13', date: '2026-11-28', notify: true, items: [
+            '"Hide collected" – a new switch in the sidebar, under "Hide downloaded": hides posts that are in one of your collections.',
+            'Viewed and Downloaded right in the popup: two buttons under the Download button, and the keys V and M. "Downloaded" only sets the mark – nothing is downloaded.',
+            'Q switches batch select on and off on the posts page.',
+            'Just one collection? The collection button (and C) now adds straight to it – Shift + click, right click or Shift + C shows them all. Settings → Downloads can also make it "always the collection used last".',
+            'Collections can let go of posts once you download them: tick "Out once downloaded" in a collection – great for a "Download later" list. "Remove the N downloaded" clears old ones.',
+            'When Tampermonkey blocks a download, Steamy34 now says exactly which setting to change.'
+        ] },
+        { v: 'Beta 3.12', date: '2026-11-27', notify: true, items: [
+            'New colour mode: Steamy – clean and black, with the magenta of the Steamycorner logo as the accent. Settings → Look → Colour mode, or in the welcome guide.',
+            'The end of a search is a proper card now – "End of results", how many posts you saw, Save this search, Back to the top.'
+        ] },
+        { v: 'Beta 3.11.2', date: '2026-11-24', items: [
+            'Settings → Help → "Steamy34 on other sites?": would you like Steamy34 on other, similar sites too? Type which ones – the button copies your answer and opens Discord or Sleazy Fork feedback to paste it.'
+        ] },
         { v: 'Beta 3.11.1', date: '2026-11-24', items: [
             'Blacklist: muted tags, rating:e and tags with an apostrophe no longer come back on screen when you blacklist another tag with ⊘.',
             'Long sessions stay light: the popup no longer leaves a timer running for every post you open, and only the most recent post pages are kept in memory.',
@@ -748,12 +777,16 @@
                 [k(L(CONFIG.collectKey)), 'Put it into a collection (again: close the list)', [CONFIG.collectKey], 'Coll.'],
                 [k(L(CONFIG.theaterKey)), 'Theater mode – only the picture', [CONFIG.theaterKey], 'Theater'],
                 [k(L(CONFIG.followKey)), 'Follow / unfollow the artist', [CONFIG.followKey], 'Follow'],
+                [k(L(CONFIG.markViewedKey)), 'Viewed on / off', [CONFIG.markViewedKey], 'Viewed'],
+                [k(L(CONFIG.markDlKey)), 'Mark as downloaded (no file) on / off', [CONFIG.markDlKey], 'Mark ⬇'],
+                [`${k('Shift')} + ${k(L(CONFIG.collectKey))}`, 'All your collections (when the key adds straight away)', [], ''],
                 ...(wasd ? [[`${k('W')} ${k('S')}`, 'Scroll to the comments and back', ['KeyW', 'KeyS'], 'Scroll']] : []),
                 [`${k('Shift')} + ${arrows ? `${k('←')} ${k('→')}` : `${k('A')} ${k('D')}`}`, 'Go through the Similar strip (More → Similar)', ['ShiftLeft'], 'Similar'],
                 [`${k(',')} ${k('.')}`, 'Video paused: one frame back / forward', ['Comma', 'Period'], 'Frame']
             ]],
             ['Anywhere', '#a77bff', [
                 [k(L(CONFIG.followingKey)), 'The Following window – your artists\' newest posts', [CONFIG.followingKey], 'Follow­ing'],
+                [k(L(CONFIG.selectKey)), 'Posts page: batch select on / off – pick posts, download them all', [CONFIG.selectKey], 'Select'],
                 ...(ownKeys.includes('KeyX') ? [] : [[k('X'), 'Censored mode – blurs every picture and video (safe screenshots)', ['KeyX'], 'Censor']]),
                 [k('Esc'), 'Close any Steamy34 window', ['Escape'], 'Close'],
                 [`${k('Ctrl')} + click`, 'A thumbnail: the post page in a new tab instead of the popup', ['ControlLeft'], 'New tab']
@@ -934,9 +967,11 @@
                 text: 'Choose a colour mode and how thumbnails show their extras – you can change all of it any time in Settings → Look.',
                 picks: [
                     { key: 'theme', label: 'Colour mode', options: [
+                        ['steamy', '<i style="background:linear-gradient(135deg,#050407 62%,#ff3df2 62%,#9b3bff 100%) !important;border-color:#2a2730 !important"></i>', 'Steamy'],
                         ['white', '<i style="background:linear-gradient(135deg,#ffffff 50%,#e9e9ee 50%) !important;border-color:#cfcfd6 !important"></i>', 'White'],
                         ['dark', '<i style="background:linear-gradient(135deg,#26262c 50%,#1b1b1f 50%) !important;border-color:#3a3a44 !important"></i>', 'Dark'],
-                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED']
+                        ['oled', '<i style="background:#000 !important;border-color:#2a2a30 !important"></i>', 'OLED'],
+                        ['classic', '<i style="background:linear-gradient(135deg,#a8dca0 50%,#ffffff 50%) !important;border-color:#8fbf88 !important"></i>', 'Classic']
                     ] },
                     { key: 'thumbExtras', label: 'Tags, labels and buttons on thumbnails', options: [
                         ['on', thumbStyleArt('on'), 'On the picture'],
